@@ -1,0 +1,301 @@
+
+<script type="text/javascript">
+	ace.config.set("modePath", "thirdparty/ace/src-min-noconflict");
+	ace.config.set("themePath", "thirdparty/ace/src-min-noconflict");
+</script>
+
+<ul class="nav nav-tabs">
+
+{{#menu_shown}}
+	{{#show_tab_view}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_view}}active{{/active_tab_view}}" href="view.php?id={{coursemodule_id}}">
+			{{{icon_standings}}}
+			{{#str}} standings, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_view}}	
+
+	{{#show_tab_tasks}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_tasks}}active{{/active_tab_tasks}}" href="tasks.php?id={{coursemodule_id}}">
+			{{{icon_tasklist}}}
+			{{#str}} tasklist, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_tasks}}
+
+	{{#show_tab_status}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_status}}active{{/active_tab_status}}" href="status.php?id={{coursemodule_id}}">
+			{{{icon_status}}}
+			{{#str}} status, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_status}}
+	
+	{{#show_tab_results}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_results}}active{{/active_tab_results}}" href="results.php?id={{coursemodule_id}}">
+			{{{icon_results}}}
+			{{#str}} mysubmits, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_results}}
+
+	{{#show_tab_anothers_results}}
+	<li class="nav-item">
+		<a class="nav-link active" href="results.php?id={{coursemodule_id}}&user_id={{target_user_id}}">
+			{{{icon_anothers_results}}}
+			{{#str}} submitsfrom, mod_bacs {{/str}} {{target_user_firstname}} {{target_user_lastname}}
+		</a>
+	</li>
+	{{/show_tab_anothers_results}}
+
+	{{#show_tab_actions}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_actions}}active{{/active_tab_actions}}" href='contest_actions.php?id={{coursemodule_id}}'>
+			{{{icon_actions}}}
+			{{#str}} actionswithcontest, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_actions}}
+
+	{{#show_tab_user_dynamics}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_user_dynamics}}active{{/active_tab_user_dynamics}}" href="user_dynamics.php?id={{coursemodule_id}}">
+			{{{icon_user_dynamics}}}
+			{{#str}} userdynamics, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_user_dynamics}}
+
+	{{#show_tab_task_dynamics}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_task_dynamics}}active{{/active_tab_task_dynamics}}" href="task_dynamics.php?id={{coursemodule_id}}">
+			{{{icon_task_dynamics}}}
+			{{#str}} taskdynamics, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_task_dynamics}}
+
+	{{#show_tab_results_graph}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_results_graph}}active{{/active_tab_results_graph}}" href="results_graph.php?id={{coursemodule_id}}">
+			{{{icon_results_graph}}}
+			{{#str}} resultsgraph, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_results_graph}}
+
+	{{#show_tab_virtual_contest}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_virtual_contest}}active{{/active_tab_virtual_contest}}" href="virtual_contest.php?id={{coursemodule_id}}">
+			{{{icon_virtual_contest}}}
+			{{#str}} virtualparticipation, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_virtual_contest}}
+
+	{{#show_tab_virtual_participants}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_virtual_participants}}active{{/active_tab_virtual_participants}}" href="virtual_contest.php?id={{coursemodule_id}}">
+			{{{icon_virtual_participants}}}
+			{{#str}} virtualparticipants, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_virtual_participants}}
+
+	{{#show_tab_more}}
+	<li class="nav-item dropdown">
+		<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
+			{{{icon_more}}}
+			{{#str}} more, mod_bacs {{/str}}
+		</a>
+
+		<ul class="dropdown-menu">
+			{{#show_more_item_view}}
+			<li>
+				<a class="dropdown-item {{#active_tab_view}}active{{/active_tab_view}}" href="view.php?id={{coursemodule_id}}">
+					{{{icon_standings}}}
+					{{#str}} standings, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_view}}
+
+			{{#show_more_item_tasks}}
+			<li>
+				<a class="dropdown-item {{#active_tab_tasks}}active{{/active_tab_tasks}}" href="tasks.php?id={{coursemodule_id}}">
+					{{{icon_tasklist}}}
+					{{#str}} tasklist, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_tasks}}
+
+			{{#show_more_item_status}}
+			<li>
+				<a class="dropdown-item {{#active_tab_status}}active{{/active_tab_status}}" href="status.php?id={{coursemodule_id}}">
+					{{{icon_status}}}
+					{{#str}} status, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_status}}
+
+			{{#show_more_item_results}}
+			<li>
+				<a class="dropdown-item {{#active_tab_results}}active{{/active_tab_results}}" href="results.php?id={{coursemodule_id}}">
+					{{{icon_results}}}
+					{{#str}} mysubmits, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_results}}
+
+			{{#show_more_item_user_dynamics}}
+			<li>
+				<a class="dropdown-item {{#active_tab_user_dynamics}}active{{/active_tab_user_dynamics}}" href="user_dynamics.php?id={{coursemodule_id}}">
+					{{{icon_user_dynamics}}}
+					{{#str}} userdynamics, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_user_dynamics}}
+
+			{{#show_more_item_task_dynamics}}
+			<li>
+				<a class="dropdown-item {{#active_tab_task_dynamics}}active{{/active_tab_task_dynamics}}" href="task_dynamics.php?id={{coursemodule_id}}">
+					{{{icon_task_dynamics}}}
+					{{#str}} taskdynamics, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_task_dynamics}}
+
+			{{#show_more_item_results_graph}}
+			<li>
+				<a class="dropdown-item {{#active_tab_results_graph}}active{{/active_tab_results_graph}}" href="results_graph.php?id={{coursemodule_id}}">
+					{{{icon_results_graph}}}
+					{{#str}} resultsgraph, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_results_graph}}
+
+			{{#show_more_item_virtual_contest}}
+			<li>
+				<a class="dropdown-item {{#active_tab_virtual_contest}}active{{/active_tab_virtual_contest}}" href="virtual_contest.php?id={{coursemodule_id}}">
+					{{{icon_virtual_contest}}}
+					{{#str}} virtualparticipation, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_virtual_contest}}
+
+			{{#show_more_item_virtual_participants}}
+			<li>
+				<a class="dropdown-item {{#active_tab_virtual_participants}}active{{/active_tab_virtual_participants}}" href="virtual_participants_list.php?id={{coursemodule_id}}">
+					{{{icon_virtual_participants}}}
+					{{#str}} virtualparticipants, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_virtual_participants}}
+
+			{{#show_more_item_actions}}
+			<li>
+				<a class="dropdown-item {{#active_tab_actions}}active{{/active_tab_actions}}" href='contest_actions.php?id={{coursemodule_id}}'>
+					{{{icon_actions}}}
+					{{#str}} actionswithcontest, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_actions}}
+
+			{{#show_more_item_settings}}
+			<li>
+				<a class="dropdown-item"  href='/course/modedit.php?update={{coursemodule_id}}'>
+					{{{icon_settings}}}
+					{{#str}} contestsettings, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_settings}}
+		</ul>
+	</li>
+	{{/show_tab_more}}
+
+
+{{/menu_shown}}
+
+</ul>
+
+<script type='text/javascript'>
+	function ace_theme_selector_change() {
+		var selector = document.getElementById('ace_theme_selector');
+		localStorage.setItem('ace_saved_theme', selector.value);
+
+		window.location.href = '{{{ace_editor_redirect_url}}}'.replace('{acetheme}', selector.value);
+	}
+</script>
+
+<div class="form-inline float-right{{^ace_editor_shown}} d-none{{/ace_editor_shown}}">
+	<b class="mr-2">{{#str}}editortheme, mod_bacs{{/str}}:</b>
+	<select id="ace_theme_selector" class="form-control" onchange="ace_theme_selector_change();">
+		<optgroup label="{{#str}}default_defaulttheme, mod_bacs{{/str}}">
+			<option value="textmate">TextMate</option>
+		</optgroup>
+		<optgroup label="{{#str}}bright_brighttheme, mod_bacs{{/str}}">
+			<option value="chrome">Chrome</option>
+			<option value="clouds">Clouds</option>
+			<option value="crimson_editor">Crimson Editor</option>
+			<option value="dawn">Dawn</option>
+			<option value="dreamweaver">Dreamweaver</option>
+			<option value="eclipse">Eclipse</option>
+			<option value="github">GitHub</option>
+			<option value="iplastic">IPlastic</option>
+			<option value="solarized_light">Solarized Light</option>
+			<option value="textmate">TextMate</option>
+			<option value="tomorrow">Tomorrow</option>
+			<option value="xcode">XCode</option>
+			<option value="kuroir">Kuroir</option>
+			<option value="katzenmilch">KatzenMilch</option>
+			<option value="sqlserver">SQL Server</option>
+		</optgroup>
+		<optgroup label="{{#str}}dark_darktheme, mod_bacs{{/str}}">
+			<option value="ambiance">Ambiance</option>
+			<option value="chaos">Chaos</option>
+			<option value="clouds_midnight">Clouds Midnight</option>
+			<option value="dracula">Dracula</option>
+			<option value="cobalt">Cobalt</option>
+			<option value="gruvbox">Gruvbox</option>
+			<option value="gob">Green on Black</option>
+			<option value="idle_fingers">idle Fingers</option>
+			<option value="kr_theme">krTheme</option>
+			<option value="merbivore">Merbivore</option>
+			<option value="merbivore_soft">Merbivore Soft</option>
+			<option value="mono_industrial">Mono Industrial</option>
+			<option value="monokai">Monokai</option>
+			<option value="pastel_on_dark">Pastel on dark</option>
+			<option value="solarized_dark">Solarized Dark</option>
+			<option value="terminal">Terminal</option>
+			<option value="tomorrow_night">Tomorrow Night</option>
+			<option value="tomorrow_night_blue">Tomorrow Night Blue</option>
+			<option value="tomorrow_night_bright">Tomorrow Night Bright</option>
+			<option value="tomorrow_night_eighties">Tomorrow Night 80s</option>
+			<option value="twilight">Twilight</option>
+			<option value="vibrant_ink">Vibrant Ink</option>
+		</optgroup>
+	</select>
+</div>
+
+
+{{#ace_editor_theme_present}}
+    <script type='text/javascript'>
+        document.getElementById('ace_theme_selector').value = '{{ace_editor_theme}}';
+    </script>
+{{/ace_editor_theme_present}}
+
+{{^ace_editor_theme_present}}
+    <script type='text/javascript'>
+        if (localStorage.getItem('ace_saved_theme') === null) {
+            document.getElementById('ace_theme_selector').value = 'textmate'; // default
+        } else {
+            document.getElementById('ace_theme_selector').value = 
+                localStorage.getItem('ace_saved_theme');
+        }
+    </script>
+{{/ace_editor_theme_present}}
+
+

@@ -1,0 +1,129 @@
+{{#contest_is_over}}
+    <script type='text/javascript'>
+            function toggle_upsolving() {
+                var upsolving_button = document.getElementById('upsolving_button');
+                if (standings.toggle_upsolving()) {
+                    upsolving_button.innerHTML = '{{#str}} showupsolving, mod_bacs {{/str}}';
+                } else {
+                    upsolving_button.innerHTML = '{{#str}} hideupsolving, mod_bacs {{/str}}';
+                }
+            }
+        </script>
+
+    <div class="float-right">
+        <button id='upsolving_button' class='btn btn-info m-1' onclick='toggle_upsolving();'>
+            {{#str}} hideupsolving, mod_bacs {{/str}}
+        </button>
+    </div>
+{{/contest_is_over}}
+
+<script type='text/javascript'>
+    function toggle_standings_settings() {
+        var standings_settings_container = document.getElementById('standings_settings_container');
+
+        if (standings_settings_container.classList.contains('d-block')) {
+            standings_settings_container.classList.remove('d-block');
+            standings_settings_container.classList.add('d-none');
+        } else {
+            standings_settings_container.classList.add('d-block');
+            standings_settings_container.classList.remove('d-none');
+        }
+    }
+
+    function toggle_inactive() {
+        var hide_inactive_checkbox = document.getElementById('hide_inactive_checkbox');
+        hide_inactive_checkbox.checked = standings.toggle_inactive();
+    }
+
+    function toggle_first_accepted_flag() {
+        var show_first_accepted_flag = document.getElementById('show_first_accepted_flag');
+        show_first_accepted_flag.checked = standings.toggle_show_first_accepted_flag();
+    }
+
+    function toggle_testing_flag() {
+        var show_testing_flag = document.getElementById('show_testing_flag');
+        show_testing_flag.checked = standings.toggle_show_testing_flag();
+    }
+
+    function toggle_submits_upto_best() {
+        var show_submits_upto_best = document.getElementById('show_submits_upto_best');
+        show_submits_upto_best.checked = standings.toggle_show_submits_upto_best();
+    }
+
+    function toggle_last_improvement_column() {
+        var show_last_improvement_column = document.getElementById('show_last_improvement_column');
+        show_last_improvement_column.checked = standings.toggle_show_last_improvement_column();
+    }
+
+    function change_standings_mode() {
+        var standings_mode_select = document.getElementById('standings_mode_select');
+
+        standings.set_mode(standings_mode_select.value);
+    }
+</script>
+
+<div class="float-left">
+    <button id='toggle_standings_settings_button' class='btn btn-info m-1' onclick='toggle_standings_settings();'>
+        {{#str}} standingssettings, mod_bacs {{/str}}
+    </button>
+
+    <div id='standings_settings_container' class="d-none">
+        <input type='checkbox' id='hide_inactive_checkbox' onclick='toggle_inactive();'>
+        <label for='hide_inactive_checkbox'> {{#str}} hideinactive, mod_bacs {{/str}} </label>
+
+        <br>
+
+        <input type='checkbox' checked id='show_first_accepted_flag' onclick='toggle_first_accepted_flag();'>
+        <label for='show_first_accepted_flag'> {{#str}} showfirstacceptedflag, mod_bacs {{/str}} </label>
+
+        <br>
+        
+        <input type='checkbox' checked id='show_testing_flag' onclick='toggle_testing_flag();'>
+        <label for='show_testing_flag'> {{#str}} showtestingflag, mod_bacs {{/str}} </label>
+
+        <br>
+
+        <input type='checkbox' id='show_submits_upto_best' onclick='toggle_submits_upto_best();'>
+        <label for='show_submits_upto_best'> {{#str}} showsubmitsuptobest, mod_bacs {{/str}} </label>
+
+        <br>
+
+        <input type='checkbox' id='show_last_improvement_column' onclick='toggle_last_improvement_column();'>
+        <label for='show_last_improvement_column'> {{#str}} showlastimprovementcolumn, mod_bacs {{/str}} </label>
+
+        <br>
+
+        <span class="d-none">
+            <label for='standings_mode_select'> {{#str}} standingsmode, mod_bacs {{/str}} </label>
+            <select id='standings_mode_select' value=2 onchange='change_standings_mode();'>
+                <option value=0 {{#mode_ioi_selected}}     selected {{/mode_ioi_selected}}     >IOI</option>
+                <option value=1 {{#mode_icpc_selected}}    selected {{/mode_icpc_selected}}    >ICPC</option>
+                <option value=2 {{#mode_general_selected}} selected {{/mode_general_selected}} >General</option>
+            </select>
+        </span>
+
+    </div>
+</div>
+
+<table class='generaltable' id='standings_table'></table>
+
+<script type='text/javascript' src='standings.js'></script>
+
+<script type='text/javascript'>
+    var saved_value_hide_inactive = JSON.parse(localStorage.getItem('standings_hide_inactive'));
+    document.getElementById('hide_inactive_checkbox').checked = saved_value_hide_inactive;
+    var standings = new Standings(
+        {{{students_json}}}, 
+        {{{tasks_json}}}, 
+        {{{submits_json}}}, 
+        {{coursemodule_id}}, 
+        {{moodle_user_id}}, 
+        {{starttime}},
+        {{endtime}},
+        {{mode}},
+        false,
+        saved_value_hide_inactive, 
+        {{#user_capability_viewany}} true {{/user_capability_viewany}}  {{^user_capability_viewany}} false {{/user_capability_viewany}},
+        {{{localized_strings_json}}},
+    );
+</script>

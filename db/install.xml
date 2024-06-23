@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/bacs/db" VERSION="20240621" COMMENT="XMLDB file for Moodle mod/bacs"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="bacs" COMMENT="This is the main table, stores main contest settings.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Contest ID"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course ID"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Contest name"/>
+        <FIELD NAME="starttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Contest start time"/>
+        <FIELD NAME="endtime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Contest end time"/>
+        <FIELD NAME="upsolving" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Is upsolving allowed"/>
+        <FIELD NAME="standings" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Standings cached data stored as JSON"/>
+        <FIELD NAME="mode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Contest and standings mode"/>
+        <FIELD NAME="presolving" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Is presolving before contest allowed"/>
+        <FIELD NAME="virtual_mode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Contest virtual mode"/>
+        <FIELD NAME="isolate_participants" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Are contest participants isolated from each other"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_tasks" COMMENT="This table stores information about all available tasks.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
+        <FIELD NAME="task_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Task ID"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Task name"/>
+        <FIELD NAME="time_limit_millis" TYPE="int" LENGTH="7" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Execution time limit in milliseconds"/>
+        <FIELD NAME="memory_limit_bytes" TYPE="int" LENGTH="7" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Execution memory limit in bytes"/>
+        <FIELD NAME="count_tests" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="Test cases count"/>
+        <FIELD NAME="count_pretests" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="Pretests (public test cases) count"/>
+        <FIELD NAME="test_points" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Points for tests (by default)"/>
+        <FIELD NAME="statement_url" TYPE="char" LENGTH="1023" NOTNULL="false" SEQUENCE="false" COMMENT="URL link for task statement"/>
+        <FIELD NAME="author" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Task author"/>
+        <FIELD NAME="revision" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Task revision"/>
+        <FIELD NAME="statement_format" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Task statement format"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="task_id" UNIQUE="false" FIELDS="task_id"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_tasks_collections" COMMENT="This table stores information about all available task collections.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Collection name"/>
+        <FIELD NAME="description" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Collection description"/>
+        <FIELD NAME="collection_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Collection ID"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="bacs_tasks_to_contests" COMMENT="This table stores tasks list for each contest, thier order and points settings">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
+        <FIELD NAME="task_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Task ID"/>
+        <FIELD NAME="contest_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Contest ID"/>
+        <FIELD NAME="task_order" TYPE="int" LENGTH="7" NOTNULL="true" SEQUENCE="false" COMMENT="Task order"/>
+        <FIELD NAME="test_points" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Points for task (contest-special)"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="contest" TYPE="unique" FIELDS="task_id, contest_id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="contest_id" UNIQUE="false" FIELDS="contest_id"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_tasks_to_collections" COMMENT="This table stores all tasks for each task collection available">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
+        <FIELD NAME="task_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Task ID"/>
+        <FIELD NAME="collection_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Collection ID"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="bacs_tasks_test_expected" COMMENT="This table stores input and expected output of model solution for each pretest of the task.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
+        <FIELD NAME="task_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Task ID"/>
+        <FIELD NAME="test_id" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false" COMMENT="Test case ID"/>
+        <FIELD NAME="input" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Pretest input"/>
+        <FIELD NAME="expected" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Pretest expected output"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="test_id" TYPE="foreign" FIELDS="test_id" REFTABLE="bacs_submits_tests" REFFIELDS="test_id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="task_id" UNIQUE="false" FIELDS="task_id"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_submits" COMMENT="This table stores submits and results of the testing.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Submit ID"/>
+        <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User ID"/>
+        <FIELD NAME="contest_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Contest ID"/>
+        <FIELD NAME="task_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Task ID"/>
+        <FIELD NAME="lang_id" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false" COMMENT="Programming language ID"/>
+        <FIELD NAME="source" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Submit source code"/>
+        <FIELD NAME="submit_time" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Submit creation time"/>
+        <FIELD NAME="result_id" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false" COMMENT="Submit judgement results"/>
+        <FIELD NAME="test_num_failed" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="Number of the first failed test"/>
+        <FIELD NAME="points" TYPE="int" LENGTH="7" NOTNULL="false" SEQUENCE="false" COMMENT="Points for this submit"/>
+        <FIELD NAME="max_time_used" TYPE="int" LENGTH="7" NOTNULL="false" SEQUENCE="false" COMMENT="Max used time over all tests"/>
+        <FIELD NAME="max_memory_used" TYPE="int" LENGTH="7" NOTNULL="false" SEQUENCE="false" COMMENT="Max used memory over all tests"/>
+        <FIELD NAME="info" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Compiler message or additional info"/>
+        <FIELD NAME="group_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Group ID"/>
+        <FIELD NAME="sync_submit_id" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="ID associated with submit in Sybon testing system"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="lang_id" TYPE="foreign" FIELDS="lang_id" REFTABLE="bacs_langs" REFFIELDS="id"/>
+        <KEY NAME="result_id" TYPE="foreign" FIELDS="result_id" REFTABLE="bacs_results" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="user_id" UNIQUE="false" FIELDS="user_id"/>
+        <INDEX NAME="submit_time" UNIQUE="false" FIELDS="submit_time"/>
+        <INDEX NAME="task_id" UNIQUE="false" FIELDS="task_id"/>
+        <INDEX NAME="group_id" UNIQUE="false" FIELDS="group_id"/>
+        <INDEX NAME="contest-group-user" UNIQUE="false" FIELDS="contest_id, group_id, user_id"/>
+        <INDEX NAME="contest-user" UNIQUE="false" FIELDS="contest_id, user_id"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_submits_tests" COMMENT="This table stores info about all tests in all submits.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database ID"/>
+        <FIELD NAME="submit_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Submit ID"/>
+        <FIELD NAME="test_id" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false" COMMENT="Test ID"/>
+        <FIELD NAME="status_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Test status (result of testing)"/>
+        <FIELD NAME="time_used" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Execution time used"/>
+        <FIELD NAME="memory_used" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Execution memory used"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="submit_id" UNIQUE="false" FIELDS="submit_id"/>
+        <INDEX NAME="test_id" UNIQUE="false" FIELDS="test_id"/>
+        <INDEX NAME="status_id" UNIQUE="false" FIELDS="status_id"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_submits_tests_output" COMMENT="This table stores output of submits on task pretests">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
+        <FIELD NAME="submit_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Submit ID"/>
+        <FIELD NAME="test_id" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false" COMMENT="Test ID"/>
+        <FIELD NAME="output" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Submit output"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="submit_id" UNIQUE="false" FIELDS="submit_id"/>
+        <INDEX NAME="test_id" UNIQUE="false" FIELDS="test_id"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_langs" COMMENT="This table stores information about all available programming languages">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
+        <FIELD NAME="compiler_type" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Compiler type"/>
+        <FIELD NAME="lang_id" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false" COMMENT="Language ID"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Short language name"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Language description"/>
+        <FIELD NAME="time_limit_millis" TYPE="int" LENGTH="7" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Max possible compilation time used in milliseconds"/>
+        <FIELD NAME="memory_limit_bytes" TYPE="int" LENGTH="7" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Max possible compilation memory used in bytes"/>
+        <FIELD NAME="number_of_processes" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of concurrent processes"/>
+        <FIELD NAME="output_limit_bytes" TYPE="int" LENGTH="7" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Max submit output size"/>
+        <FIELD NAME="real_time_limit_mills" TYPE="int" LENGTH="7" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Max real time for running a submit"/>
+        <FIELD NAME="compiler_args" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Compiler arguments"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="lang_id" UNIQUE="false" FIELDS="lang_id"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_group_info" COMMENT="Standings and special settings for groups in courses">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
+        <FIELD NAME="contest_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Contest ID"/>
+        <FIELD NAME="group_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Group ID"/>
+        <FIELD NAME="use_group_settings" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Are special group settings used?"/>
+        <FIELD NAME="starttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Special contest start time"/>
+        <FIELD NAME="endtime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Special contest end time"/>
+        <FIELD NAME="upsolving" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Special permission or prohibition of upsolving"/>
+        <FIELD NAME="presolving" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Special permission or prohibition of presolving before contest start"/>
+        <FIELD NAME="standings" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Special group standings cached data stored in JSON"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="unique_group_id" TYPE="unique" FIELDS="group_id, contest_id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="contest_id" UNIQUE="false" FIELDS="contest_id"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_virtual_participants" COMMENT="Virtual participants for all contests and groups">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
+        <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User ID"/>
+        <FIELD NAME="contest_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Contest ID"/>
+        <FIELD NAME="group_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Group ID"/>
+        <FIELD NAME="starttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Virtual participation start time"/>
+        <FIELD NAME="endtime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Virtual participation end time"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="unique_virtual_participant" TYPE="unique" FIELDS="user_id, contest_id, group_id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="mdl_bacsvirtpart_usecongro_uix" UNIQUE="true" FIELDS="user_id, contest_id, group_id"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

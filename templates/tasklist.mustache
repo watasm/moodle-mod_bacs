@@ -1,0 +1,179 @@
+<script type="text/javascript">
+    var aceeditsessions = {};
+
+    function prepare_editor(task_idx) {
+        if (!aceeditsessions.hasOwnProperty(task_idx)) {
+            aceeditsessions[task_idx] = ace.edit("editor" + task_idx);
+            aceeditsessions[task_idx].setTheme("ace/theme/" + document.getElementById("ace_theme_selector").value);
+            aceeditsessions[task_idx].session.setMode("ace/mode/c_cpp");
+            aceeditsessions[task_idx].session.on("change", function(delta) {
+                document.getElementById("codesender" + task_idx).value = aceeditsessions[task_idx].getValue();
+            });
+        }
+    }
+</script>
+
+<table class="cwidetable accordion">
+
+<thead>
+    <tr>
+        <th class="header c0" scope="col">{{#str}} taskid,      mod_bacs {{/str}}</th>
+        <th class="header c1" scope="col">{{#str}} taskname,    mod_bacs {{/str}}</th>
+        
+        <th class="header c2 text-nowrap" scope="col">
+            {{#str}} statement,   mod_bacs {{/str}}
+        </th>
+
+        {{#show_points}}
+        <th class="header c3" scope="col">{{#str}} points,      mod_bacs {{/str}}</th>
+        {{/show_points}}
+        
+        <th class="header c4" scope="col">{{#str}} timelimit,   mod_bacs {{/str}}</th>
+        <th class="header c5 lastcol" scope="col">{{#str}} memorylimit, mod_bacs {{/str}}</th>
+    </tr>
+</thead>
+
+<tbody>
+{{#tasks}}
+    <tr class="{{tr_color_class}}">
+        <td class="cell c0 custom-row-collapse-icon collapsed cursor-pointer" {{{td_toggle_attr}}}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-up" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/>
+            </svg>
+            {{letter}}
+        </td>
+        <td class="cell c1 cursor-pointer" {{{td_toggle_attr}}}>{{name}}</td>
+        <td class="cell c2 text-nowrap">
+            {{#is_missing}}
+            -
+            {{/is_missing}}
+
+            {{^is_missing}}
+                {{#user_capability_readtasks}}
+                    {{#statement_format_is_html}}
+                        <a href="{{statement_url}}" target="_blank">{{#str}} open, mod_bacs {{/str}}</a>
+                    {{/statement_format_is_html}}
+                    
+                    {{^statement_format_is_html}}
+                        <a href="http://docs.google.com/viewer?url={{statement_url}}" target="_blank">{{#str}} open, mod_bacs {{/str}}</a> 
+                        / 
+                        <a href="{{statement_url}}" target="_blank">{{#str}} download, mod_bacs {{/str}}</a>
+                    {{/statement_format_is_html}}
+                {{/user_capability_readtasks}}
+
+                {{^user_capability_readtasks}}
+                -
+                {{/user_capability_readtasks}}
+            {{/is_missing}}
+        </td>
+
+        {{#show_points}}
+            <td class="cell c3 cursor-pointer" {{{td_toggle_attr}}}>
+                {{points}} 
+            </td>
+        {{/show_points}}
+
+        <td class="cell c4 cursor-pointer" {{{td_toggle_attr}}}>
+            {{#is_missing}} 
+            -
+            {{/is_missing}}
+            
+            {{^is_missing}}
+                {{time_formatted}}
+            {{/is_missing}}
+        </td>
+
+        <td class="cell c5 lastcol cursor-pointer" {{{td_toggle_attr}}}>
+            {{#is_missing}} 
+            -
+            {{/is_missing}}
+            
+            {{^is_missing}}
+                {{memory_formatted}}
+            {{/is_missing}}
+        </td>
+    </tr>
+
+    <tr class="" id="div collapse{{task_order}}">
+        <td colspan="6">
+            <div id="collapse{{task_order}}" class="bs-docs-grid fcontainer clearfix collapse">
+                {{{can_submit_message}}}
+
+                {{#can_submit}}
+                    <form enctype="multipart/form-data" action="submit.php" method="POST">
+                    <fieldset>
+                    <div class="settingsform clearfix">
+                        <input type="hidden" name="section" value="optionalsubsystems">
+                        <input type="hidden" name="id" value="{{coursemodule_id}}">
+                        <input type="hidden" name="task_id" value="{{task_id}}">
+                        <input type="hidden" name="key" value="{{submit_key}}">
+                        <input type="hidden" name="return" value="">
+                        <div class="hide">
+                            <input type="text" class="ignoredirty">
+                            <input type="password" class="ignoredirty">
+                        </div>
+
+                        <div class="form-item clearfix" id="admin-completiondefault">
+                            <div class="form-label">
+                            <label for="id_s__completiondefault">{{#str}}language, mod_bacs{{/str}}</label>
+                            </div>
+                            <div class="form-setting">
+                                <div class="form-select defaultsnext">
+                                    <select id="acelangselect{{task_order}}" name="lang_id" onchange="{{change_lang_js}}">
+                                        {{#langs}}
+                                            <option value='{{lang_id}}' data-acemode='{{acemode}}' {{#is_last_used}}selected{{/is_last_used}}>
+                                                {{name}}
+                                            </option>
+                                        {{/langs}}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-item clearfix" id="admin-completiondefault">
+                            <div class="form-label">
+                            <label for="id_s__completiondefault">{{#str}}programcode, mod_bacs{{/str}}</label>
+                            </div>
+                            <div class="form-setting">
+                                <div id="editor{{task_order}}" class="position-relative border ace-editor-small"></div>
+                                
+                                <div class="form-select defaultsnext d-none">
+                                    <textarea id="codesender{{task_order}}" class="form-control w-75" rows="10" name="source"></textarea>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="form-item clearfix" id="admin-usetags">
+                            <div class="form-label">
+                                <label for="id_s__usetags">{{#str}}sendforjudgement, mod_bacs{{/str}}</label>
+                            </div>
+                            <div class="form-setting">
+                                <div class="form-checkbox defaultsnext">
+                                    <button id="sendbuttonlocked{{task_order}}" class="btn btn-success d-none" disabled>
+                                        <svg class="bi bi-arrow-repeat" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M2.854 7.146a.5.5 0 0 0-.708 0l-2 2a.5.5 0 1 0 .708.708L2.5 8.207l1.646 1.647a.5.5 0 0 0 .708-.708l-2-2zm13-1a.5.5 0 0 0-.708 0L13.5 7.793l-1.646-1.647a.5.5 0 0 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0 0-.708z"/>
+                                            <path fill-rule="evenodd" d="M8 3a4.995 4.995 0 0 0-4.192 2.273.5.5 0 0 1-.837-.546A6 6 0 0 1 14 8a.5.5 0 0 1-1.001 0 5 5 0 0 0-5-5zM2.5 7.5A.5.5 0 0 1 3 8a5 5 0 0 0 9.192 2.727.5.5 0 1 1 .837.546A6 6 0 0 1 2 8a.5.5 0 0 1 .501-.5z"/>
+                                        </svg>
+                                        {{#str}}sendinginprogress, mod_bacs{{/str}}
+                                    </button>
+
+                                    <button id="sendbutton{{task_order}}" type="submit" class="btn btn-success" onclick="{{submit_onclick_js}}">
+                                        {{#str}}send, mod_bacs{{/str}}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </fieldset>
+                    </form>
+                {{/can_submit}}
+                
+            </div>
+        </td>
+    </tr>
+{{/tasks}}
+
+</tbody>
+
+</table>

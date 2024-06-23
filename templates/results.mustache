@@ -1,0 +1,262 @@
+
+<script type="text/javascript">
+    function toggle_solution(id) {
+        console.log("toogle_solution(id)");
+        "use strict";
+        var solution = document.getElementById("solution_container_"+id.toString());
+        var btn = document.getElementById("solution_container_btn_"+id.toString());
+        if (solution.classList.contains('d-none')) {
+            solution.classList.remove('d-none');
+            solution.classList.add('d-block');
+            btn.innerHTML = "{{#str}} hidesolution, mod_bacs {{/str}}";
+        } else {
+            solution.classList.add('d-none');
+            solution.classList.remove('d-block');
+            btn.innerHTML = "{{#str}} showsolution, mod_bacs {{/str}}";
+        }
+    }
+</script>
+
+<table class="table cwidetable accordion">
+
+<thead>
+    <tr>
+        {{#rcfg_show_column_collapse}} <th class="header" scope="col">                                    </th> {{/rcfg_show_column_collapse}}
+        {{#rcfg_show_column_n}}        <th class="header" scope="col">{{#str}} n,        mod_bacs {{/str}}</th> {{/rcfg_show_column_n}}
+        {{#rcfg_show_column_id}}       <th class="header" scope="col">{{#str}} id,       mod_bacs {{/str}}</th> {{/rcfg_show_column_id}}
+        {{#rcfg_show_column_task}}     <th class="header" scope="col">{{#str}} task,     mod_bacs {{/str}}</th> {{/rcfg_show_column_task}}
+        {{#rcfg_show_column_author}}   <th class="header" scope="col">{{#str}} author,   mod_bacs {{/str}}</th> {{/rcfg_show_column_author}}
+        {{#rcfg_show_column_language}} <th class="header" scope="col">{{#str}} language, mod_bacs {{/str}}</th> {{/rcfg_show_column_language}}
+        {{#rcfg_show_column_points}}   <th class="header" scope="col">{{#str}} points,   mod_bacs {{/str}}</th> {{/rcfg_show_column_points}}
+        {{#rcfg_show_column_result}}   <th class="header" scope="col">{{#str}} result,   mod_bacs {{/str}}</th> {{/rcfg_show_column_result}}
+        {{#rcfg_show_column_time}}     <th class="header" scope="col">{{#str}} time,     mod_bacs {{/str}}</th> {{/rcfg_show_column_time}}
+        {{#rcfg_show_column_memory}}   <th class="header" scope="col">{{#str}} memory,   mod_bacs {{/str}}</th> {{/rcfg_show_column_memory}}
+        {{#rcfg_show_column_sent_at}}  <th class="header" scope="col">{{#str}} sentat,   mod_bacs {{/str}}</th> {{/rcfg_show_column_sent_at}}
+    </tr>
+</thead>
+
+<tbody>
+    {{#submits}}
+        {{#show_date_at_separate_row}}
+            <tr><td colspan=999> {{#userdate}} {{submit_time}}, %d %B %Y (%A) {{/userdate}} </td></tr>
+        {{/show_date_at_separate_row}}
+
+        <tr
+                class="{{verdict_css_class}} {{collapsed_class_header}} {{#rcfg_can_be_collapsed}}cursor-pointer{{/rcfg_can_be_collapsed}}"
+                title="{{task_letter}}. {{task_name}}"
+                {{#rcfg_can_be_collapsed}}
+                    data-toggle="collapse"
+                    data-target="#collapse{{idx}}"
+                {{/rcfg_can_be_collapsed}}
+        >
+            {{#rcfg_show_column_collapse}} 
+                <td class="cell custom-row-collapse-icon accordion-toggle arrow-up">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-up" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/>
+                    </svg>
+                </td>
+            {{/rcfg_show_column_collapse}}
+
+            {{#rcfg_show_column_n}}        <td class="cell">{{idx}}                              </td> {{/rcfg_show_column_n}}
+            {{#rcfg_show_column_id}}       <td class="cell">{{submit_id}}                        </td> {{/rcfg_show_column_id}}
+            {{#rcfg_show_column_task}}     <td class="cell">{{task_name_formatted}}              </td> {{/rcfg_show_column_task}}
+            {{#rcfg_show_column_author}}   <td class="cell">{{user_firstname}} {{user_lastname}} </td> {{/rcfg_show_column_author}}
+            {{#rcfg_show_column_language}} <td class="cell">{{lang_name}}                        </td> {{/rcfg_show_column_language}}
+            {{#rcfg_show_column_points}}   <td class="cell">{{{points_formatted}}}               </td> {{/rcfg_show_column_points}}
+            {{#rcfg_show_column_result}}   <td class="cell">{{{verdict_formatted}}}              </td> {{/rcfg_show_column_result}}
+            {{#rcfg_show_column_time}}     <td class="cell">{{max_time_used_formatted}}          </td> {{/rcfg_show_column_time}}
+            {{#rcfg_show_column_memory}}   <td class="cell">{{max_memory_used_formatted}}        </td> {{/rcfg_show_column_memory}}
+            {{#rcfg_show_column_sent_at}}  <td class="cell">{{submit_time_formatted}}            </td> {{/rcfg_show_column_sent_at}}
+        </tr>
+
+        {{#rcfg_show_detailed_info}}
+        <tr class="">
+            <td colspan=999>
+                <div id="collapse{{idx}}" class="{{collapsed_class_body}}">
+                    {{#alerts}}
+                        <div class='alert alert-danger text-center' role='alert'>
+                            {{.}}
+                        </div>
+                    {{/alerts}}
+
+                    {{#rcfg_solutions_can_be_collapsed}}
+                        <button id="solution_container_btn_{{submit_id}}" class="btn btn-info mb-2" onclick="toggle_solution( {{submit_id}} )">
+                            {{#str}} showsolution, mod_bacs {{/str}}
+                        </button>
+                    {{/rcfg_solutions_can_be_collapsed}}
+
+                    {{#rcfg_provide_submit_links_in_body}}
+                        <a href="results_for_submit.php?id={{coursemodule_id}}&submit_id={{submit_id}}">
+                            <button class="btn btn-link mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-link-45deg" viewBox="0 0 16 16">
+                                    <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
+                                    <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/>
+                                </svg>
+                                {{#str}} linktothissubmission, mod_bacs {{/str}}
+                            </button>
+                        </a>
+                    {{/rcfg_provide_submit_links_in_body}}
+
+                    {{#user_capability_edit}}
+                    {{#rcfg_show_submit_actions_panel}}
+                        <script type="text/javascript">
+                            function request_and_set_points() {
+                                var submit_id = {{submit_id}};
+                                var coursemodule_id = {{coursemodule_id}};
+                                var points = prompt("{{#str}} enterpoints, mod_bacs {{/str}}", "0");
+
+                                if (points == null) return;
+
+                                window.location.href = 
+                                    "submit_set_property.php?" +
+                                    "id=" + coursemodule_id + "&" +
+                                    "submit_id=" + submit_id + "&" +
+                                    "property=points" + "&" + 
+                                    "value=" + points;
+                            }
+                            
+                            function request_and_set_comment() {
+                                var submit_id = {{submit_id}};
+                                var coursemodule_id = {{coursemodule_id}};
+                                var comment = prompt("{{#str}} entercomment, mod_bacs {{/str}}", "");
+
+                                if (comment == null) return;
+
+                                window.location.href = 
+                                    "submit_set_property.php?" +
+                                    "id=" + coursemodule_id + "&" +
+                                    "submit_id=" + submit_id + "&" +
+                                    "property=comment" + "&" + 
+                                    "value=" + encodeURIComponent(window.btoa(comment));
+                            }
+                        </script>
+
+                        <div class="btn-group mb-2" role="group">
+                            <a class="btn btn-secondary" href="recalculate_points.php?id={{coursemodule_id}}&submit_id={{submit_id}}">
+                                {{#str}} recalcpoints, mod_bacs {{/str}}
+                            </a>
+
+                            <a class="btn btn-secondary" href="rejudge_submits.php?id={{coursemodule_id}}&submit_id={{submit_id}}">
+                                {{#str}} rejudge, mod_bacs {{/str}}
+                            </a>
+
+                            <a class="btn btn-secondary" href="submit_set_property.php?id={{coursemodule_id}}&submit_id={{submit_id}}&property=verdict&value=18">
+                                {{#str}} rejectsubmit,  mod_bacs {{/str}}
+                            </a>
+                            
+                            <button type="button" class="btn btn-secondary" onclick="request_and_set_points();">{{#str}} setpoints, mod_bacs {{/str}}</button>
+                            <button type="button" class="btn btn-secondary" onclick="request_and_set_comment();">{{#str}} setcomment, mod_bacs {{/str}}</button>
+
+                            <div class="btn-group" role="group">
+                                <button id="setVerdictBtnGroupDrop" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    {{#str}} setverdict, mod_bacs {{/str}}
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="setVerdictBtnGroupDrop">
+                                    {{#available_submit_verdicts}}
+                                        <li>
+                                            <a class="dropdown-item" href="submit_set_property.php?id={{coursemodule_id}}&submit_id={{submit_id}}&property=verdict&value={{verdict_id}}">{{verdict_name}}</a>
+                                        </li>
+                                    {{/available_submit_verdicts}}
+                                </ul>
+                            </div>
+                            
+                        </div>
+                    {{/rcfg_show_submit_actions_panel}}
+                    {{/user_capability_edit}}
+
+                    {{#ace_editor_used}}
+                        <div id="solution_container_{{submit_id}}"
+                            class="
+                                {{#solution_is_collapsed}}d-none{{/solution_is_collapsed}}
+                                {{^solution_is_collapsed}}d-block{{/solution_is_collapsed}}
+                                border
+                                position-relative
+                                mb-2
+                                {{#rcfg_ace_editor_big}}ace-editor-big{{/rcfg_ace_editor_big}}
+                                {{^rcfg_ace_editor_big}}ace-editor-small{{/rcfg_ace_editor_big}}"
+                        >{{source}}</div>
+
+                        <script type="text/javascript">
+                            var aceeditsession{{submit_id}} = ace.edit("solution_container_{{submit_id}}");
+                            aceeditsession{{submit_id}}.setTheme("ace/theme/" + document.getElementById("ace_theme_selector").value);
+                            aceeditsession{{submit_id}}.session.setMode("ace/mode/{{ace_editor_mode}}");
+                            aceeditsession{{submit_id}}.setReadOnly(false);
+                        </script>
+                    {{/ace_editor_used}}
+                    
+                    {{^ace_editor_used}}
+                        <textarea 
+                                id="solution_container_{{submit_id}}"
+                                class="form-control"
+                                rows="20"
+                        >{{source}}</textarea>
+                    {{/ace_editor_used}}
+                    
+
+                    {{#compiler_info}}
+                        <br><b>{{#str}}compilermessage, mod_bacs{{/str}}</b>: <br><pre>{{compiler_info}}</pre>
+                    {{/compiler_info}}
+
+                    {{#pretests_present}}
+                        <table class="cwidetable table-pretests table-bordered">
+                            <thead>
+                                <tr class="text-nowrap">
+                                    <th class="header c0" scope="col"> {{#str}} pretest,        mod_bacs {{/str}} </th>
+                                    <th class="header c1" scope="col"> {{#str}} input,          mod_bacs {{/str}} </th>
+                                    <th class="header c2" scope="col"> {{#str}} outputexpected, mod_bacs {{/str}} </th>
+                                    <th class="header c3" scope="col"> {{#str}} outputreal,     mod_bacs {{/str}} </th>
+                                    <th class="header c4" scope="col"> {{#str}} verdict,        mod_bacs {{/str}} </th>
+                                    <th class="header c5 lastcol" scope="col"> {{#str}} actions,        mod_bacs {{/str}} </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#pretests}}
+                                    <tr class="{{verdict_css_class}}">
+                                        <td class="header c0"         scope="col"> {{test_id_natural}}     </td>
+                                        <td class="header c1"         scope="col"> <pre>{{input}}</pre>    </td>
+                                        <td class="header c2"         scope="col"> <pre>{{expected}}</pre> </td>
+                                        <td class="header c3"         scope="col"> <pre>{{output}}</pre>   </td>
+                                        <td class="header c4"         scope="col"> {{verdict_formatted}}   </td>
+
+                                        <td class="header c5 lastcol" scope="col">
+                                            <a href='results_diff.php?id={{coursemodule_id}}&submit_id={{submit_id}}&pretest_id={{test_id}}'>
+                                                <button class="btn btn-success"> {{#str}} compare, mod_bacs {{/str}} </button>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {{/pretests}}
+                            </tbody>
+                        </table>
+                    {{/pretests_present}}
+
+                    {{#tests_present}}
+                        <table class="table-bordered table-tests">
+                            <thead>
+                                <tr>
+                                    <td><b>{{#str}} test,    mod_bacs {{/str}}</b></td>
+                                    <td><b>{{#str}} verdict, mod_bacs {{/str}}</b></td>
+                                    <td><b>{{#str}} time,    mod_bacs {{/str}}</b></td>
+                                    <td><b>{{#str}} memory,  mod_bacs {{/str}}</b></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#tests}}
+                                    <tr class="{{verdict_css_class}}">
+                                        <td>{{test_id_natural}}       </td>
+                                        <td>{{verdict_formatted}}     </td>
+                                        <td>{{time_used_formatted}}   </td>
+                                        <td>{{memory_used_formatted}} </td>
+                                    </tr>
+                                {{/tests}}
+                            </tbody>
+                        </table>
+                    {{/tests_present}}
+                </div>
+            </td>
+        </tr>
+        {{/rcfg_show_detailed_info}}
+
+    {{/submits}}
+</tbody>
+
+</table>
