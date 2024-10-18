@@ -523,13 +523,12 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @return string
      */
     private function get_static_files() {
-        return '<link rel="stylesheet" href="/mod/bacs/mod_form.css" />
-                <script src="/mod/bacs/thirdparty/sortablejs/Sortable.js"></script>
-                <script src="/mod/bacs/manage_tasks.js"></script>
-                <script src="/mod/bacs/mod_form.js"></script>
-                <script src="/mod/bacs/manage_test_points.js"></script>
-                <script src="/mod/bacs/thirdparty/sortablejs/Sortable.js"></script>
-                <script src="/mod/bacs/manage_tasks.js"></script>
-                <script src="/moodle/lib/amd/src/sortable_list.js"></script>';
+        return "<link rel='stylesheet' href='$CFG->wwwroot/mod/bacs/mod_form.css' />
+                <script src='$CFG->wwwroot/mod/bacs/thirdparty/sortablejs/Sortable.js'></script>
+                <script src='$CFG->wwwroot/mod/bacs/manage_tasks.js'></script>
+                <script src='$CFG->wwwroot/mod/bacs/mod_form.js'></script>
+                <script src='$CFG->wwwroot/mod/bacs/manage_test_points.js'></script>
+                <script src='$CFG->wwwroot/mod/bacs/thirdparty/sortablejs/Sortable.js'></script>
+                <script src='$CFG->wwwroot/mod/bacs/manage_tasks.js'></script>";
     }
 }
