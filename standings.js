@@ -1,23 +1,23 @@
 class StandingsStudent {
-    constructor (student, tasks) {
+    constructor(student, tasks) {
         this.student = student;
         this.tasks = tasks;
         this.rank_position = 42;
 
         console.log(this.student);
-        
+
         this.submits = [];
     }
 
-    get firstname () {
+    get firstname() {
         return this.student.firstname;
     }
 
-    get lastname () {
+    get lastname() {
         return this.student.lastname;
     }
 
-    get fullname () {
+    get fullname() {
         return this.student.firstname + ' ' + this.student.lastname;
     }
 
@@ -33,60 +33,54 @@ class StandingsStudent {
         return this.student.endtime;
     }
 
-    add_submit (submit) {
+    add_submit(submit) {
         this.submits.push(submit);
     }
 
     build_results(hide_upsolving) {
         this.active = false;
 
-        this.results = [];
-        for (var task of this.tasks) {
-            this.results.push({
-                task: task,
+        this.results = this.tasks.map(task => ({
+            task,
+            accepted: false,
+            is_first_accepted: false,
+            judged: true,
+            attempts: 0,
+            attempts_upto_best: 0,
+            points: 0,
+            best_submit_time: 0,
+            last_submit_time: 0,
+            penalty_time: 0
+        }));
 
-                accepted: false,
-                is_first_accepted: false,
-                judged: true,
-                attempts: 0,
-                attempts_upto_best: 0,
-                points: 0,
-                best_submit_time: 0,
-                last_submit_time: 0,
-                penalty_time: 0,
-            });
-        }
-
-        for (var submit of this.submits) {
+        for (const submit of this.submits) {
             if (!submit.task) continue;
             if (hide_upsolving && this.end_time_cut <= submit.submit_time) continue;
 
             this.active = true;
-            
-            var idx = submit.task.task_order-1;
-            var result = this.results[idx];
 
-            result.attempts += 1;
-            result.last_submit_time = Math.max(0, Math.floor( (submit.submit_time - this.start_time_cut)/60 ));
+            const idx = submit.task.task_order - 1;
+            const result = this.results[idx];
+
+            result.attempts++;
+            result.last_submit_time = Math.max(0, Math.floor((submit.submit_time - this.start_time_cut) / 60));
 
             console.log(this);
 
             if (result.points < submit.points) {
                 result.points = submit.points;
                 result.attempts_upto_best = result.attempts;
-
                 result.best_submit_time = result.last_submit_time;
 
-                var prev_attempts = result.attempts_upto_best - 1;
-
+                const prev_attempts = result.attempts_upto_best - 1;
                 result.penalty_time = result.best_submit_time + 20 * prev_attempts;
             }
-            
-            if (submit.accepted) result.accepted = true;
-            if (submit.is_first_accepted) result.is_first_accepted = true;
 
-            if (!submit.judged) result.judged = false;
+            result.accepted ||= submit.accepted;
+            result.is_first_accepted ||= submit.is_first_accepted;
+            result.judged &&= submit.judged;
         }
+
 
         this.total = {
             solved: 0,
@@ -97,12 +91,12 @@ class StandingsStudent {
             last_improvement_time: 0,
         };
 
-        for (var result of this.results) {
+        for (const result of this.results) {
             if (result.accepted) {
-                this.total.solved += 1;
+                this.total.solved++;
             }
-            
-            if (result.attempts > 0) this.total.tried += 1;
+
+            if (result.attempts > 0) this.total.tried++;
 
             if (result.points > 0) {
                 this.total.points += result.points;
@@ -120,7 +114,7 @@ class StandingsStudent {
 }
 
 class StandingsRenderer {
-    constructor (standings) {
+    constructor(standings) {
         this.standings = standings;
     }
 
@@ -140,7 +134,7 @@ class StandingsRenderer {
         return this.standings.show_submits_upto_best;
     }
 
-    get show_last_improvement_column () {
+    get show_last_improvement_column() {
         return this.standings.show_last_improvement_column;
     }
 
@@ -153,28 +147,29 @@ class StandingsRenderer {
     }
 
     get students_strict_comparator() {
-        var loose_comparator = this.students_loose_comparator;
+        const loose_comparator = this.students_loose_comparator;
 
-        return function (a, b) {
-            var result = loose_comparator(a, b);
+        return (a, b) => {
+            const result = loose_comparator(a, b);
 
-            if (result != 0) return result;
+            if (result !== 0) return result;
 
             return a.fullname.localeCompare(b.fullname);
         };
     }
-    
+
     get students_loose_comparator() {
-        if (this.mode == StandingsRenderer.MODE_IOI) 
-            return function (a, b) {
+        if (this.mode === StandingsRenderer.MODE_IOI) {
+            return (a, b) => {
                 if (a.total.points > b.total.points) return -1;
                 if (a.total.points < b.total.points) return 1;
 
                 return 0;
             };
+        }
 
-        if (this.mode == StandingsRenderer.MODE_ICPC) 
-            return function (a, b) {
+        if (this.mode === StandingsRenderer.MODE_ICPC) {
+            return (a, b) => {
                 if (a.total.solved > b.total.solved) return -1;
                 if (a.total.solved < b.total.solved) return 1;
 
@@ -186,9 +181,10 @@ class StandingsRenderer {
 
                 return 0;
             };
+        }
 
-        if (this.mode == StandingsRenderer.MODE_GENERAL) 
-            return function (a, b) {
+        if (this.mode === StandingsRenderer.MODE_GENERAL) {
+            return (a, b) => {
                 if (a.total.points > b.total.points) return -1;
                 if (a.total.points < b.total.points) return 1;
 
@@ -203,237 +199,198 @@ class StandingsRenderer {
 
                 return 0;
             };
-        
+        }
+
         throw new Error("Invalid standings rendering mode");
     }
 
     get show_total_penalty_time_column() {
-        if (this.mode == StandingsRenderer.MODE_IOI)     return false;
-        if (this.mode == StandingsRenderer.MODE_ICPC)    return true;
+        if (this.mode == StandingsRenderer.MODE_IOI) return false;
+        if (this.mode == StandingsRenderer.MODE_ICPC) return true;
         if (this.mode == StandingsRenderer.MODE_GENERAL) return true;
-        
+
         throw new Error("Invalid standings rendering mode");
     }
 
     get show_total_points_column() {
-        if (this.mode == StandingsRenderer.MODE_IOI)     return true;
-        if (this.mode == StandingsRenderer.MODE_ICPC)    return false;
+        if (this.mode == StandingsRenderer.MODE_IOI) return true;
+        if (this.mode == StandingsRenderer.MODE_ICPC) return false;
         if (this.mode == StandingsRenderer.MODE_GENERAL) return true;
-        
+
         throw new Error("Invalid standings rendering mode");
     }
 
     with_font_color(inner_html, result) {
-        var font_color = result.accepted ? "green" : "red";
-        var html = '';
-        
-        html += '<font color="' + font_color + '" >';
-        html += inner_html;
-        html += '</font>';
-
-        return html;
+        const font_color = result.accepted ? "green" : "red";
+        return `<font color="${font_color}">${inner_html}</font>`;
     }
-    
+
+
     with_smaller_font(inner_html) {
-        return '<span class="standings-cell-small-text">' + inner_html + '</span>';
+        return `<span class="standings-cell-small-text">${inner_html}</span>`;
     }
 
     with_results_link(inner_html, result, student) {
-        var href = 'results.php?id='+this.standings.course_module_id+'&user_id='+student.user_id+'&task_id='+result.task.task_id+'';
-
-        return '<a href="' + href + '">' + inner_html + '</a>';
+        const href = `results.php?id=${this.standings.course_module_id}&user_id=${student.user_id}&task_id=${result.task.task_id}`;
+        return `<a href="${href}">${inner_html}</a>`;
     }
 
+
     format_as_contest_time(duration) {
-        var minutes = duration % 60;
-        var hours = Math.floor(duration / 60);
-        
-        return hours + ':' + Math.floor(minutes / 10) + '' + (minutes % 10);
+        const minutes = duration % 60;
+        const hours = Math.floor(duration / 60);
+
+        return `${hours}:${Math.floor(minutes / 10)}${minutes % 10}`;
     }
 
     part_points(result) {
-        var html = '';
-
-        html += result.points;
-
-        return html;
+        return `${result.points}`;
     }
 
+
     part_icpc_main(result) {
-        var failed_attempts = 0;
-        var sign = '';
+        const failed_attempts = result.accepted ? result.attempts_upto_best - 1 : result.attempts;
+        const sign = result.accepted ? '+' : '-';
 
-        if (result.accepted) {
-            sign = '+';
-            failed_attempts = result.attempts_upto_best-1;
-        } else {
-            sign = '-';
-            failed_attempts = result.attempts;
-        }
-
-        return sign + (failed_attempts > 0 ? failed_attempts : '');
+        return `${sign}${failed_attempts > 0 ? failed_attempts : ''}`;
     }
 
     part_submits_count(result) {
-        if (this.show_submits_upto_best) {
-            return '[' + result.attempts_upto_best + '/' + result.attempts + ']';
-        } else {
-            return '[' + result.attempts + ']';
-        }
+        return this.show_submits_upto_best
+            ? `[${result.attempts_upto_best}/${result.attempts}]`
+            : `[${result.attempts}]`;
     }
 
-    part_penalty_time(result) {
-        var duration = (result.points > 0 ? result.best_submit_time : result.last_submit_time);
 
+    part_penalty_time(result) {
+        const duration = result.points > 0 ? result.best_submit_time : result.last_submit_time;
         return this.format_as_contest_time(duration);
     }
 
     part_testing_flag(result) {
-        if ( !this.show_testing_flag || result.accepted || result.judged ) {
-            return '';
-        } else {
-            return '<sup>?</sup>';
-        }
+        return !this.show_testing_flag || result.accepted || result.judged ? '' : '<sup>?</sup>';
     }
 
     part_first_accepted_flag_style_class(result) {
-        if (this.show_first_accepted_flag && result.is_first_accepted) {
-            return 'standings-cell-first-accepted';
-        } else {
-            return '';
-        }
+        return this.show_first_accepted_flag && result.is_first_accepted ? 'standings-cell-first-accepted' : '';
     }
 
-    render_result_ioi(result, student, can_view) {
-        var cell_html = '';
 
-        if (result.attempts == 0) return '-';
-        
-        cell_html += this.part_points(result);
-        cell_html += this.part_testing_flag(result);
-        
-        var submits_html = '<sub>' + this.part_submits_count(result) + '</sub>';
+    render_result_ioi(result, student, can_view) {
+        if (result.attempts === 0) return '-';
+
+        let cell_html = `${this.part_points(result)}${this.part_testing_flag(result)}`;
+
+        let submits_html = `<sub>${this.part_submits_count(result)}</sub>`;
         if (can_view) submits_html = this.with_results_link(submits_html, result, student);
-        
+
         cell_html += submits_html;
 
         return this.with_font_color(cell_html, result);
     }
 
+
     render_result_icpc(result, student, can_view) {
-        var up_html = '';
-        var down_html = '';
+        if (result.attempts === 0) return '-';
 
-        if (result.attempts == 0) return '-';
-
-        up_html += this.part_icpc_main(result);
-        up_html += this.part_testing_flag(result);
-
-        down_html += this.part_penalty_time(result);
+        let up_html = `${this.part_icpc_main(result)}${this.part_testing_flag(result)}`;
+        let down_html = this.part_penalty_time(result);
 
         if (can_view) down_html = this.with_results_link(down_html, result, student);
 
-        var final_html = up_html + '<br>' + this.with_smaller_font(down_html);
+        const final_html = `${up_html}<br>${this.with_smaller_font(down_html)}`;
 
         return this.with_font_color(final_html, result);
     }
-    
+
+
     render_result_general(result, student, can_view) {
-        var up_html = '';
-        var down_html = '';
+        if (result.attempts === 0) return '-';
 
-        if (result.attempts == 0) return '-';
-        
-        up_html += this.part_points(result);
-        up_html += this.part_testing_flag(result);
+        const up_html = `${this.part_points(result)}${this.part_testing_flag(result)}`;
+        let down_html = `${this.part_penalty_time(result)}<br>${this.part_submits_count(result)}`;
 
-        down_html += this.part_penalty_time(result);
-        down_html += '<br>';
-        down_html += this.part_submits_count(result);
+        if (can_view) {
+            down_html = this.with_results_link(down_html, result, student);
+        }
 
-        if (can_view) down_html = this.with_results_link(down_html, result, student);
-
-        var final_html = up_html + '<br>' + this.with_smaller_font(down_html);
+        const final_html = `${up_html}<br>${this.with_smaller_font(down_html)}`;
 
         return this.with_font_color(final_html, result);
     }
+
 
     render_result_cell(result, student, can_view) {
-        var inner_html = '';
-        
-        if      (this.mode == StandingsRenderer.MODE_IOI)     inner_html = this.render_result_ioi(result, student, can_view);
-        else if (this.mode == StandingsRenderer.MODE_ICPC)    inner_html = this.render_result_icpc(result, student, can_view);
-        else if (this.mode == StandingsRenderer.MODE_GENERAL) inner_html = this.render_result_general(result, student, can_view);
-        else throw new Error("Invalid standings rendering mode");
-    
-        var first_accepted_style =  this.part_first_accepted_flag_style_class(result);
+        let inner_html = '';
 
-        var cell_html = '';
+        if (this.mode === StandingsRenderer.MODE_IOI) {
+            inner_html = this.render_result_ioi(result, student, can_view);
+        } else if (this.mode === StandingsRenderer.MODE_ICPC) {
+            inner_html = this.render_result_icpc(result, student, can_view);
+        } else if (this.mode === StandingsRenderer.MODE_GENERAL) {
+            inner_html = this.render_result_general(result, student, can_view);
+        } else {
+            throw new Error("Invalid standings rendering mode");
+        }
 
-        cell_html += '<td class="text-center align-middle cell standings-cell ' + first_accepted_style + '" title="' + result.task.letter + '. ' + result.task.name + '" >';
-        cell_html += inner_html;
-        cell_html += '</td>';
+        const first_accepted_style = this.part_first_accepted_flag_style_class(result);
 
-        return cell_html;
+        return `
+            <td class="text-center align-middle cell standings-cell ${first_accepted_style}" 
+                title="${result.task.letter}. ${result.task.name}">
+                ${inner_html}
+            </td>
+        `;
     }
 
-    render_student(student) {
-        var html = '';
 
+    render_student(student) {
         if (this.standings.hide_inactive && !student.active) {
             return '';
         }
 
-        var can_view = this.standings.has_capability_view_any || (this.standings.moodle_user_id == student.user_id);
-        
-        html += '<tr>';
+        const can_view = this.standings.has_capability_view_any || this.standings.moodle_user_id === student.user_id;
+        let html = '<tr>';
 
-        var rank_position_html = '';
-        if (student.rank_min_position == student.rank_max_position) {
-            rank_position_html = student.rank_min_position;
-        } else {
-            rank_position_html += student.rank_min_position + '-' + student.rank_max_position;
-        }
+        const rank_position_html = (student.rank_min_position === student.rank_max_position)
+            ? student.rank_min_position
+            : `${student.rank_min_position}-${student.rank_max_position}`;
 
-        html += '<td class="cell text-nowrap text-center">' + rank_position_html + '</td>';
+        html += `<td class="cell text-nowrap text-center">${rank_position_html}</td>`;
 
-        var can_view_link_html = '';
+        let can_view_link_html = '';
         if (can_view) {
-            can_view_link_html = 
-                '<sub>' + 
-                    '<a href="results.php?id='+this.standings.course_module_id+'&user_id='+student.user_id+'">' +
-                        '[' + this.get_string('submits') + ']' +
-                    '</a>' +
-                '</sub>'; 
+            can_view_link_html = `
+                <sub>
+                    <a href="results.php?id=${this.standings.course_module_id}&user_id=${student.user_id}">
+                        [${this.get_string('submits')}]
+                    </a>
+                </sub>`;
         }
 
-        html += '<td class="cell">' + student.fullname + can_view_link_html + '</td>';
+        html += `<td class="cell">${student.fullname}${can_view_link_html}</td>`;
 
-        for (var result of student.results) {
-            var cell_html = this.render_result_cell(result, student, can_view);
-
-            html += cell_html;
+        for (const result of student.results) {
+            html += this.render_result_cell(result, student, can_view);
         }
 
-        html += '<td class="cell text-center">';
-        html += '<font color="green">' + student.total.solved + '</font>';
-        if (student.total.failed > 0) html += '/' + '<font color="red">' + student.total.failed + '</font>';
+        html += `<td class="cell text-center">
+                    <font color="green">${student.total.solved}</font>`;
+        if (student.total.failed > 0) {
+            html += `/ <font color="red">${student.total.failed}</font>`;
+        }
         html += '</td>';
 
         if (this.show_total_points_column) {
-            html += '<td class="cell">' + student.total.points + '</td>';
+            html += `<td class="cell">${student.total.points}</td>`;
         }
-        
+
         if (this.show_total_penalty_time_column) {
-            html += '<td class="cell">';
-            html += student.total.penalty_time;
-            html += '</td>';
+            html += `<td class="cell">${student.total.penalty_time}</td>`;
         }
 
         if (this.show_last_improvement_column) {
-            html += '<td class="cell">';
-            html += this.format_as_contest_time(student.total.last_improvement_time);
-            html += '</td>';
+            html += `<td class="cell">${this.format_as_contest_time(student.total.last_improvement_time)}</td>`;
         }
 
         html += '</tr>';
@@ -442,55 +399,56 @@ class StandingsRenderer {
     }
 
     render_header() {
-        var html = '';
+        let html = `
+            <tr>
+                <th class="header text-center" scope="col">N</th>
+                <th class="header" scope="col">${this.get_string('username')}</th>
+        `;
 
-        html += '<tr>' +
-                '<th class="header text-center" scope="col">N</th>' +
-                '<th class="header" scope="col">' + this.get_string('username') + '</th>';
-        
-        for (var task of this.standings.tasks) {
-            html += 
-                '<th class="header text-center" scope="col" title="' + task.letter + '. ' + task.name + '">' +
-                    task.letter
-                '</th>';
+        for (const task of this.standings.tasks) {
+            html += `
+                <th class="header text-center" scope="col" title="${task.letter}. ${task.name}">
+                    ${task.letter}
+                </th>
+            `;
         }
 
         html += '<th class="header text-center" scope="col">+</th>';
-        
+
         if (this.show_total_points_column) {
-            html += '<th class="header" scope="col">' + this.get_string('points') + '</th>';
+            html += `<th class="header" scope="col">${this.get_string('points')}</th>`;
         }
-        
+
         if (this.show_total_penalty_time_column) {
-            html += '<th class="header" scope="col">' + this.get_string('penalty') + '</th>';
+            html += `<th class="header" scope="col">${this.get_string('penalty')}</th>`;
         }
-        
+
         if (this.show_last_improvement_column) {
-            html += '<th class="header" scope="col">' + this.get_string('lastimprovedat') + '</th>';
+            html += `<th class="header" scope="col">${this.get_string('lastimprovedat')}</th>`;
         }
-        
+
         html += '</tr>';
-        
+
         return html;
     }
 }
 
 class Standings {
-    constructor (
-            students, 
-            tasks, 
-            submits, 
-            course_module_id, 
-            moodle_user_id, 
-            contest_starttime, 
-            contest_endtime, 
-            mode, 
-            hide_upsolving, 
-            hide_inactive, 
-            has_capability_view_any, 
-            localized_strings
+    constructor(
+        students,
+        tasks,
+        submits,
+        course_module_id,
+        moodle_user_id,
+        contest_starttime,
+        contest_endtime,
+        mode,
+        hide_upsolving,
+        hide_inactive,
+        has_capability_view_any,
+        localized_strings
     ) {
-        students = students.map(function(st) { return new StandingsStudent(st, tasks); });
+        students = students.map(function (st) { return new StandingsStudent(st, tasks); });
 
         // set up params
         this.students = students;
@@ -513,74 +471,66 @@ class Standings {
         this.show_last_improvement_column = false;
 
         // prepare indexes
-        this.student_by_id = {};
-        for (var student of students) {
-            this.student_by_id[student.user_id] = student;
-        }
-        
-        this.task_by_id = {};
-        for (var task of tasks) {
-            this.task_by_id[task.task_id] = task;
-        }
+        this.student_by_id = Object.fromEntries(students.map(student => [student.user_id, student]));
+
+        this.task_by_id = Object.fromEntries(tasks.map(task => [task.task_id, task]));
 
         // prepare virtual submit times
-        for (var submit of submits) {
-            if (!this.student_by_id.hasOwnProperty(submit.user_id)) continue;
+        submits.forEach(submit => {
+            if (!this.student_by_id.hasOwnProperty(submit.user_id)) return;
 
-            var author = this.student_by_id[submit.user_id];
-
+            const author = this.student_by_id[submit.user_id];
             submit.virtual_submit_time = submit.submit_time - author.start_time_cut;
-        }
-        
+        });
+
         // server is not guaranteed to give sorted submits array
-        submits.sort(function(a, b) {
-            if (a.virtual_submit_time != b.virtual_submit_time) {
+        submits.sort((a, b) => {
+            if (a.virtual_submit_time !== b.virtual_submit_time) {
                 return a.virtual_submit_time - b.virtual_submit_time;
             }
-            
             return a.id - b.id;
         });
-        
-        // prepare additional info
-        var globally_solved_tasks = new Set();
 
-        for (var submit of this.submits) {
-            submit.accepted = (submit.result_id == 13 /* Accepted verdict */);
-            submit.judged = (submit.result_id != 1 /* Pending verdict */ && 
-                             submit.result_id != 2 /* Running verdict */);
+        // prepare additional info
+        const globally_solved_tasks = new Set();
+
+        this.submits.forEach(submit => {
+            submit.accepted = (submit.result_id == 13); // Accepted verdict
+            submit.judged = ![1, 2].includes(submit.result_id); // Pending and Running verdicts
             submit.task = this.task_by_id[submit.task_id];
             submit.is_first_accepted = false;
 
-            submit.points = parseInt(submit.points);
-            
+            submit.points = parseInt(submit.points, 10); // Явное указание системы счисления
+
             if (submit.accepted && this.student_by_id[submit.user_id]) {
                 submit.is_first_accepted = !globally_solved_tasks.has(submit.task_id);
-
                 globally_solved_tasks.add(submit.task_id);
             }
-        }
+        });
 
         console.log(submits);
 
-        for (var task of tasks) {
-            task.letter = String.fromCharCode('A'.charCodeAt(0)+Number(task.task_order)-1);
-        }
+        tasks.forEach(task => {
+            task.letter = String.fromCharCode('A'.charCodeAt(0) + Number(task.task_order) - 1);
+        });
+
 
         // fill submits
-        for (var submit of submits) {
-            if (!this.student_by_id.hasOwnProperty(submit.user_id)) continue;
-            this.student_by_id[submit.user_id].add_submit(submit);
-        }
+        submits.forEach(submit => {
+            if (this.student_by_id.hasOwnProperty(submit.user_id)) {
+                this.student_by_id[submit.user_id].add_submit(submit);
+            }
+        });
 
         // build
         this.build();
     }
 
     get_string(str) {
-        var localized_result = this.localized_strings[str];
+        const localized_result = this.localized_strings[str];
 
-        if ( !localized_result) {
-            console.error(`String '${str}' is not included into localized_strings_json`);
+        if (!localized_result) {
+            console.error(`String '${str}' is not included in localized_strings_json`);
             return `[[${str}]]`;
         }
 
@@ -643,32 +593,31 @@ class Standings {
         this.build();
     }
 
-    build () {
+    build() {
         var renderer = new StandingsRenderer(this);
 
         // build each line
-        for (var student of this.students) {
-            student.build_results(
-                this.hide_upsolving
-            );
-        }
+        this.students.forEach(student => {
+            student.build_results(this.hide_upsolving);
+        });
+
 
         // sort students
         this.students.sort(renderer.students_strict_comparator);
 
         // assign positions
-        var curpos = 0;
+        let curpos = 0;
         while (curpos < this.students.length) {
-            var nextpos = curpos+1;
+            let nextpos = curpos + 1;
 
-            while (nextpos < this.students.length && renderer.students_loose_comparator(this.students[curpos], this.students[nextpos]) == 0) {
-                nextpos += 1;
+            while (nextpos < this.students.length && renderer.students_loose_comparator(this.students[curpos], this.students[nextpos]) === 0) {
+                nextpos++;
             }
 
-            var min_position = curpos + 1;
-            var max_position = nextpos;
+            const min_position = curpos + 1;
+            const max_position = nextpos;
 
-            for (var i = curpos; i < nextpos; i++) {
+            for (let i = curpos; i < nextpos; i++) {
                 this.students[i].rank_min_position = min_position;
                 this.students[i].rank_max_position = max_position;
             }
@@ -677,77 +626,70 @@ class Standings {
         }
 
         // prepare html
-        for (var student of this.students) {
+        this.students.forEach(student => {
             student.html = renderer.render_student(student);
-        }
+        });
 
         // prepare stats
-        this.task_stats = [];
-        for (var task of this.tasks) {
-            this.task_stats.push({
-                task: task,
+        this.task_stats = this.tasks.map(task => ({
+            task,
+            solved: 0,
+            tried: 0
+        }));
 
-                solved: 0,
-                tried: 0,
-            });
-        }
-
-        for (var i = 0; i < this.tasks.length; i++) {
-            for (var student of this.students) {
+        this.tasks.forEach((task, i) => {
+            this.students.forEach(student => {
                 if (student.results[i].accepted) this.task_stats[i].solved += 1;
                 if (student.results[i].attempts > 0) this.task_stats[i].tried += 1;
-            }
-        }
-        
+            });
+        });
+
+
         // build
         this.html = '';
 
         // header
-        this.html += '<thead>';
-        this.html += renderer.render_header();
-        this.html += '</thead>';
-        
+        this.html += `<thead>${renderer.render_header()}</thead>`;
+
         this.html += '<tbody>';
-
         // rows
-        for (var student of this.students) {
+        this.students.forEach(student => {
             this.html += student.html;
-        }
-
+        });
         this.html += '</tbody>';
 
         // stats
         //  stats are common for all modes for now
         this.html += '<tfoot>';
-        
-        this.html += 
-            '<tr>' + 
-                '<td></td>' + 
-                '<td>' + 
-                    '<font color="green">' + this.get_string('amountofaccepted') + '</font>' + 
-                    '</br>' + 
-                    '<font color="grey">' + this.get_string('amountoftried') + '</font>' + 
-                '</td>';
 
-        for (var task_stat of this.task_stats) {
-            this.html += '<td class="cell text-center">';
+        this.html +=
+            '<tr>' +
+            '<td></td>' +
+            '<td>' +
+            '<font color="green">' + this.get_string('amountofaccepted') + '</font>' +
+            '</br>' +
+            '<font color="grey">' + this.get_string('amountoftried') + '</font>' +
+            '</td>';
 
-            this.html += 
-                '<font color="green" title="' + task_stat.task.letter + '. ' + task_stat.task.name + '">' +
-                    task_stat.solved +
-                '</font>' +
-                '<br>' +
-                '<font color="grey" title="' + task_stat.task.letter + '. ' + task_stat.task.name + '">' +
-                    task_stat.tried +
-                '</font>';
+        this.task_stats.forEach(task_stat => {
+            this.html += `
+                    <td class="cell text-center">
+                        <font color="green" title="${task_stat.task.letter}. ${task_stat.task.name}">
+                            ${task_stat.solved}
+                        </font>
+                        <br>
+                        <font color="grey" title="${task_stat.task.letter}. ${task_stat.task.name}">
+                            ${task_stat.tried}
+                        </font>
+                    </td>
+                `;
+        });
 
-            this.html += '</td>';
-        }
 
-        this.html += 
-                '<td></td>' +
-                '<td></td>' +
-                '</tr>' +
+        this.html +=
+            '<td></td>' +
+            '<td></td>' +
+            '</tr>' +
             '</tfoot>';
 
         // show

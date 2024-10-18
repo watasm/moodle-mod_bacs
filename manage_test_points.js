@@ -1,13 +1,11 @@
 function isInt(value) {
-  if (isNaN(value)) { return false; }
-  var x = parseFloat(value);
-  return (x | 0) === x;
+    return Number.isInteger(Number(value));
 }
 
 function test_editor_clear_contents(){
     'use strict';
 
-    var editor_table = document.getElementById("test_editor_table");
+    const editor_table = document.getElementById("test_editor_table");
 
     while (editor_table.rows.length > 1){
         editor_table.deleteRow(-1);
@@ -17,19 +15,19 @@ function test_editor_clear_contents(){
 function test_editor_check_range(first_, last_){
     'use strict';
 
-    var first = Number(first_);
-    var last = Number(last_);
+    const first = Number(first_);
+    const last = Number(last_);
 
     if ((last < first) || (first < 1)) {
         alert(M.util.get_string('invalidrange', 'bacs'));
         return false;
     }
 
-    var editor_table = document.getElementById("test_editor_table");
-    for (var i = 1; i < editor_table.rows.length-1; i++){
-        var cur_range = editor_table.rows[i].children[1].innerHTML.split(' - ');
-        var cur_first = Number(cur_range[0]);
-        var cur_last = Number(cur_range[1]);
+    const editor_table = document.getElementById("test_editor_table");
+    for (let i = 1; i < editor_table.rows.length-1; i++){
+        const cur_range = editor_table.rows[i].children[1].innerHTML.split(' - ');
+        const cur_first = Number(cur_range[0]);
+        const cur_last = Number(cur_range[1]);
 
         if (cur_last < first) continue;
         if (last < cur_first) continue;
@@ -47,13 +45,13 @@ function test_editor_check_range(first_, last_){
 function test_editor_delete_cur_row(node){
     'use strict';
 
-    var table_row = node;
+    let table_row = node;
     while (table_row.tagName !== 'TR') table_row = table_row.parentNode;
 
-    var table_ = table_row.parentNode;
+    const table_ = table_row.parentNode;
     table_.removeChild(table_row);
 
-    for (var i = 1; i < table_.children.length; i++){
+    for (let i = 1; i < table_.children.length; i++){
         table_.children[i].firstElementChild.innerHTML = i;
     }
 
@@ -63,16 +61,16 @@ function test_editor_delete_cur_row(node){
 function test_editor_add_group(first, last, value){
     'use strict';
 
-    var editor_table = document.getElementById("test_editor_table");
+    const editor_table = document.getElementById("test_editor_table");
 
     if (document.getElementById("test_editor_use_custom").checked) {
         editor_table.deleteRow(-1);
     }
 
     editor_table.insertRow(-1);
-    var new_tr = editor_table.rows[editor_table.rows.length - 1];
+    const new_tr = editor_table.rows[editor_table.rows.length - 1];
 
-    for (var i = 0; i < 5; i++) new_tr.insertCell(i);
+    for (let i = 0; i < 5; i++) new_tr.insertCell(i);
     new_tr.children[0].innerHTML = editor_table.rows.length-1;
     new_tr.children[1].innerHTML = first.toString() + ' - ' + last.toString();
     new_tr.children[2].innerHTML = value;
@@ -94,9 +92,9 @@ function test_editor_add_group(first, last, value){
 function test_editor_user_add_group(){
     'use strict';
 
-    var first = document.getElementById("test_editor_input_first").value;
-    var last  = document.getElementById("test_editor_input_last").value;
-    var value = document.getElementById("test_editor_input_value").value;
+    const first = document.getElementById("test_editor_input_first").value;
+    const last  = document.getElementById("test_editor_input_last").value;
+    const value = document.getElementById("test_editor_input_value").value;
 
     if (!(isInt(first) && isInt(last) && isInt(value))) {
         alert(M.util.get_string('fillwithintegers', 'bacs'));
@@ -119,8 +117,8 @@ function test_editor_user_add_group(){
 function test_editor_change_accepted_points() {
     'use strict';
 
-    var accepted_points_edit = document.getElementById("test_editor_accepted_points");
-    var accepted_points_value = accepted_points_edit.value;
+    const accepted_points_edit = document.getElementById("test_editor_accepted_points");
+    const accepted_points_value = accepted_points_edit.value;
 
     if ( !isInt(accepted_points_value)) {
         alert(M.util.get_string('fillwithintegers', 'bacs'));
@@ -140,17 +138,17 @@ function test_editor_change_accepted_points() {
 function test_editor_get(){
     'use strict';
 
-    var editor_table = document.getElementById("test_editor_table");
-    var tests_amount = Number(document.getElementById("test_editor_tests_amount").innerHTML);
-    var accepted_points_value = document.getElementById("test_editor_accepted_points").value;
-    var result = accepted_points_value + '';
+    const editor_table = document.getElementById("test_editor_table");
+    const tests_amount = Number(document.getElementById("test_editor_tests_amount").innerHTML);
+    const accepted_points_value = document.getElementById("test_editor_accepted_points").value;
+    let result = accepted_points_value + '';
 
-    for (var test = 0; test < tests_amount; test++){
-        var cur_value = 0;
-        for (var i = 1; i < editor_table.rows.length; i++){
-            var cur_range = editor_table.rows[i].children[1].innerHTML.split(' - ');
-            var cur_first = Number(cur_range[0]);
-            var cur_last = Number(cur_range[1]);
+    for (let test = 0; test < tests_amount; test++){
+        let cur_value = 0;
+        for (let i = 1; i < editor_table.rows.length; i++){
+            const cur_range = editor_table.rows[i].children[1].innerHTML.split(' - ');
+            const cur_first = Number(cur_range[0]);
+            const cur_last = Number(cur_range[1]);
 
             if ((cur_first <= test+1) && (cur_last >= test+1))
                 cur_value = editor_table.rows[i].children[2].innerHTML;
@@ -165,22 +163,22 @@ function test_editor_get(){
 function test_editor_set(test_string){
     'use strict';
 
-    var accepted_points_edit = document.getElementById("test_editor_accepted_points");
+    const accepted_points_edit = document.getElementById("test_editor_accepted_points");
 
     test_editor_clear_contents();
     if (document.getElementById("test_editor_use_custom").checked) {
         test_editor_add_input_row();
     }
 
-    var values = test_string.split(',');
+    let values = test_string.split(',');
     
     accepted_points_edit.value = values[0];
     values = values.slice(1);
 
     if (values.length > 0){
-        var first = 0, last = 0, value = values[0];
+        let first = 0, last = 0, value = values[0];
 
-        for (var i = 0; i < values.length; i++){
+        for (let i = 0; i < values.length; i++){
             if (values[i] === value){
                 last = i;
             } else {
@@ -197,12 +195,12 @@ function test_editor_set(test_string){
 function test_editor_update(){
     'use strict';
 
-    var task_id = document.getElementById("test_editor_task_selector").value;
-    var editor_table = document.getElementById("test_editor_table");
-    var accepted_points_value = Number(document.getElementById("test_editor_accepted_points").value);
+    const task_id = document.getElementById("test_editor_task_selector").value;
+    const editor_table = document.getElementById("test_editor_table");
+    const accepted_points_value = Number(document.getElementById("test_editor_accepted_points").value);
 
-    var points_sum = accepted_points_value;
-    for (var i = 1; i < editor_table.rows.length; i++){
+    let points_sum = accepted_points_value;
+    for (let i = 1; i < editor_table.rows.length; i++){
         points_sum += Number(editor_table.rows[i].children[3].innerHTML);
     }
 
@@ -213,7 +211,6 @@ function test_editor_update(){
     }
 
     document.getElementById("test_editor_points_sum").innerHTML = points_sum;
-    //console.log(task_id);
     document.getElementById("test_editor_tests_amount").innerHTML = global_tasks_info[task_id].count_tests;
     document.getElementById("test_editor_pretests_amount").innerHTML = global_tasks_info[task_id].count_pretests;
 
@@ -227,16 +224,17 @@ function test_editor_update(){
 function test_editor_collapse(){
     'use strict';
 
+    const editor_container = document.getElementById("test_editor_container");
     document.getElementById("test_editor_task_selector").value = '';
-    document.getElementById("test_editor_container").classList.add('d-none');
-    document.getElementById("test_editor_container").classList.remove('d-block');
-    document.getElementById("test_editor_container").classList.remove('d-inline-block');
+    editor_container.classList.add('d-none');
+    editor_container.classList.remove('d-block');
+    editor_container.classList.remove('d-inline-block');
 }
 
 function test_editor_load_task(){
     'use strict';
 
-    var task_id = document.getElementById("test_editor_task_selector").value;
+    const task_id = document.getElementById("test_editor_task_selector").value;
 
     if (task_id === ""){
         test_editor_collapse();
@@ -253,8 +251,8 @@ function test_editor_load_task(){
         alert(M.util.get_string('futurepointsnotification', 'bacs'));
     }
 
-    var test_editor_use_custom_checkbox = document.getElementById("test_editor_use_custom");
-    var test_editor_accepted_points_edit = document.getElementById("test_editor_accepted_points");
+    const test_editor_use_custom_checkbox = document.getElementById("test_editor_use_custom");
+    const test_editor_accepted_points_edit = document.getElementById("test_editor_accepted_points");
 
     if (global_tasks_info[task_id].test_points){
         test_editor_use_custom_checkbox.checked = true;
@@ -268,9 +266,10 @@ function test_editor_load_task(){
         test_editor_set(global_tasks_info[task_id].default_test_points);
     }
 
-    document.getElementById("test_editor_container").classList.add('d-block');
-    document.getElementById("test_editor_container").classList.remove('d-none');
-    document.getElementById("test_editor_container").classList.remove('d-inline-block');
+    const editor_container = document.getElementById("test_editor_container");
+    editor_container.classList.add('d-block');
+    editor_container.classList.remove('d-none');
+    editor_container.classList.remove('d-inline-block');
 }
 
 function test_editor_update_options(){
@@ -278,16 +277,16 @@ function test_editor_update_options(){
 
     test_editor_collapse();
 
-    var task_selector = document.getElementById("test_editor_task_selector");
+    const task_selector = document.getElementById("test_editor_task_selector");
     while (task_selector.length > 1){
         task_selector.remove(1);
     }
 
-    var tasks_reorder_list = document.getElementById("tasks_reorder_list");
-    for (var i = 0; i < tasks_reorder_list.children.length; i++){
-        var task_id = tasks_reorder_list.children[i].firstChild.innerHTML;
-        var task_name = (task_id in global_tasks_info ? global_tasks_info[task_id].name : "[" + M.util.get_string('uppercasetasknotfound', 'bacs') + "]");
-        var new_option = document.createElement("option");
+    const tasks_reorder_list = document.getElementById("tasks_reorder_list");
+    for (let i = 0; i < tasks_reorder_list.children.length; i++){
+        const task_id = tasks_reorder_list.children[i].firstChild.innerHTML;
+        const task_name = (task_id in global_tasks_info ? global_tasks_info[task_id].name : "[" + M.util.get_string('uppercasetasknotfound', 'bacs') + "]");
+        const new_option = document.createElement("option");
         new_option.innerHTML = task_name + ' (id: ' + task_id +')';
         new_option.value = task_id;
         task_selector.add(new_option);
@@ -297,11 +296,11 @@ function test_editor_update_options(){
 function test_editor_add_input_row(){
     'use strict';
 
-    var editor_table = document.getElementById("test_editor_table");
+    const editor_table = document.getElementById("test_editor_table");
     editor_table.insertRow(-1);
-    var new_tr = editor_table.rows[editor_table.rows.length - 1];
+    const new_tr = editor_table.rows[editor_table.rows.length - 1];
 
-    for (var i = 0; i < 5; i++) new_tr.insertCell(i);
+    for (let i = 0; i < 5; i++) new_tr.insertCell(i);
     new_tr.children[0].innerHTML = editor_table.rows.length-1;
     new_tr.children[1].innerHTML =
         "<input type='text' id='test_editor_input_first' size=3>" + "-" +
@@ -317,8 +316,8 @@ function test_editor_add_input_row(){
 function test_editor_switch_mode(){
     'use strict';
 
-    var test_editor_accepted_points_edit = document.getElementById("test_editor_accepted_points");
-    var task_id = document.getElementById("test_editor_task_selector").value;
+    const test_editor_accepted_points_edit = document.getElementById("test_editor_accepted_points");
+    const task_id = document.getElementById("test_editor_task_selector").value;
 
     if (document.getElementById("test_editor_use_custom").checked) {
         test_editor_accepted_points_edit.removeAttribute("disabled");
