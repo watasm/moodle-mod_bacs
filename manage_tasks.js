@@ -38,7 +38,7 @@ function trl_add_task(task_id) {
 
     // check for duplicate
     for (let i = 0; i < tasks_list.children.length; i++) {
-        if (tasks_list.children[i].firstChild.innerHTML === task_id) {
+        if (tasks_list.children[i].firstChild.innerHTML === task_id.toString()) {
             alert(M.util.get_string('duplicatetasks', 'bacs'));
             return false;
         }
@@ -72,18 +72,13 @@ function trl_add_task(task_id) {
 
 function trl_delete_task(id) {
     const tasks_list = document.getElementById("tasks_reorder_list");
-    let pos = -1;
     for (let i = 0; i < tasks_list.children.length; i++) {
         if (tasks_list.children[i].firstElementChild.innerHTML === id.toString()) {
-            pos = i;
-            break;
+            tasks_list.removeChild(tasks_list.children[i]);
+            trl_letter_column_pop();
+            trl_update();
+            return true;
         }
-    }
-    if (pos !== -1) {
-        tasks_list.removeChild(tasks_list.children[pos]);
-        trl_letter_column_pop();
-        trl_update();
-        return true;
     }
     alert(M.util.get_string('errordeletingtask', 'bacs') + id);
     return false;
