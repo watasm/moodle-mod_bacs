@@ -374,14 +374,14 @@ class mod_bacs_mod_form extends moodleform_mod {
         return "<div id='" . $containerid . "'
                 style='width: 99%; max-height: 80vh; overflow: auto; display: none;' >
                 <table class='generaltable accordion' style = 'white-space: nowrap;'>
-                <thead><tr>
+                <thead><tr class='bacs-mod-form'>
                     <td><b>" . get_string('taskid', 'bacs') . "</b></td>
                     <td><b>" . get_string('taskname', 'bacs') . "</b></td>
                     <td><b>" . get_string('format', 'bacs') . "</b></td>
                     <td><b>" . get_string('author', 'bacs') . "</b></td>
                     <td><b>" . get_string('actions', 'bacs') . "</b></td>
                     </tr></thead>
-                <tbody class='chesspaint'>";
+                <tbody class='chesspaint-bacs-mod-form'>";
     }
 
     /**
@@ -391,7 +391,7 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @throws coding_exception
      */
     private function get_tablein($task) {
-        return "<tr style='background-color: transparent;'
+        return "<tr class='bacs-mod-form' style='background-color: transparent;'
                      onmouseover=\"this.style.backgroundColor='#ececec';\"
                       onmouseout=\"this.style.backgroundColor='transparent';\">" .
                 "<td>" . $task->task_id . "</td>" .
@@ -414,9 +414,9 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @throws coding_exception
      */
     private function get_tasks_header($collectionsinfo, $alltasks, $taskids) {
-        $result = '<script>load_manage_tasks_css();</script>
+        $result = '
              <p class="tm_caption_p">' . get_string('contesttasks', 'bacs') . ':</p>
-             <table width="100%"><tr>
+             <table width="100%"><tr class="bacs-mod-form">
                 <td width="1%"><div id="letters_column"></div></td>
                 <td><div id="tasks_reorder_list"></div></td>
             </tr></table>
@@ -432,18 +432,13 @@ class mod_bacs_mod_form extends moodleform_mod {
             $result .= "<option value='$collectioninfo->collection_id'>$collectioninfo->name</option>";
         }
         $result .= '</select><div class="form-control" id="srchFld" >
-            <input type="search"
-                style="border:none; float: left; "
+            <input class="bacs-mod-form" type="search"
                 placeholder="' . get_string('search', 'bacs') . '" id="search-text"
                 onkeyup="tableSearch()" onfocus="blueShine()" onblur="offShine()">
-            <input
+            <input class="bacs-mod-form"
                 type="button"
                 value="&#10006;"
-                onclick="cleanSearch()"
-                style="
-                border: 0;
-                background: transparent;
-                float: right; width: 30px;">
+                onclick="cleanSearch()">
                 </div></div>';
 
         foreach ($collectionsinfo as $collectioninfo) {
@@ -457,14 +452,14 @@ class mod_bacs_mod_form extends moodleform_mod {
         }
         $result .= "<div id='collection_container_all' style='width: 99%; max-height: 80vh; overflow: auto' >
             <table class='generaltable accordion' style = 'white-space: nowrap;'>
-            <thead><tr>
+            <thead><tr class='bacs-mod-form'>
                 <td><b>" . get_string('taskid', 'bacs') . "</b></td>
                 <td><b>" . get_string('taskname', 'bacs') . "</b></td>
                 <td><b>" . get_string('format', 'bacs') . "</b></td>
                 <td><b>" . get_string('author', 'bacs') . "</b></td>
                 <td><b>" . get_string('actions', 'bacs') . "</b></td>
                 </tr></thead>
-            <tbody class='chesspaint'>";
+            <tbody class='chesspaint-bacs-mod-form'>";
         foreach ($alltasks as $curtask) {
             $result .= $this->get_tablein($curtask);
         }
@@ -482,15 +477,15 @@ class mod_bacs_mod_form extends moodleform_mod {
                 '<select id="test_editor_task_selector"
                 onchange="test_editor_load_task()"><option value="" selected>-</option></select>' .
                 '<div id="test_editor_container" style="display: none;">
-                <input type="checkbox" id="test_editor_use_custom" onclick="test_editor_switch_mode()">
+                <input class="bacs-mod-form" type="checkbox" id="test_editor_use_custom" onclick="test_editor_switch_mode()">
                 <label for="test_editor_use_custom">' . get_string('usecustomtestpoints', 'bacs') . '</label><br><br>
                 ' . get_string('amountoftests', 'bacs') . ': <span id="test_editor_tests_amount">0</span><br>
                 ' . get_string('amountofpretests', 'bacs') . ': <span id="test_editor_pretests_amount">0</span><br>
                 ' . get_string('sumofpoints', 'bacs') . ': <span id="test_editor_points_sum">0</span><br>
                 ' . get_string('pointsforfullsolution', 'bacs') . ':
-                    <input type="text" id="test_editor_accepted_points" size=3 onchange="test_editor_change_accepted_points()">
+                    <input class="bacs-mod-form" type="text" id="test_editor_accepted_points" size=3 onchange="test_editor_change_accepted_points()">
                 <table id="test_editor_table" style="margin-top: 5px;" class="generaltable accordion">
-                <thead><tr>
+                <thead><tr class="bacs-mod-form">
                     <td><b>' . get_string('n', 'bacs') . '</b></td>
                     <td><b>' . get_string('tests', 'bacs') . '</b></td>
                     <td><b>' . get_string('pointspertest', 'bacs') . '</b></td>
@@ -523,12 +518,10 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @return string
      */
     private function get_static_files() {
-        return "<link rel='stylesheet' href='$CFG->wwwroot/mod/bacs/mod_form.css' />
-                <script src='$CFG->wwwroot/mod/bacs/thirdparty/sortablejs/Sortable.js'></script>
+        return "<script src='$CFG->wwwroot/mod/bacs/thirdparty/sortablejs/Sortable.js'></script>
                 <script src='$CFG->wwwroot/mod/bacs/manage_tasks.js'></script>
                 <script src='$CFG->wwwroot/mod/bacs/mod_form.js'></script>
                 <script src='$CFG->wwwroot/mod/bacs/manage_test_points.js'></script>
-                <script src='$CFG->wwwroot/mod/bacs/thirdparty/sortablejs/Sortable.js'></script>
-                <script src='$CFG->wwwroot/mod/bacs/manage_tasks.js'></script>";
+                <script src='$CFG->wwwroot/mod/bacs/thirdparty/sortablejs/Sortable.js'></script>";
     }
 }

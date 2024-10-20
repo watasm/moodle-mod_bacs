@@ -401,7 +401,6 @@ class contest {
         $this->aceeditorredirecturlbacs = "view.php?id=" . $this->coursemodule->id . "&acetheme={acetheme}";
 
         $PAGE->requires->js('/mod/bacs/thirdparty/ace/src-min-noconflict/ace.js', true);
-        $PAGE->requires->css('/mod/bacs/main.css', true);
 
         $PAGE->set_title(format_string($this->bacs->name));
         $PAGE->set_heading(format_string($this->course->fullname));
