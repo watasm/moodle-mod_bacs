@@ -23,7 +23,6 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/bacs/lib.php');
 
@@ -46,6 +45,10 @@ class mod_bacs_mod_form extends moodleform_mod {
         $stringman = get_string_manager();
         $strings = $stringman->load_component_strings('bacs', 'ru');
         $PAGE->requires->strings_for_js(array_keys($strings), 'bacs');
+        $PAGE->requires->js('/mod/bacs/thirdparty/sortablejs/Sortable.js', true);
+        $PAGE->requires->js('/mod/bacs/manage_tasks.js', true);
+        $PAGE->requires->js('/mod/bacs/mod_form.js', true);
+        $PAGE->requires->js('/mod/bacs/manage_test_points.js', true);
 
         $id = optional_param('update', 0, PARAM_INT);
         $groupmode = 0; // ...no groups by default.
@@ -144,7 +147,6 @@ class mod_bacs_mod_form extends moodleform_mod {
             [0, 1]
         );
         $mform->setDefault('isolate_participants', 0);
-        $mform->addElement('html', $this->get_static_files());
         if ($groupmode) {
             $groupsettingshtml = $this->load_groups($bacs, $course);
             $mform->addElement('html', $this->get_group_settings($groupsettingshtml, $id));
@@ -483,7 +485,8 @@ class mod_bacs_mod_form extends moodleform_mod {
                 ' . get_string('amountofpretests', 'bacs') . ': <span id="test_editor_pretests_amount">0</span><br>
                 ' . get_string('sumofpoints', 'bacs') . ': <span id="test_editor_points_sum">0</span><br>
                 ' . get_string('pointsforfullsolution', 'bacs') . ':
-                    <input class="bacs-mod-form" type="text" id="test_editor_accepted_points" size=3 onchange="test_editor_change_accepted_points()">
+                    <input class="bacs-mod-form" type="text"
+                    id="test_editor_accepted_points" size=3 onchange="test_editor_change_accepted_points()">
                 <table id="test_editor_table" style="margin-top: 5px;" class="generaltable accordion">
                 <thead><tr class="bacs-mod-form">
                     <td><b>' . get_string('n', 'bacs') . '</b></td>
@@ -511,17 +514,5 @@ class mod_bacs_mod_form extends moodleform_mod {
                 get_string('advancedsettingsmessage3', 'bacs') .
                 '</p>' .
                 '</div>';
-    }
-
-    /**
-     * This function
-     * @return string
-     */
-    private function get_static_files() {
-        return "<script src='$CFG->wwwroot/mod/bacs/thirdparty/sortablejs/Sortable.js'></script>
-                <script src='$CFG->wwwroot/mod/bacs/manage_tasks.js'></script>
-                <script src='$CFG->wwwroot/mod/bacs/mod_form.js'></script>
-                <script src='$CFG->wwwroot/mod/bacs/manage_test_points.js'></script>
-                <script src='$CFG->wwwroot/mod/bacs/thirdparty/sortablejs/Sortable.js'></script>";
     }
 }
