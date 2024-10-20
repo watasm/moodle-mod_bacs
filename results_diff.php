@@ -64,7 +64,7 @@ $contest->set_results_active_menu_tab_on_user_id($targetuserid);
 $contest->aceeditorshownbacs = false;
 $contest->print_contest_header();
 
-print "<script type='text/javascript' src='diff_match_patch_uncompressed.js'></script>";
+print "<script type='text/javascript' src='thirdparty/diffmatchpatch/diff_match_patch_uncompressed.js'></script>";
 
 print "<a href='results.php?id=" . $contest->coursemodule->id . "&user_id=$targetuserid'>
         <button class='btn btn-info m-1'>" . get_string('backtosubmits', 'bacs') . "</button>
