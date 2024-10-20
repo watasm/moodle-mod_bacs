@@ -5,11 +5,20 @@
         <name>ace</name>
         <version>v1.36.2</version>
         <license>BSD</license>
+        <licenseversion></licenseversion>
     </library>
     <library>
         <location>thirdparty/sortablejs</location>
         <name>sortable</name>
         <version>v1.15.3</version>
         <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>thirdparty/diffmatchpatch</location>
+        <name>diffmatchpatch</name>
+        <version>v1.0</version>
+        <license>Apache</license>
+        <licenseversion>2.0</licenseversion>
     </library>
 </libraries>

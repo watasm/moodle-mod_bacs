@@ -1,11 +1,3 @@
-function load_manage_tasks_css() {
-    const css_link = document.createElement("link");
-    css_link.rel = "stylesheet";
-    css_link.type = "text/css";
-    css_link.href = "/mod/bacs/manage_tasks.css";
-    document.head.appendChild(css_link);
-}
-
 function collection_selector_change() {
     const selector = document.getElementById('collection_container_selector');
     const collections_containers = selector.children;
