@@ -48,7 +48,7 @@ $propertyvalue = $contest->queryparamsbacs->value;
 
 // ...check rights.
 if (!$contest->usercapabilitiesbacs->edit) {
-    throw new moodle_exceprion('generalnopermission', 'bacs');
+    throw new moodle_exception('generalnopermission', 'bacs');
 }
 $contest->require_capability_for_exact_submit($submitid);
 

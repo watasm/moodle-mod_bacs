@@ -43,7 +43,7 @@ $contest->print_contest_header('virtual_participants');
 
 // ...check rights.
 if (!$contest->usercapabilitiesbacs->edit) {
-    throw new moodle_exceprion('generalnopermission', 'bacs');
+    throw new moodle_exception('generalnopermission', 'bacs');
 }
 
 // ...get vp records.

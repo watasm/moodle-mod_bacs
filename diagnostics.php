@@ -40,7 +40,7 @@ $PAGE->set_url(new moodle_url('/mod/bacs/diagnostics.php', []));
 print $OUTPUT->header();
 
 if (!has_capability('moodle/site:config', $systemcontext)) {
-    throw new moodle_exceprion('generalnopermission', 'bacs');
+    throw new moodle_exception('generalnopermission', 'bacs');
 }
 
 $selectedchecksparam = optional_param('checks', '', PARAM_RAW);

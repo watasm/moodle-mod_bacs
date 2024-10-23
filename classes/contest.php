@@ -337,7 +337,7 @@ class contest {
             !in_array($this->currentgroupidbacs, array_keys($this->allowedgroupsbacs));
 
         if ($currentgroupisforbidden) {
-            throw new moodle_exceprion('groupnotamember', 'group');
+            throw new moodle_exception('groupnotamember', 'group');
         }
 
         $fitsnoseparategroup =
@@ -346,7 +346,7 @@ class contest {
             $this->noavailablegroupsbacs;
 
         if ($fitsnoseparategroup) {
-            throw new moodle_exceprion('groupnotamember', 'group');
+            throw new moodle_exception('groupnotamember', 'group');
         }
 
         if ($this->usecurrentgroupsettingsbacs) {
@@ -803,7 +803,7 @@ class contest {
         $submit = $DB->get_record('bacs_submits', ['id' => $submitid], '*', MUST_EXIST);
 
         if ($submit->contest_id != $this->bacs->id) {
-            throw new moodle_exceprion('cannotviewsubmit', 'bacs');
+            throw new moodle_exception('cannotviewsubmit', 'bacs');
         }
 
         $canviewgivensubmit =
@@ -811,7 +811,7 @@ class contest {
             $submit->user_id == $USER->id;
 
         if (!$canviewgivensubmit) {
-            throw new moodle_exceprion('cannotviewsubmit', 'bacs');
+            throw new moodle_exception('cannotviewsubmit', 'bacs');
         }
 
         // ...check group rights.
@@ -821,7 +821,7 @@ class contest {
             !in_array($submit->group_id, array_keys($this->allowedgroupsbacs));
 
         if ($submitgroupisnotallowed) {
-            throw new moodle_exceprion('groupnotamember', 'group');
+            throw new moodle_exception('groupnotamember', 'group');
         }
     }
 

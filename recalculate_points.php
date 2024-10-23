@@ -44,7 +44,7 @@ $contest->print_contest_header();
 
 // ...check rights.
 if (!$contest->usercapabilitiesbacs->edit) {
-    throw new moodle_exceprion('generalnopermission', 'bacs');
+    throw new moodle_exception('generalnopermission', 'bacs');
 }
 
 try {
