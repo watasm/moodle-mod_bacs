@@ -520,7 +520,6 @@ function xmldb_bacs_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024052700) {
-
         // Changing the default of field use_group_settings on table bacs_group_info to 0.
         // Changing the default of field starttime on table bacs_group_info to 0.
         // Changing the default of field endtime on table bacs_group_info to 0.
@@ -544,7 +543,6 @@ function xmldb_bacs_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024052800) {
-
         // Changing the default of field starttime on table bacs to 0.
         // Changing the default of field endtime on table bacs to 0.
         // Changing the default of field upsolving on table bacs to 1.
@@ -573,12 +571,29 @@ function xmldb_bacs_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024052900) {
-
         // Changing the default of field time_limit_millis on table bacs_tasks to 0.
         // Changing the default of field memory_limit_bytes on table bacs_tasks to 0.
         $table = new xmldb_table('bacs_tasks');
-        $field1 = new xmldb_field('time_limit_millis', XMLDB_TYPE_INTEGER, '7', null, XMLDB_NOTNULL, null, '0', 'name');
-        $field2 = new xmldb_field('memory_limit_bytes', XMLDB_TYPE_INTEGER, '7', null, XMLDB_NOTNULL, null, '0', 'time_limit_millis');
+        $field1 = new xmldb_field(
+            'time_limit_millis',
+            XMLDB_TYPE_INTEGER,
+            '7',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'name'
+        );
+        $field2 = new xmldb_field(
+            'memory_limit_bytes',
+            XMLDB_TYPE_INTEGER,
+            '7',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'time_limit_millis'
+        );
 
         $dbman->change_field_default($table, $field1);
         $dbman->change_field_default($table, $field2);
@@ -588,18 +603,62 @@ function xmldb_bacs_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024053000) {
-
         // Changing the default of field time_limit_millis on table bacs_langs to 0.
         // Changing the default of field memory_limit_bytes on table bacs_langs to 0.
         // Changing the default of field number_of_processes on table bacs_langs to 0.
         // Changing the default of field output_limit_bytes on table bacs_langs to 0.
         // Changing the default of field real_time_limit_mills on table bacs_langs to 0.
         $table = new xmldb_table('bacs_langs');
-        $field1 = new xmldb_field('time_limit_millis', XMLDB_TYPE_INTEGER, '7', null, XMLDB_NOTNULL, null, '0', 'description');
-        $field2 = new xmldb_field('memory_limit_bytes', XMLDB_TYPE_INTEGER, '7', null, XMLDB_NOTNULL, null, '0', 'time_limit_millis');
-        $field3 = new xmldb_field('number_of_processes', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '0', 'memory_limit_bytes');
-        $field4 = new xmldb_field('output_limit_bytes', XMLDB_TYPE_INTEGER, '7', null, XMLDB_NOTNULL, null, '0', 'number_of_processes');
-        $field5 = new xmldb_field('real_time_limit_mills', XMLDB_TYPE_INTEGER, '7', null, XMLDB_NOTNULL, null, '0', 'output_limit_bytes');
+        $field1 = new xmldb_field(
+            'time_limit_millis',
+            XMLDB_TYPE_INTEGER,
+            '7',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'description'
+        );
+        $field2 = new xmldb_field(
+            'memory_limit_bytes',
+            XMLDB_TYPE_INTEGER,
+            '7',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'time_limit_millis'
+        );
+        $field3 = new xmldb_field(
+            'number_of_processes',
+            XMLDB_TYPE_INTEGER,
+            '3',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'memory_limit_bytes'
+        );
+        $field4 = new xmldb_field(
+            'output_limit_bytes',
+            XMLDB_TYPE_INTEGER,
+            '7',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'number_of_processes'
+        );
+        $field5 = new xmldb_field(
+            'real_time_limit_mills',
+            XMLDB_TYPE_INTEGER,
+            '7',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'output_limit_bytes'
+        );
 
         $dbman->change_field_default($table, $field1);
         $dbman->change_field_default($table, $field2);
@@ -612,7 +671,6 @@ function xmldb_bacs_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024062100) {
-
         // Changing the default of field starttime on table bacs_virtual_participants to 0.
         // Changing the default of field endtime on table bacs_virtual_participants to 0.
         $table = new xmldb_table('bacs_virtual_participants');
@@ -625,7 +683,6 @@ function xmldb_bacs_upgrade($oldversion) {
         // Bacs savepoint reached.
         upgrade_mod_savepoint(true, 2024062100, 'bacs');
     }
-
 
     return true;
 }
