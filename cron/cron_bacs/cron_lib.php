@@ -266,7 +266,7 @@ function cron_getresults_for_submits(&$changedcontests, &$submits): void {
 
                     $testinfo = new stdClass();
                     $testinfo->submit_id = $submitid;
-                    $testinfo->status_id = submit_verdict_by_server_status($testresult->status);
+                    $testinfo->status_id = bacs_submit_verdict_by_server_status($testresult->status);
                     $testinfo->test_id = $testid;
                     $testinfo->time_used = $timeused;
                     $testinfo->memory_used = $memoryused;
@@ -323,7 +323,7 @@ function cron_getresults_for_submits(&$changedcontests, &$submits): void {
         $submit->max_memory_used = $maxmemoryused;
         $DB->update_record('bacs_submits', $submit);
 
-        calculate_sumbit_points($submitid);
+        bacs_calculate_sumbit_points($submitid);
 
         $transaction->allow_commit();
 
@@ -502,7 +502,7 @@ function cron_tasks() {
                     print "<p>Inserted pretest!</p>";
                 }
 
-                $record->test_points = default_test_string(
+                $record->test_points = bacs_default_test_string(
                     $record->count_tests,
                     $record->count_pretests
                 );

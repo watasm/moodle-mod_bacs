@@ -409,7 +409,7 @@ class contest {
         // ...make redirect checks.
         $now = time();
         if (!$this->presolving && $this->starttime > $now && $specificmode != 'contest_not_started') {
-            redirect_via_js("contest_not_started.php?id=" . $this->coursemodule->id);
+            bacs_redirect_via_js("contest_not_started.php?id=" . $this->coursemodule->id);
             die('Contest has not started / Контест ещё не начался.');
         }
 
@@ -419,7 +419,7 @@ class contest {
             $specificmode != 'virtual_contest';
 
         if ($virtualparticipationforcedredirect) {
-            redirect_via_js("virtual_contest.php?id=" . $this->coursemodule->id);
+            bacs_redirect_via_js("virtual_contest.php?id=" . $this->coursemodule->id);
             die('Contest is virtual only / Контест только виртуальный.');
         }
 
@@ -428,7 +428,7 @@ class contest {
             !$this->pageisallowedforisolatedparticipantbacs;
 
         if ($forbiddenasforisolatedparticipant) {
-            redirect_via_js("tasks.php?id=" . $this->coursemodule->id);
+            bacs_redirect_via_js("tasks.php?id=" . $this->coursemodule->id);
             die('This page is forbidden for isolated participant / Эта страница недоступна изолированным участникам.');
         }
 

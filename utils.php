@@ -58,7 +58,7 @@ class status_contest {
      * This function
      * @return void
      */
-    public function set() {
+    public function bacs_set() {
         global $bacs;
         $starttime = (int)$bacs->starttime;
         $endtime = (int)$bacs->endtime;
@@ -94,7 +94,7 @@ class status_contest {
      * This function
      * @return int|mixed
      */
-    public function get_status() {
+    public function bacs_get_status() {
         return $this->status;
     }
 
@@ -103,7 +103,7 @@ class status_contest {
      * @return lang_string|string
      * @throws coding_exception
      */
-    public function get_statustext() {
+    public function bacs_get_statustext() {
         switch ($this->status) {
             case -1:
                 $statustext = get_string('statusnotstarted', 'mod_bacs');
@@ -128,18 +128,18 @@ class status_contest {
      * @return string
      * @throws coding_exception
      */
-    public function get_fullstatusstring() {
+    public function bacs_get_fullstatusstring() {
         return get_string('time', 'mod_bacs') .
             ': <b>' . (int)$this->runtime . '</b> / <b>' . (int)$this->tottime . '</b>. ' .
             get_string('status', 'mod_bacs') .
-            ': <b>' . $this->get_statustext() . '</b>.<br>';
+            ': <b>' . $this->bacs_get_statustext() . '</b>.<br>';
     }
 
     /**
      * This function
      * @return int|mixed
      */
-    public function get_endtime() {
+    public function bacs_get_endtime() {
         return $this->endtime;
     }
 }
@@ -148,7 +148,7 @@ class status_contest {
  * This function
  * @return array|array[]
  */
-function get_my_groups() {
+function bacs_get_my_groups() {
     $mygroups = groups_get_my_groups();
     $group = [[]];
     foreach ($mygroups as $msg) {
@@ -165,7 +165,7 @@ function get_my_groups() {
  * @throws coding_exception
  * @throws dml_exception
  */
-function menu($link) {
+function bacs_menu($link) {
     global $cm, $DB, $USER, $student;
     if (is_null($link) || $link == "") {
         $link = 'view';
@@ -211,7 +211,7 @@ function menu($link) {
  * @return void
  * @throws coding_exception
  */
-function print_contest_title() {
+function bacs_print_contest_title() {
     global $bacs, $cm, $student;
 
     print "<table><tr>";
@@ -231,7 +231,7 @@ function print_contest_title() {
  * @return void
  * @throws dml_exception
  */
-function calculate_sumbit_points($submitid, $testpointsstring = null) {
+function bacs_calculate_sumbit_points($submitid, $testpointsstring = null) {
     global $DB;
 
     $submit = $DB->get_record('bacs_submits', ['id' => $submitid], '*', MUST_EXIST);
@@ -302,7 +302,7 @@ function calculate_sumbit_points($submitid, $testpointsstring = null) {
  * @param int $points
  * @return string
  */
-function default_test_string($testsamount, $pretestsamount, $points = 100) {
+function bacs_default_test_string($testsamount, $pretestsamount, $points = 100) {
     $pointspertest = [0];
     for ($i = 0; $i < $testsamount; $i++) {
         $pointspertest[] = 0;
@@ -327,7 +327,7 @@ function default_test_string($testsamount, $pretestsamount, $points = 100) {
  * @param string $url
  * @return void
  */
-function redirect_via_js($url) {
+function bacs_redirect_via_js($url) {
     print '<script type="text/javascript">
         window.location.href = "' . $url . '";
         </script>';
@@ -338,7 +338,7 @@ function redirect_via_js($url) {
  * @param string $verdict
  * @return string
  */
-function verdict_to_css_class($verdict) {
+function bacs_verdict_to_css_class($verdict) {
     $verdictclass = 'verdict-failed';
 
     if ($verdict == VERDICT_ACCEPTED) {
@@ -356,7 +356,7 @@ function verdict_to_css_class($verdict) {
  * This function
  * @return void
  */
-function load_get_string_for_js() {
+function bacs_load_get_string_for_js() {
     global $PAGE;
 }
 
@@ -366,7 +366,7 @@ function load_get_string_for_js() {
  * @return string
  * @throws coding_exception
  */
-function ace_theme_selector($url) {
+function bacs_ace_theme_selector($url) {
     $msg = "<script type='text/javascript'>
         function ace_theme_selector_change() {
             var selector = document.getElementById('ace_theme_selector');

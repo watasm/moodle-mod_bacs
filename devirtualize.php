@@ -67,7 +67,7 @@ if ($vpcount > 1) {
 
 $DB->delete_records('bacs_virtual_participants', $conditions);
 
-redirect_via_js('/mod/bacs/virtual_participants_list.php?id=' . $contest->coursemodule->id);
+bacs_redirect_via_js('/mod/bacs/virtual_participants_list.php?id=' . $contest->coursemodule->id);
 die('Devirtualization successful / Виртуальное участие успешно отменено.');
 
 echo $OUTPUT->footer();
