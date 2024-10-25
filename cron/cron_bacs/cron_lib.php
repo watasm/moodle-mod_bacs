@@ -192,8 +192,6 @@ function cron_sendsubmits(&$changedcontests): void {
  * @package mod_bacs
  */
 function cron_getresults_for_submits(&$changedcontests, &$submits): void {
-    require_once(dirname(__FILE__) . '/encoding.php');
-
     $sybonapikey = get_config('mod_bacs', 'sybonapikey');
     $sybonclient = new sybon_client($sybonapikey);
 
@@ -318,7 +316,12 @@ function cron_getresults_for_submits(&$changedcontests, &$submits): void {
 
         $submit->test_num_failed = $testnumfailed;
         $submit->points = 0;
-        $submit->info = Encoding::fixUTF8(base64_decode($checkingresult->buildResult->output));
+
+        // Decode and convert to UTF-8.
+        $submit->info = base64_decode($checkingresult->buildResult->output);
+        $mostlikelyencoding = mb_detect_encoding($submit->info, [ 'UTF-8', 'ASCII' ]);
+        $submit->info = mb_convert_encoding($submit->info, 'UTF-8', $mostlikelyencoding);
+
         $submit->max_time_used = $maxtimeused;
         $submit->max_memory_used = $maxmemoryused;
         $DB->update_record('bacs_submits', $submit);
