@@ -30,8 +30,7 @@ $string['actionswithcontest'] = 'Actions with contest';
 $string['add'] = 'Add';
 $string['advancedcontestsettings'] = 'Advanced contest settings';
 $string['advancedsettingsmessage1'] =
-    'This sections provides direct access for performing complicated operations with contest data. ' .
-    'For example, fast contest copy, debugging or setting up tasks that are not present in database. ';
+    'This sections provides direct access for performing complicated operations with contest data. For example, fast contest copy, debugging or setting up tasks that are not present in database. ';
 $string['advancedsettingsmessage2'] =
     'Note that other components do not track changes in these fields and will overwrite them on most operations.';
 $string['advancedsettingsmessage3'] =
@@ -81,15 +80,10 @@ $string['default_defaulttheme'] = 'Default';
 $string['delete'] = 'Delete';
 $string['devirtualize'] = 'Devirtualize';
 $string['devirtualizewarning'] =
-    'Are you sure that you want to remove virtual participation? ' .
-    'User submits will NOT be removed. ' .
-    'Virtual participation data cannot be restored.';
+    'Are you sure that you want to remove virtual participation? User submits will NOT be removed. Virtual participation data cannot be restored.';
 $string['diagnostics:check'] = 'Check';
 $string['diagnostics:deprecated_tasks_msg'] = 'Deprecated tasks check. Deprecated tasks available: {$a}';
-$string['diagnostics:duplicate_tasks_msg'] = 'Duplicate tasks check. ' .
-    '{$a->tasks_to_be_replaced} tasks to be replaced / ' .
-    '{$a->tasks_without_replacement} duplicates without replacement / ' .
-    '{$a->tasks_with_the_same_name} tasks with the same name';
+$string['diagnostics:duplicate_tasks_msg'] = 'Duplicate tasks check. {$a->tasks_to_be_replaced} tasks to be replaced / {$a->tasks_without_replacement} duplicates without replacement / {$a->tasks_with_the_same_name} tasks with the same name';
 $string['diagnostics:duration'] = 'Duration';
 $string['diagnostics:error'] = 'Error';
 $string['diagnostics:message'] = 'Message';
@@ -101,21 +95,9 @@ $string['diagnostics:sybon_api_collections_msg'] = 'Sybon tasks API check. Task 
 $string['diagnostics:sybon_api_compilers_msg'] = 'Sybon compilers API check. Compilers/languages available: {$a}';
 $string['diagnostics:sybon_api_submits_msg'] = 'Sybon submits API check. Test submit Sybon ID: {$a}';
 $string['diagnostics:sybon_api_submits_msg_no_submits'] = 'Sybon submits API check: no submits available. There should be at least one submit (not "Pending") available to check Sybon submits API';
-$string['diagnostics:task_pretests_msg'] = 'Task pretests check. ' .
-    '{$a->tasks_in_total} tasks in total / ' .
-    '{$a->tasks_with_wrong_pretests_count} tasks with wrong pretests count / ' .
-    '{$a->tasks_with_wrong_pretests_index} tasks with wrong pretests numeration / ' .
-    '{$a->tasks_without_pretests} tasks without pretests';
-$string['diagnostics:task_statement_format_msg'] = 'Task statement format check. ' .
-    '{$a->with_doc} in DOC(DOCX) / ' .
-    '{$a->with_pdf} in PDF / ' .
-    '{$a->with_html} in HTML / ' .
-    '{$a->with_other_format} in other formats';
-$string['diagnostics:test_points_strings_msg'] = 'Settings for tasks in contests check. ' .
-    '{$a->records_in_total} records in total / ' .
-    '{$a->records_with_custom_points} with custom points / ' .
-    '{$a->records_with_missing_task} with missing task / ' .
-    '{$a->records_mismatched} with mismatched points';
+$string['diagnostics:task_pretests_msg'] = 'Task pretests check. {$a->tasks_in_total} tasks in total / {$a->tasks_with_wrong_pretests_count} tasks with wrong pretests count / {$a->tasks_with_wrong_pretests_index} tasks with wrong pretests numeration / {$a->tasks_without_pretests} tasks without pretests';
+$string['diagnostics:task_statement_format_msg'] = 'Task statement format check. {$a->with_doc} in DOC(DOCX) / {$a->with_pdf} in PDF / {$a->with_html} in HTML / {$a->with_other_format} in other formats';
+$string['diagnostics:test_points_strings_msg'] = 'Settings for tasks in contests check. {$a->records_in_total} records in total / {$a->records_with_custom_points} with custom points / {$a->records_with_missing_task} with missing task / {$a->records_mismatched} with mismatched points';
 $string['diagnostics:warning'] = 'Warning';
 $string['download'] = 'Download';
 $string['duplicatetasks'] = 'Duplicate tasks are not allowed!';
@@ -130,9 +112,7 @@ $string['errordeletingtask'] = "Error deleting task with id=";
 $string['fillwithintegers'] = "All fields must be filled with single non-negative integers.";
 $string['format'] = 'Format';
 $string['from'] = 'Start time of contest';
-$string['futurepointsnotification'] = 'Note that just changing test points will have no effect ' .
-    'on past submits. You have to click "Recalculate points" ' .
-    'in "Actions" menu to force past sumbits be judged by new test points.';
+$string['futurepointsnotification'] = 'Note that just changing test points will have no effect on past submits. You have to click "Recalculate points" in "Actions" menu to force past sumbits be judged by new test points.';
 $string['generalnopermission'] = 'You have no permission for this operation!';
 $string['gotogroupsettings'] = 'Go to special group settings';
 $string['groupname'] = 'Group name';
@@ -260,11 +240,9 @@ $string['statusover'] = 'Over';
 $string['statusrunning'] = 'Running';
 $string['statusunknown'] = 'Unknown';
 $string['submissionsspampenalty'] =
-    "You have sent too many submits! You have sent 50 submits within last 5 minutes. " .
-    "Sending submits is temporarily prohibited. Try reloading this page later.";
+    "You have sent too many submits! You have sent 50 submits within last 5 minutes. Sending submits is temporarily prohibited. Try reloading this page later.";
 $string['submissionsspamwarning'] =
-    "You are sending too many submits! If you will send 50 submits in 5 minutes, " .
-    "you will temporarily lose ability to send submits.";
+    "You are sending too many submits! If you will send 50 submits in 5 minutes, you will temporarily lose ability to send submits.";
 $string['submit_verdict_0'] = "Unknown";
 $string['submit_verdict_1'] = "Pending";
 $string['submit_verdict_10'] = "Output limit exceeded";
@@ -285,8 +263,7 @@ $string['submit_verdict_7'] = "CPU time limit exceeded";
 $string['submit_verdict_8'] = "Real time limit exceeded";
 $string['submit_verdict_9'] = "Memory limit exceeded";
 $string['submitmessagetaskismissing'] =
-    'This task is missing in Moodle database. ' .
-    'Delete this task from this contest or update information about available tasks.';
+    'This task is missing in Moodle database. Delete this task from this contest or update information about available tasks.';
 $string['submits'] = 'submits';
 $string['submitsfrom'] = 'Submits from';
 $string['sumofpoints'] = 'Sum of points';
