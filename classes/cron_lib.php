@@ -37,8 +37,6 @@ use mod_bacs\api\sybon_client;
 use core\session\exception;
 use stdClass;
 
-require_login();
-
 /**
  * Contains functions for synchronizing DB with Sybon.
  *
