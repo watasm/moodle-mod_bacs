@@ -24,7 +24,9 @@
 
 // HEADER STANDART START.
 require_once(dirname(__DIR__, 2) . '/config.php');
-require_once(__DIR__ . '/cron/cron_bacs/cron_lib.php');
+require_once(__DIR__ . '/classes/cron_lib.php');
+
+use mod_bacs\cron_lib;
 
 require_login();
 
@@ -56,16 +58,16 @@ $cronaction = optional_param('action', '', PARAM_TEXT);
 
 switch ($cronaction) {
     case 'langs':
-        cron_langs();
+        cron_lib::cron_langs();
         break;
     case 'tasks':
-        cron_tasks();
+        cron_lib::cron_tasks();
         break;
     case 'task_url':
-        cron_task_url();
+        cron_lib::cron_task_url();
         break;
     case 'send':
-        cron_send(true);
+        cron_lib::cron_send(true);
         break;
 
     case 'special':
