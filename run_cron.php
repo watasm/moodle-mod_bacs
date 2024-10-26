@@ -23,8 +23,8 @@
  */
 
 // HEADER STANDART START.
-require_once(dirname(__FILE__, 5) . '/config.php');
-require_once(dirname(__FILE__) . '/cron_lib.php');
+require_once(dirname(__DIR__, 2) . '/config.php');
+require_once(__DIR__ . '/cron/cron_bacs/cron_lib.php');
 
 require_login();
 
@@ -34,7 +34,7 @@ $PAGE->set_context($context);
 $PAGE->set_title('MoodlePL plugin cron');
 $PAGE->set_heading('MoodlePL plugin');
 
-$PAGE->set_url(new moodle_url('/mod/bacs/cron/cron_bacs/run_cron.php', []));
+$PAGE->set_url(new moodle_url('/mod/bacs/run_cron.php', []));
 
 // Output starts here.
 echo $OUTPUT->header();
