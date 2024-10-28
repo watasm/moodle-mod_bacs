@@ -114,7 +114,7 @@ if ($mform->is_cancelled()) {
 
     $transaction->allow_commit();
 
-    redirect_via_js('/mod/bacs/groups_settings.php?id=' . $id);
+    bacs_redirect_via_js('/mod/bacs/groups_settings.php?id=' . $id);
 } else {
     // This branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
     // or on the first display of the form.

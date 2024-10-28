@@ -84,7 +84,7 @@ if ($contest->queryparamsbacs->confirmstart == 1) {
 
         $DB->insert_record('bacs_virtual_participants', $newvprecord);
 
-        redirect_via_js("view.php?id=" . $contest->coursemodule->id);
+        bacs_redirect_via_js("view.php?id=" . $contest->coursemodule->id);
         die('Virtual participation registered successfully / Виртуальное участие успешно зарегистрировано.');
     }
 }

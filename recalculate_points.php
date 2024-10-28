@@ -95,7 +95,7 @@ try {
 
     foreach ($submits as $submit) {
         print "Recalculating submit $submit->id...<br>";
-        calculate_sumbit_points($submit->id, $testpointsstring);
+        bacs_calculate_sumbit_points($submit->id, $testpointsstring);
     }
 
     $transaction->allow_commit();

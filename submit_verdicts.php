@@ -104,7 +104,7 @@ const VERDICT_REJECTED                 = 18;
  * @param string $status
  * @return int
  */
-function submit_verdict_by_server_status($status) {
+function bacs_submit_verdict_by_server_status($status) {
     switch ($status) {
         case "OK":
             return VERDICT_ACCEPTED;

@@ -289,7 +289,7 @@ class results_submit {
         $curpretest->output            = $dbpretest->output;
         $curpretest->expected          = $dbpretest->expected;
         $curpretest->status_id         = $dbpretest->status_id;
-        $curpretest->verdict_css_class = verdict_to_css_class($dbpretest->status_id);
+        $curpretest->verdict_css_class = bacs_verdict_to_css_class($dbpretest->status_id);
         $curpretest->verdict_formatted = format_verdict($dbpretest->status_id);
 
         $this->pretests[] = $curpretest;
@@ -306,7 +306,7 @@ class results_submit {
         $curtest->test_id           = $dbtest->test_id;
         $curtest->test_id_natural   = $dbtest->test_id + 1;
         $curtest->status_id         = $dbtest->status_id;
-        $curtest->verdict_css_class = verdict_to_css_class($dbtest->status_id);
+        $curtest->verdict_css_class = bacs_verdict_to_css_class($dbtest->status_id);
         $curtest->verdict_formatted = format_verdict($dbtest->status_id);
 
         $curtest->time_used           = $dbtest->time_used;
@@ -423,7 +423,7 @@ class results_submit {
         $data->max_time_used   = $this->maxtimeusedbacs;
         $data->max_memory_used = $this->maxmemoryusedbacs;
 
-        $data->verdict_css_class         = verdict_to_css_class($this->resultidbacs);
+        $data->verdict_css_class         = bacs_verdict_to_css_class($this->resultidbacs);
         $data->max_time_used_formatted   = format_time_consumed($this->maxtimeusedbacs);
         $data->max_memory_used_formatted = format_memory_consumed($this->maxmemoryusedbacs);
         $data->verdict_formatted         = format_verdict($this->resultidbacs);

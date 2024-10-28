@@ -87,6 +87,6 @@ if ($propertyname == "points") {
 // ...on success.
 bacs_rebuild_all_standings($contest->bacs->id);
 
-redirect_via_js("results_for_submit.php?id=" . $contest->coursemodule->id . "&submit_id=$submitid");
+bacs_redirect_via_js("results_for_submit.php?id=" . $contest->coursemodule->id . "&submit_id=$submitid");
 
 echo $OUTPUT->footer();

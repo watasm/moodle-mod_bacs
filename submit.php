@@ -87,10 +87,10 @@ if ($cansubmit && $contest->queryparamsbacs->key == $submitkey) {
 
         // ...redirect.
         print "Successful submit / Успешная отправка";
-        redirect_via_js("results.php?id=" . $contest->coursemodule->id);
+        bacs_redirect_via_js("results.php?id=" . $contest->coursemodule->id);
     } else {
         print "No submit / Нет посылки";
-        redirect_via_js("tasks.php?id=" . $contest->coursemodule->id);
+        bacs_redirect_via_js("tasks.php?id=" . $contest->coursemodule->id);
     }
 } else {
     print "Error occured on submitting / Произошла ошибка при отправке";
