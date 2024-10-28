@@ -29,8 +29,9 @@ require_once(dirname(__FILE__) . '/lib.php');
 require_once(dirname(__FILE__) . '/utils.php');
 
 $id = optional_param('id', 0, PARAM_INT);
-if (isset($_POST['bacs_id'])) {
-    $id = $_POST['bacs_id'];
+$bacsid = optional_param('bacs_id', null, PARAM_INT);
+if ($bacsid) {
+    $id = $bacsid;
 }
 
 $cm = get_coursemodule_from_id('bacs', $id, 0, false, MUST_EXIST);
@@ -114,7 +115,7 @@ if ($mform->is_cancelled()) {
 
     $transaction->allow_commit();
 
-    redirect_via_js('/mod/bacs/groups_settings.php?id=' . $id);
+    bacs_redirect_via_js('/mod/bacs/groups_settings.php?id=' . $id);
 } else {
     // This branch is executed if the form is submitted but the data doesn't validate and the form should be redisplayed
     // or on the first display of the form.

@@ -69,7 +69,7 @@ $cansubmit =
 $submitkey = md5($USER->email . $USER->sesskey . $contest->coursemodule->id . $contest->queryparamsbacs->task_id);
 
 if ($cansubmit && $contest->queryparamsbacs->key == $submitkey) {
-    $source = $_POST["source"];
+    $source = optional_param("source", null, PARAM_TEXT);
 
     if (isset($source) && ($source != "")) {
         $record = new stdClass();
@@ -87,10 +87,10 @@ if ($cansubmit && $contest->queryparamsbacs->key == $submitkey) {
 
         // ...redirect.
         print "Successful submit / Успешная отправка";
-        redirect_via_js("results.php?id=" . $contest->coursemodule->id);
+        bacs_redirect_via_js("results.php?id=" . $contest->coursemodule->id);
     } else {
         print "No submit / Нет посылки";
-        redirect_via_js("tasks.php?id=" . $contest->coursemodule->id);
+        bacs_redirect_via_js("tasks.php?id=" . $contest->coursemodule->id);
     }
 } else {
     print "Error occured on submitting / Произошла ошибка при отправке";
