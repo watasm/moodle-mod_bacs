@@ -29,8 +29,9 @@ require_once(dirname(__FILE__) . '/lib.php');
 require_once(dirname(__FILE__) . '/utils.php');
 
 $id = optional_param('id', 0, PARAM_INT);
-if (isset($_POST['bacs_id'])) {
-    $id = $_POST['bacs_id'];
+$bacsid = optional_param('bacs_id', null, PARAM_INT);
+if ($bacsid) {
+    $id = $bacsid;
 }
 
 $cm = get_coursemodule_from_id('bacs', $id, 0, false, MUST_EXIST);

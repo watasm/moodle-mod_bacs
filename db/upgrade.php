@@ -96,6 +96,7 @@ function xmldb_bacs_upgrade($oldversion) {
         drop_table_safe('bacs_grades');
 
         tov3_process_log('Finished migration!');
+        upgrade_mod_savepoint(true, 2018050700, 'bacs');
     }
 
     if ($oldversion < 2018121100) {
@@ -114,6 +115,7 @@ function xmldb_bacs_upgrade($oldversion) {
 
             $DB->update_record('bacs', $curcontest);
         }
+        upgrade_mod_savepoint(true, 2018121100, 'bacs');
     }
 
     if ($oldversion < 2019012502) {
@@ -130,6 +132,7 @@ function xmldb_bacs_upgrade($oldversion) {
         foreach ($contests as $curcontest) {
             rebuild_standings($curcontest->id);
         }
+        upgrade_mod_savepoint(true, 2019012502, 'bacs');
     }
 
     if ($oldversion < 2019121600) {
@@ -144,6 +147,7 @@ function xmldb_bacs_upgrade($oldversion) {
         if (!$dbman->field_exists($bacssubmits, $bacssubmitsmaxmemoryused)) {
             $dbman->add_field($bacssubmits, $bacssubmitsmaxmemoryused);
         }
+        upgrade_mod_savepoint(true, 2019121600, 'bacs');
     }
 
     if ($oldversion < 2020120400) {
@@ -180,6 +184,7 @@ function xmldb_bacs_upgrade($oldversion) {
                 ['primary', XMLDB_KEY_PRIMARY, ['id']],
             ]
         );
+        upgrade_mod_savepoint(true, 2020120400, 'bacs');
     }
 
     if ($oldversion < 2021021901) {
@@ -206,6 +211,7 @@ function xmldb_bacs_upgrade($oldversion) {
 
             $DB->update_record('bacs_tasks_to_contests', $curtasktocontest);
         }
+        upgrade_mod_savepoint(true, 2021021901, 'bacs');
     }
 
     if ($oldversion < 2021071502) {
@@ -231,6 +237,7 @@ function xmldb_bacs_upgrade($oldversion) {
         if (!$dbman->field_exists($bacssubmits, $bacsgroupid)) {
             $dbman->add_field($bacssubmits, $bacsgroupid);
         }
+        upgrade_mod_savepoint(true, 2021071502, 'bacs');
     }
 
     if ($oldversion < 2021081302) {
@@ -268,6 +275,7 @@ function xmldb_bacs_upgrade($oldversion) {
         if (!$dbman->field_exists($bacsgroupinfo, $bacsgroupinfousegroupsettings)) {
             $dbman->add_field($bacsgroupinfo, $bacsgroupinfousegroupsettings);
         }
+        upgrade_mod_savepoint(true, 2021081302, 'bacs');
     }
 
     if ($oldversion < 2022010600) {
@@ -278,6 +286,7 @@ function xmldb_bacs_upgrade($oldversion) {
         if (!$dbman->field_exists($tasks, $tasksstatementformat)) {
             $dbman->add_field($tasks, $tasksstatementformat);
         }
+        upgrade_mod_savepoint(true, 2022010600, 'bacs');
     }
 
     if ($oldversion < 2022041900) {
@@ -299,6 +308,7 @@ function xmldb_bacs_upgrade($oldversion) {
         $params = ['verdict_pending' => 1, 'verdict_running' => 2];
 
         $DB->execute($sql, $params);
+        upgrade_mod_savepoint(true, 2022041900, 'bacs');
     }
 
     if ($oldversion < 2022070200) {
@@ -325,6 +335,7 @@ function xmldb_bacs_upgrade($oldversion) {
                 ['unique_virtual_participant', XMLDB_KEY_UNIQUE, ['user_id', 'contest_id', 'group_id']],
             ]
         );
+        upgrade_mod_savepoint(true, 2022070200, 'bacs');
     }
 
     if ($oldversion < 2022072100) {
@@ -334,6 +345,7 @@ function xmldb_bacs_upgrade($oldversion) {
         if (!$dbman->field_exists($bacsvp, $bacsvpendtime)) {
             $dbman->add_field($bacsvp, $bacsvpendtime);
         }
+        upgrade_mod_savepoint(true, 2022072100, 'bacs');
     }
 
     if ($oldversion < 2022080300) {
@@ -343,6 +355,7 @@ function xmldb_bacs_upgrade($oldversion) {
         if (!$dbman->field_exists($bacs, $bacsisolateparticipants)) {
             $dbman->add_field($bacs, $bacsisolateparticipants);
         }
+        upgrade_mod_savepoint(true, 2022080300, 'bacs');
     }
 
     if ($oldversion < 2022090602) {
@@ -350,6 +363,7 @@ function xmldb_bacs_upgrade($oldversion) {
         $bacsvpendtime = new xmldb_field('endtime', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
 
         $dbman->change_field_precision($bacsvp, $bacsvpendtime);
+        upgrade_mod_savepoint(true, 2022090602, 'bacs');
     }
 
     if ($oldversion < 2024041200) {
@@ -683,6 +697,5 @@ function xmldb_bacs_upgrade($oldversion) {
         // Bacs savepoint reached.
         upgrade_mod_savepoint(true, 2024062100, 'bacs');
     }
-
     return true;
 }

@@ -49,8 +49,9 @@ class groups_settings_form extends moodleform {
         $mform = $this->_form;
 
         $id = optional_param('id', 0, PARAM_INT);
-        if (isset($_POST['bacs_id'])) {
-            $id = $_POST['bacs_id'];
+        $bacsid = optional_param('bacs_id', null, PARAM_INT);
+        if ($bacsid) {
+            $id = $bacsid;
         }
 
         $mform->addElement('hidden', 'bacs_id', $id);
