@@ -25,6 +25,11 @@
 
 namespace mod_bacs\task;
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once(dirname(__FILE__, 2) . '/cron_lib.php');
+
+use mod_bacs\cron_lib;
 use core\task\scheduled_task;
 use dml_exception;
 
@@ -48,8 +53,6 @@ class cron_task_url extends scheduled_task {
      * @throws dml_exception
      */
     public function execute() {
-        require_once(dirname(dirname(dirname(__FILE__))) . '/cron/cron_bacs/cron_lib.php');
-
-        cron_task_url();
+        cron_lib::cron_task_url();
     }
 }

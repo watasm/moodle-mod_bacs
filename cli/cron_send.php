@@ -23,8 +23,10 @@
  */
 
 define('CLI_SCRIPT', 1);
-require(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
 
-require_once(dirname(dirname(__FILE__)) . '/cron/cron_bacs/cron_lib.php');
+require(dirname(__FILE__, 4) . '/config.php');
+require_once(dirname(__FILE__, 2) . '/classes/cron_lib.php');
 
-cron_send(true);
+use mod_bacs\cron_lib;
+
+cron_lib::cron_send(true);
