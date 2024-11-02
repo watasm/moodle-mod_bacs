@@ -69,7 +69,7 @@ $cansubmit =
 $submitkey = md5($USER->email . $USER->sesskey . $contest->coursemodule->id . $contest->queryparamsbacs->task_id);
 
 if ($cansubmit && $contest->queryparamsbacs->key == $submitkey) {
-    $source = optional_param("source", null, PARAM_TEXT);
+    $source = optional_param("source", null, PARAM_RAW);
 
     if (isset($source) && ($source != "")) {
         $record = new stdClass();
