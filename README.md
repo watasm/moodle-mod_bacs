@@ -32,3 +32,7 @@ Check [contest settings](mds/Contest%20Settings.md) file for more information.
 - Support for groups of students.
 - Virtual contests that allow each student to participate in the contest at an independent time.
 - The ability to double-check, recalculate points, reject and change the results of parcels.
+
+### Solving problems in different programming languages:
+
+Examples of solving the A+B problem in all available languages can be found [here](mds/Sample%20Solutions.md)
