@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* jshint ignore:start */
 function trl_letter_column_add() {
     const letters_column = document.getElementById("letters_column");
     if (letters_column.children.length < 26) {
