@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* jshint ignore:start */
 function collection_selector_change() {
     const selector = document.getElementById('collection_container_selector');
     const collections_containers = selector.children;
