@@ -697,5 +697,21 @@ function xmldb_bacs_upgrade($oldversion) {
         // Bacs savepoint reached.
         upgrade_mod_savepoint(true, 2024062100, 'bacs');
     }
+
+    if ($oldversion < 2024090300) {
+        // Changing type of field test_points on table bacs_tasks to text.
+        $table = new xmldb_table('bacs_tasks');
+        $field = new xmldb_field('test_points', XMLDB_TYPE_TEXT, null, null, null, null, null, 'count_pretests');
+        // Launch change of type for field test_points.
+        $dbman->change_field_type($table, $field);
+        // Changing type of field test_points on table bacs_tasks_to_contests to text.
+        $table = new xmldb_table('bacs_tasks_to_contests');
+        $field = new xmldb_field('test_points', XMLDB_TYPE_TEXT, null, null, null, null, null, 'task_order');
+        // Launch change of type for field test_points.
+        $dbman->change_field_type($table, $field);
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2024090300, 'bacs');
+    }
+
     return true;
 }
