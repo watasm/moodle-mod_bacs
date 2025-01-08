@@ -517,12 +517,6 @@ class cron_lib {
                         $record->count_pretests
                     );
 
-                    if (strlen($record->test_points) > 250) {
-                        print "<p><b>Error!</b><br>Task '$record->name' with
- id=$record->task_id has $record->count_tests tests and cannot be inserted into collection!</p>";
-                        continue;
-                    }
-
                     $record->statement_url = $item->statementUrl;
                     $record->statement_format = $item->format;
                     $record->revision = md5($item->statementUrl);

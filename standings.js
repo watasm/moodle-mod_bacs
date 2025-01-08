@@ -1,7 +1,7 @@
 class StandingsStudent {
-    constructor(student, tasks) {
+    constructor(student, standings) {
         this.student = student;
-        this.tasks = tasks;
+        this.standings = standings;
         this.rank_position = 42;
 
         console.log(this.student);
@@ -33,11 +33,15 @@ class StandingsStudent {
         return this.student.endtime;
     }
 
+    get tasks() {
+        return this.standings.tasks;
+    }
+
     add_submit(submit) {
         this.submits.push(submit);
     }
 
-    build_results(hide_upsolving) {
+    build_results() {
         this.active = false;
 
         this.results = this.tasks.map(task => ({
@@ -55,7 +59,7 @@ class StandingsStudent {
 
         for (const submit of this.submits) {
             if (!submit.task) continue;
-            if (hide_upsolving && this.end_time_cut <= submit.submit_time) continue;
+            if (this.standings.hide_upsolving && this.end_time_cut <= submit.submit_time) continue;
 
             this.active = true;
 
@@ -65,9 +69,9 @@ class StandingsStudent {
             result.attempts++;
             result.last_submit_time = Math.max(0, Math.floor((submit.submit_time - this.start_time_cut) / 60));
 
-            console.log(this);
+            const is_improvement = this.standings.mode === StandingsRenderer.MODE_ICPC ? (submit.accepted && !result.accepted) : (result.points < submit.points);
 
-            if (result.points < submit.points) {
+            if (is_improvement) {
                 result.points = submit.points;
                 result.attempts_upto_best = result.attempts;
                 result.best_submit_time = result.last_submit_time;
@@ -448,7 +452,7 @@ class Standings {
         has_capability_view_any,
         localized_strings
     ) {
-        students = students.map(function (st) { return new StandingsStudent(st, tasks); });
+        students = students.map((student) => new StandingsStudent(student, this));
 
         // set up params
         this.students = students;
@@ -496,11 +500,13 @@ class Standings {
 
         this.submits.forEach(submit => {
             submit.accepted = (submit.result_id == 13); // Accepted verdict
-            submit.judged = ![1, 2].includes(submit.result_id); // Pending and Running verdicts
+            submit.judged = 
+                (submit.result_id != 1 /* Pending verdict */ && 
+                submit.result_id != 2 /* Running verdict */);
             submit.task = this.task_by_id[submit.task_id];
             submit.is_first_accepted = false;
 
-            submit.points = parseInt(submit.points, 10); // Явное указание системы счисления
+            submit.points = parseInt(submit.points, 10);
 
             if (submit.accepted && this.student_by_id[submit.user_id]) {
                 submit.is_first_accepted = !globally_solved_tasks.has(submit.task_id);
@@ -598,7 +604,7 @@ class Standings {
 
         // build each line
         this.students.forEach(student => {
-            student.build_results(this.hide_upsolving);
+            student.build_results();
         });
 
 
