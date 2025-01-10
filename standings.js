@@ -367,7 +367,7 @@ class StandingsRenderer {
             can_view_link_html = `
                 <sub>
                     <a href="results.php?id=${this.standings.course_module_id}&user_id=${student.user_id}">
-                        [${this.get_string('submits')}]
+                        [${this.get_string('submitslowercase')}]
                     </a>
                 </sub>`;
         }

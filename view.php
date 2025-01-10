@@ -96,6 +96,7 @@ $standings->tasksjsonbacs = json_encode($tasks);
 // ...prepare localized strings.
 $standings->localizedstringsjsonbacs = json_encode([
     'submits'          => get_string('submits', 'mod_bacs'),
+    'submitslowercase' => get_string('submitslowercase', 'mod_bacs'),
     'username'         => get_string('username', 'mod_bacs'),
     'points'           => get_string('points', 'mod_bacs'),
     'penalty'          => get_string('penalty', 'mod_bacs'),
