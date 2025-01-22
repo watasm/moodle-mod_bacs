@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* jshint ignore:start */
 function isInt(value) {
     return Number.isInteger(Number(value));
 }

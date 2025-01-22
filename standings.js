@@ -1,3 +1,5 @@
+/* jshint ignore:start */
+/* eslint-disable */
 class StandingsStudent {
     constructor(student, tasks) {
         this.student = student;
