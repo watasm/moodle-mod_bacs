@@ -559,4 +559,340 @@ class cron_lib {
             }
         }
     }
+
+    /**
+     * This function
+     *
+     * @return void
+     * @throws dml_exception
+     */
+    public static function cron_incidents($verbose=false) {
+        global $DB;
+
+        /// TODO apply contest incident settings here
+
+        $queuedupdates = [];
+        $queuedupdateswithuserid = [];
+
+        $transaction = $DB->start_delegated_transaction();
+
+        $sql = "SELECT fp.id AS fingerprints_id,
+                       fp.submit_id, 
+                       fp.contest_id,
+                       fp.status,
+                       fp.tokenseq,
+                       fp.satokenseq,
+                       fp.tokencounts,
+                       fp.satokencounts,
+                       fp.tokenset,
+                       submit.task_id,
+                       submit.source,
+                       submit.user_id,
+                       submit.result_id
+                  FROM {bacs_submits_fingerprints} fp
+                  JOIN {bacs_submits} submit ON fp.submit_id = submit.id
+                 WHERE fp.status = 0 AND submit.result_id > 3
+        ";
+        $submitstoprocess = $DB->get_records_sql($sql);
+
+        // Compute fingerprints
+        foreach ($submitstoprocess as $submit) {
+            if ($verbose) print "<p>Computing fingerprints for submit submit_id=$submit->submit_id ...</p>";
+            
+            $tokenseq = bacs_tokenize_submit($submit->source);
+
+            $tokencountsmap = [];
+            foreach ($tokenseq as $token) {
+                if (!array_key_exists($token, $tokencountsmap)) {
+                    $tokencountsmap[$token] = 0;
+                }
+                $tokencountsmap[$token] += 1;
+            }
+
+            ksort($tokencountsmap);
+
+            $tokencounts = [];
+            $satokencounts = [];
+            $tokenset = [];
+            foreach ($tokencountsmap as $token => $tokencount) {
+                $tokencounts[] = "$token $tokencount";
+                $satokencounts[] = $tokencount;
+                $tokenset[] = $token;
+            }
+            sort($satokencounts, SORT_NUMERIC); // make ordered
+            // $tokencounts and $tokenset are already ordered by $token due to order of iteration
+
+            $satokenseqmap = [];
+            $satokenseq = [];
+            foreach ($tokenseq as $token) {
+                if (!array_key_exists($token, $satokenseqmap)) {
+                    $satokenseqmap[$token] = count($satokenseqmap);
+                }
+                $satokenseq[] = $satokenseqmap[$token];
+            }
+
+            // Update database && $submit
+            $fptokenseq = implode(" ", $tokenseq);
+            $fpsatokenseq = implode(" ", $satokenseq);
+            $fptokencounts = implode(" ", $tokencounts);
+            $fpsatokencounts = implode(" ", $satokencounts);
+            $fptokenset = implode(" ", $tokenset);
+
+            $fprecord = (object) [
+                'id' => $submit->fingerprints_id,
+                'submit_id' => $submit->submit_id,
+                'contest_id' => $submit->contest_id,
+                'status' => 1,
+                'tokenseq'      => $fptokenseq,
+                'satokenseq'    => $fpsatokenseq,
+                'tokencounts'   => $fptokencounts,
+                'satokencounts' => $fpsatokencounts,
+                'tokenset'      => $fptokenset,
+            ];
+
+            $DB->update_record('bacs_submits_fingerprints', $fprecord);
+
+            $submit->tokenseq      = $fptokenseq;
+            $submit->satokenseq    = $fpsatokenseq;
+            $submit->tokencounts   = $fptokencounts;
+            $submit->satokencounts = $fpsatokencounts;
+            $submit->tokenset      = $fptokenset;
+
+            // Queue update
+            $queuedupdates["$submit->contest_id"] = $submit->contest_id;
+            $queuedupdateswithuserid["$submit->contest_id $submit->user_id"] = [$submit->contest_id, $submit->user_id];
+        }
+
+        // Update incidents
+        $ksthreshold = 1;
+
+        foreach ($queuedupdateswithuserid as [$contestid, $userid]) {
+            if ($verbose) print "<p>Updating KS for contestid=$contestid userid=$userid ...</p>";
+
+            // Kangaroo score (KS) of a segment of submits sequence is
+            // ratio of result to time with heuristic formula
+            // KS = ((ACCEPTED + 0.1 * OTHER)^(1.75) - 3) / TIMEDELTA
+            // TIMEDELTA in minutes
+            // Kangaroo score is "convex" metric. If range A overlaps range B, then KS
+            // on range union cannot be less than lower of KS(A) and KS(B).
+            // |A \cap B| > 0
+            // KS(A \cup B) >= MIN(KS(A), KS(B))
+            // (KS(A) > X && KS(B) > X) => KS(A \cup B) > X
+            // Thus greedy approach detecting KS-incidents will give 
+            // a set of max-inclusion KS-incident clusters including all involved submits
+
+            $usersubmits = array_values($DB->get_records('bacs_submits', ['contest_id' => $contestid, 'user_id' => $userid], 'submit_time ASC'));
+            
+            // Iterate all segments of sorted submits
+            for ($l = 0; $l < count($usersubmits); $l++) {
+                $submitvalue = 0;
+                $bestr = -1;
+                $ksforbestr = -1;
+
+                for ($r = $l; $r < count($usersubmits); $r++) {
+                    $submitvalue += ($usersubmits[$r]->result_id == VERDICT_ACCEPTED ? 1 : 0.1);
+
+                    if ($l == $r) continue;
+
+                    $timedelta = ($usersubmits[$r]->submit_time - $usersubmits[$l]->submit_time) / 60;
+                    $ks = (pow($submitvalue, 1.75) - 3) / $timedelta;
+
+                    if ($ks >= $ksthreshold) {
+                        $bestr = $r;
+                        $ksforbestr = $ks;
+                    }
+
+                    //if ($verbose) print "<p>KS DEBUG l=$l r=$r submitvalue=$submitvalue timedelta=$timedelta ks=$ks </p>";
+                }
+
+                // If no KS incidents with current $l, then proceed to the next $l, otherwise generate largest one
+                if ($bestr == -1) continue;
+                
+                $r = $bestr;
+                $ks = $ksforbestr;
+
+                // Cleanup possible old KS incidents
+                $submitids = [];
+                for ($i = $l; $i <= $r; $i++) $submitids[] = $usersubmits[$i]->id;
+
+                [$insql, $inparams] = $DB->get_in_or_equal($submitids);
+                $sql = "SELECT * FROM {bacs_incidents_to_submits} WHERE submit_id $insql";
+                $delincidentstosubmits = $DB->get_records_sql($sql, $inparams);
+
+                $delincidentids = [];
+                foreach ($delincidentstosubmits as $its) $delincidentids[] = $its->incident_id;
+
+                if (count($delincidentids) > 0) {
+                    [$insql, $inparams] = $DB->get_in_or_equal($delincidentids);
+
+                    $DB->delete_records_select('bacs_incidents', "id $insql",  $inparams);
+                    $DB->delete_records_select('bacs_incidents_to_submits', "incident_id $insql",  $inparams);
+                }
+
+                // Generate KS incident
+                if ($verbose) {
+                    $submitidsasstr = '[' . implode(', ', $submitids) . ']';
+                    print "<p>Generating KS-incident for contestid=$contestid userid=$userid ks=$ks " 
+                        . "range=[$l; $r] submitids=$submitidsasstr ...</p>";
+                }
+
+                $incident = (object) [
+                    'contest_id' => $contestid,
+                    'method' => 'kangaroo',
+                    'info' => json_encode([
+                        'user_id' => $userid,
+                        'kangaroo_score' => $ks,
+                        'submit_ids' => $submitids,
+                    ]),
+                ];
+                $incidentid = $DB->insert_record('bacs_incidents', $incident);
+
+                $incidentstosubmits = [];
+                foreach ($submitids as $submitid) {
+                    $incidentstosubmits[] = (object) [
+                        'incident_id' => $incidentid,
+                        'submit_id' => $submitid,
+                    ];
+                }
+                $DB->insert_records('bacs_incidents_to_submits', $incidentstosubmits);
+
+                // Adjust $usersubmits pointer
+                $l = $r;
+            }
+        }
+
+        // Fingerprints match incidents
+        $methods = ['tokenseq', 'satokenseq', 'tokencounts', 'satokencounts', 'tokenset'];
+
+        foreach ($submitstoprocess as $submit) {
+            foreach ($methods as $method) {
+                $sql = "SELECT fp.id AS fingerprints_id,
+                               fp.submit_id, 
+                               fp.contest_id,
+                               fp.status,
+                               fp.tokenseq,
+                               fp.satokenseq,
+                               fp.tokencounts,
+                               fp.satokencounts,
+                               fp.tokenset,
+                               submit.task_id,
+                               submit.source,
+                               submit.user_id,
+                               submit.result_id
+                          FROM {bacs_submits_fingerprints} fp
+                          JOIN {bacs_submits} submit ON fp.submit_id = submit.id
+                         WHERE fp.contest_id = :contest_id AND submit.result_id > 3 AND fp.$method = :submitfp
+                ";
+                $params = [
+                    'submitfp' => $submit->$method,
+                    'contest_id' => $submit->contest_id,
+                ];
+                $collidingsubmits = $DB->get_records_sql($sql, $params);
+
+                // Check if multiple users are involved
+                $useridcounts = array_count_values(array_map(function($s) {return $s->user_id;}, $collidingsubmits));
+                
+                if (count($useridcounts) <= 1) continue;
+
+                // Find possible fingerprint incident
+                $collidingsubmitids = [];
+                foreach ($collidingsubmits as $collidingsubmit) $collidingsubmitids[] = $collidingsubmit->submit_id;
+                [$insql, $params] = $DB->get_in_or_equal($collidingsubmitids, SQL_PARAMS_NAMED);
+
+                $sql = "SELECT incident.id
+                          FROM {bacs_incidents} incident
+                          JOIN {bacs_incidents_to_submits} its ON incident.id = its.incident_id
+                         WHERE incident.contest_id = :contest_id AND incident.method = :method AND its.submit_id $insql
+                ";
+                $params['method'] = $method;
+                $params['contest_id'] = $submit->contest_id;
+
+                $optionalincident = $DB->get_records_sql($sql, $params);
+
+                // Update incident
+                if (count($optionalincident) > 0) {
+                    // Add submit to incident if not added already
+                    $incidentid = array_values($optionalincident)[0]->id;
+
+                    $submitisalreadyincluded = $DB->record_exists('bacs_incidents_to_submits', [
+                        'incident_id' => $incidentid,
+                        'submit_id' => $submit->submit_id
+                    ]);
+                    
+                    if (!$submitisalreadyincluded) {
+                        $DB->insert_record('bacs_incidents_to_submits', (object) [
+                            'incident_id' => $incidentid,
+                            'submit_id' => $submit->submit_id
+                        ]);
+
+                        if ($verbose) print "<p>Updated fingerprint incident method=$method incidentid=$incidentid with submitid=$submit->submit_id</p>";
+                    }
+                } else {
+                    // Create fingerprint incident
+                    $incident = (object) [
+                        'contest_id' => $submit->contest_id,
+                        'method' => $method,
+                        'info' => json_encode([
+                            'task_id' => $submit->task_id, 
+                            // probably should be changed to most popular task_id in colliding submits instead of arbitrary one
+                        ]),
+                    ];
+                    $incidentid = $DB->insert_record('bacs_incidents', $incident);
+
+                    $itsrecords = [];
+                    foreach ($collidingsubmits as $collidingsubmit) {
+                        $itsrecords[] = (object) [
+                            'submit_id' => $collidingsubmit->submit_id,
+                            'incident_id' => $incidentid
+                        ];
+                    }
+                    $DB->insert_records('bacs_incidents_to_submits', $itsrecords);
+
+                    if ($verbose) {
+                        $collidingsubmitidsasstr = '[' . implode(', ', $collidingsubmitids) . ']';
+                        print "<p>Created fingerprint incident method=$method incidentid=$incidentid submits=$collidingsubmitidsasstr</p>";
+                    }
+                }
+            }
+        }
+
+        // Update contest incidents_info cache
+        foreach ($queuedupdates as $contestid) {
+            if ($verbose) print "<p>Updating incidents_info for contestid=$contestid ...</p>";
+
+            $contest = $DB->get_record('bacs', ['id' => $contestid]);
+            $incidents = $DB->get_records('bacs_incidents', ['contest_id' => $contestid]);
+
+            $incidentids = [];
+            foreach ($incidents as $incident) $incidentids[] = $incident->id;
+            [$insql, $inparams] = $DB->get_in_or_equal($incidentids);
+            $incidentstosubmits = $DB->get_records_select('bacs_incidents_to_submits', "incident_id $insql", $inparams);
+
+            $submitidsbyincidentid = [];
+            foreach ($incidentstosubmits as $its) {
+                if (!array_key_exists($its->incident_id, $submitidsbyincidentid)) {
+                    $submitidsbyincidentid[$its->incident_id] = [];
+                }
+                $submitidsbyincidentid[$its->incident_id][] = $its->submit_id;
+            }
+
+            $incidentsinfo = [];
+            foreach ($incidents as $incident) {
+                $incidentsinfo[] = [
+                    'id' => $incident->id,
+                    'method' => $incident->method,
+                    'info' => json_decode($incident->info),
+                    'submit_ids' => $submitidsbyincidentid[$incident->id],
+                ];
+            }
+
+            $contest->incidents_info = json_encode($incidentsinfo);
+
+            $DB->update_record('bacs', $contest);
+        }
+        
+        $transaction->allow_commit();
+    }
+
+
 }

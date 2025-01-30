@@ -104,8 +104,8 @@ try {
         }
 
         if (is_null($submit->sync_submit_id) || $submit->sync_submit_id == 0) {
-            // ...if submit has no associated Sybon submit,.
-            // ...then mark it to be sent again.
+            // If submit has no associated Sybon submit,
+            // then mark it to be sent again.
             $updatedresultid = VERDICT_PENDING;
             print "is marked for sending...<br>";
         } else {
@@ -114,6 +114,10 @@ try {
             $updatedresultid = VERDICT_RUNNING;
             $submitidstorejudge[] = $submit->sync_submit_id;
             print "is marked for rejudge...<br>";
+        }
+
+        if ($contest->bacs->detect_incidents == 1) {
+            bacs_mark_submit_for_incidents_recalc($submit->id);
         }
 
         // ...apply database changes for this submit.

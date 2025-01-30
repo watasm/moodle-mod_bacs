@@ -40,6 +40,11 @@
         show_first_accepted_flag.checked = standings.toggle_show_first_accepted_flag();
     }
 
+    function toggle_incident_flags() {
+        var show_incident_flags = document.getElementById('show_incident_flags');
+        show_incident_flags.checked = standings.toggle_show_incident_flags();
+    }
+
     function toggle_testing_flag() {
         var show_testing_flag = document.getElementById('show_testing_flag');
         show_testing_flag.checked = standings.toggle_show_testing_flag();
@@ -93,6 +98,11 @@
 
         <br>
 
+        <input type='checkbox' id='show_incident_flags' onclick='toggle_incident_flags();'>
+        <label for='show_incident_flags'> {{#str}} showincidentflags, mod_bacs {{/str}} </label>
+
+        <br>
+
         <span class="d-none">
             <label for='standings_mode_select'> {{#str}} standingsmode, mod_bacs {{/str}} </label>
             <select id='standings_mode_select' value=2 onchange='change_standings_mode();'>
@@ -125,5 +135,6 @@
         saved_value_hide_inactive, 
         {{#user_capability_viewany}} true {{/user_capability_viewany}}  {{^user_capability_viewany}} false {{/user_capability_viewany}},
         {{{localized_strings_json}}},
+        {{{incidents_json}}},
     );
 </script>

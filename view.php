@@ -45,7 +45,7 @@ $standings = new standings();
 
 $standings->usercapabilitiesbacs = $contest->usercapabilitiesbacs;
 $standings->coursemoduleidbacs   = $contest->coursemodule->id;
-$standings->mode              = $contest->bacs->mode;
+$standings->mode                 = $contest->bacs->mode;
 
 $standings->endtime   = $contest->endtime;
 $standings->starttime = $contest->starttime;
@@ -64,6 +64,8 @@ if ($contest->currentgroupidbacs == 0) {
         $standings->starttime = $groupinfoentry->starttime;
     }
 }
+
+$standings->incidentsjsonbacs = ($contest->usercapabilitiesbacs->viewany ? $contest->bacs->incidents_info : "[]");
 
 // ...prepare students.
 $selectedstudents = $contest->get_students();

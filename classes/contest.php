@@ -453,12 +453,26 @@ class contest {
 
         // ...prepare langs.
         $acemodebycompilertype = [
-            'gcc' => 'c_cpp',
+            'd' => 'd',
+            'dart' => 'dart',
+            'dotnet' => 'csharp',
             'fpc' => 'pascal',
-            'python' => 'python',
-            'mono' => 'csharp',
+            'gcc' => 'c_cpp',
+            'golang' => 'golang',
+            'haskell' => 'haskell',
             'java' => 'java',
+            'kotlin' => 'kotlin',
+            'mono' => 'csharp',
+            'node' => 'javascript',
+            'perl' => 'perl',
+            'php' => 'php',
+            'python' => 'python',
+            'ruby' => 'ruby',
+            'rust' => 'rust',
+            'scala' => 'scala',
+            'zig' => 'zig',
         ];
+
 
         foreach ($DB->get_records('bacs_langs') as $lang) {
             if (array_key_exists($lang->compiler_type, $acemodebycompilertype)) {

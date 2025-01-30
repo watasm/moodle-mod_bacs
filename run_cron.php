@@ -69,6 +69,9 @@ switch ($cronaction) {
     case 'send':
         cron_lib::cron_send(true);
         break;
+    case 'incidents':
+        cron_lib::cron_incidents(true);
+        break;
 
     case 'special':
         // ...some dark debugging rituals might happen there.

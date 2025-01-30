@@ -209,6 +209,14 @@
     background-color: #D7FFD7;
 }
 
+.path-mod-bacs .standings-cell-incident-warning {
+    background-color: #FFFFB7;
+}
+
+.path-mod-bacs .standings-cell-incident-critical {
+    background-color: #FFD7D7;
+}
+
 .path-mod-bacs .standings-cell-small-text {
     font-size: 70%;
 }

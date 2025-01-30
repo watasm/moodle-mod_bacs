@@ -185,6 +185,21 @@ class mod_bacs_mod_form extends moodleform_mod {
 
         $mform->addElement('html', $this->get_testpoints_header());
 
+        // Incidents tab settings.
+        $mform->addElement('header', 'incidents_header', get_string('incidents', 'bacs'));
+
+        $mform->addElement(
+            'advcheckbox',
+            'detect_incidents',
+            get_string('detectincidents', 'bacs'),
+            '',
+            [],
+            [0, 1]
+        );
+        $mform->setDefault('detect_incidents', 0);
+
+        $mform->addElement('textarea', 'incidents_settings', get_string("incidentssettings", "bacs"), 'wrap="virtual" rows="10" cols="70"');
+
         // ...advanced contest settings tab and hidden fields.
         $mform->addElement('header', 'advanced_settings_header', get_string('advancedcontestsettings', 'bacs'));
 

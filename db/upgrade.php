@@ -713,5 +713,184 @@ function xmldb_bacs_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2024090300, 'bacs');
     }
 
+    if ($oldversion < 2025011401) {
+
+        // Define table bacs_incidents to be created.
+        $table = new xmldb_table('bacs_incidents');
+
+        // Adding fields to table bacs_incidents.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('contest_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('method', XMLDB_TYPE_CHAR, '32', null, null, null, null);
+        $table->add_field('info', XMLDB_TYPE_TEXT, null, null, null, null, null);
+
+        // Adding keys to table bacs_incidents.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Adding indexes to table bacs_incidents.
+        $table->add_index('contest-method', XMLDB_INDEX_NOTUNIQUE, ['contest_id', 'method']);
+
+        // Conditionally launch create table for bacs_incidents.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2025011401, 'bacs');
+    }
+
+    if ($oldversion < 2025011402) {
+
+        // Define table bacs_incidents_to_submits to be created.
+        $table = new xmldb_table('bacs_incidents_to_submits');
+
+        // Adding fields to table bacs_incidents_to_submits.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('incident_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('submit_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table bacs_incidents_to_submits.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Adding indexes to table bacs_incidents_to_submits.
+        $table->add_index('unique-incident-submit', XMLDB_INDEX_UNIQUE, ['incident_id', 'submit_id']);
+
+        // Conditionally launch create table for bacs_incidents_to_submits.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2025011402, 'bacs');
+    }
+
+    if ($oldversion < 2025011403) {
+
+        // Define table bacs_submits_fingerprints to be created.
+        $table = new xmldb_table('bacs_submits_fingerprints');
+
+        // Adding fields to table bacs_submits_fingerprints.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('submit_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('contest_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('tokenseq', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('tokencounts', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('satokencounts', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('tokenset', XMLDB_TYPE_TEXT, null, null, null, null, null);
+
+        // Adding keys to table bacs_submits_fingerprints.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('submit_id', XMLDB_KEY_FOREIGN_UNIQUE, ['submit_id'], 'bacs_submits', ['id']);
+
+        // Conditionally launch create table for bacs_submits_fingerprints.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2025011403, 'bacs');
+    }
+
+    if ($oldversion < 2025011404) {
+
+        // Define index contest_id (not unique) to be added to bacs_submits_fingerprints.
+        $table = new xmldb_table('bacs_submits_fingerprints');
+        $index = new xmldb_index('contest_id', XMLDB_INDEX_NOTUNIQUE, ['contest_id']);
+
+        // Conditionally launch add index contest_id.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2025011404, 'bacs');
+    }
+
+    if ($oldversion < 2025011500) {
+
+        // Define field status to be added to bacs_submits_fingerprints.
+        $table = new xmldb_table('bacs_submits_fingerprints');
+        $field = new xmldb_field('status', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'contest_id');
+
+        // Conditionally launch add field status.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2025011500, 'bacs');
+    }
+
+    if ($oldversion < 2025011501) {
+
+        // Define index status (not unique) to be added to bacs_submits_fingerprints.
+        $table = new xmldb_table('bacs_submits_fingerprints');
+        $index = new xmldb_index('status', XMLDB_INDEX_NOTUNIQUE, ['status']);
+
+        // Conditionally launch add index status.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2025011501, 'bacs');
+    }
+
+    if ($oldversion < 2025011502) {
+        // Define field detect_incidents to be added to bacs.
+        $table = new xmldb_table('bacs');
+        $field = new xmldb_field('detect_incidents', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'isolate_participants');
+
+        // Conditionally launch add field detect_incidents.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2025011502, 'bacs');
+    }
+
+    if ($oldversion < 2025011503) {
+        // Define field incidents_settings to be added to bacs.
+        $table = new xmldb_table('bacs');
+        $field = new xmldb_field('incidents_settings', XMLDB_TYPE_TEXT, null, null, null, null, null, 'detect_incidents');
+
+        // Conditionally launch add field incidents_settings.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2025011503, 'bacs');
+    }
+
+    if ($oldversion < 2025011601) {
+        // Define field satokenseq to be added to bacs_submits_fingerprints.
+        $table = new xmldb_table('bacs_submits_fingerprints');
+        $field = new xmldb_field('satokenseq', XMLDB_TYPE_TEXT, null, null, null, null, null, 'tokenseq');
+
+        // Conditionally launch add field satokenseq.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2025011601, 'bacs');
+    }
+
+    if ($oldversion < 2025012800) {
+        // Define field incidents_info to be added to bacs.
+        $table = new xmldb_table('bacs');
+        $field = new xmldb_field('incidents_info', XMLDB_TYPE_TEXT, null, null, null, null, null, 'incidents_settings');
+
+        // Conditionally launch add field incidents_info.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2025012800, 'bacs');
+    }
+
     return true;
 }
