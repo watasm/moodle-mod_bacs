@@ -465,6 +465,172 @@ function format_verdict($verdict) {
 }
 
 /**
+ * This function tokenizes the submit source code in a simple way
+ * independent of the programming language used
+ * 
+ * @param string $submitsource Source code of the submit 
+ * @return string[] Sequence of tokens
+ * @throws coding_exception
+ */
+function bacs_tokenize_submit($submitsource) {
+    // Prepare submit source
+    $submitsource .= "\n";
+
+    $submitsource = filter_var($submitsource, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_HIGH); // Remove characters with codes > 127
+    $submitsource = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $submitsource); // Remove special characters   
+    $submitsource = preg_replace('/#[^\n]*\n/', "\n", $submitsource); // Remove hash line comments 
+    $submitsource = preg_replace('/\/\/[^\n]*\n/', "\n", $submitsource); // Remove double slash line comments
+
+    // Character sets
+    $emptychars = [
+        " " => true,
+        "\n" => true,
+        "\r" => true,
+        "\t" => true,
+    ];
+
+    $tokenallowedchars = [];
+    foreach (array_merge(range('a', 'z'), range('A', 'Z'), range('0', '9'), ['_']) as $ch) {
+        $tokenallowedchars[$ch] = true;
+    }
+
+    /// Tokenize
+    $tokens = [];
+    $token = "";
+    foreach (mb_str_split($submitsource) as $ch) {
+        if (array_key_exists($ch, $tokenallowedchars)) {
+            $token .= $ch;
+            continue;
+        }
+
+        if ($token != "") {
+            $tokens[] = $token;
+            $token = "";
+        }
+
+        if ( !array_key_exists($ch, $emptychars)) {
+            $tokens[] = $ch;
+        }
+    }
+
+    return $tokens;
+}
+
+/**
+ * Computes Levenshtein edit distance between two token sequences with edit window limit
+ * 
+ * @param string[] $tokenseq1
+ * @param string[] $tokenseq2
+ * @return int
+ * @throws coding_exception
+ */
+function bacs_token_seq_edit_distance($tokenseq1, $tokenseq2) {
+    // Approach is to compute all states of 
+    // dist[pos1][delta] dynamic programming
+    // where only two layers of pos1 are kept as $distcur and $distnext
+
+    // allowed modifications are:
+    // - Remove single token
+    // - Insert single token
+    // - Change single token
+
+    $n1 = count($tokenseq1);
+    $n2 = count($tokenseq2);
+
+    // Max delta is heuristically chosen to be 10% of token count, but no less than 300
+    $span = max(300, intval(0.1 * max($n1, $n2)));
+
+    // If sizes are too different return max
+    if (abs($n1-$n2) > $span) {
+        return max($n1, $n2);
+    }
+
+    $distcur = [];
+    for ($d = 0; $d <= min($span, $n2); $d++) {
+        $distcur[$d] = $d;
+    }
+
+    for ($pos1 = 0; $pos1 < $n1; $pos1++) {
+        $distnext = [];
+
+        foreach ($distcur as $d => $v) {
+            $token1 = $tokenseq1[$pos1];
+            $token2 = ($pos1 + $d < $n2 ? $tokenseq2[$pos1 + $d] : null);
+
+            $nextdvpairs = [
+                $d-1 => $v+1,
+                $d => ($token1 === $token2 ? $v : $v+1),
+            ];
+
+            foreach ($nextdvpairs as $nextd => $nextv) {
+                // Validate
+                if ($nextd < -$span) continue;
+                if ($nextd > +$span) continue;
+
+                $nextpos2 = $pos1 + 1 + $nextd;
+                if ($nextpos2 < 0) continue;
+                if ($nextpos2 > $n2) continue;
+
+                // Apply
+                if (array_key_exists($nextd, $distnext)) {
+                    $distnext[$nextd] = min($distnext[$nextd], $nextv);
+                } else {
+                    $distnext[$nextd] = $nextv;
+                }
+            }
+        }
+
+        foreach ($distnext as $nextd => $nextv) {
+            $nextpos2 = $pos1 + 1 + $nextd;
+            if ($nextpos2 + 1 > $n2) continue;
+            if ($nextd + 1 > $span) continue;
+
+            if (array_key_exists($nextd, $distnext)) {
+                $distnext[$nextd + 1] = min($distnext[$nextd + 1], $distnext[$nextd] + 1);
+            } else {
+                $distnext[$nextd + 1] = $distnext[$nextd] + 1;
+            }
+        }
+
+        $distcur = $distnext;
+    }
+
+    // Result
+    return $distcur[$n2 - $n1];
+}
+
+/**
+ * Marks submit with given ID to have incidents recalculated
+ * 
+ * @param int $submitid ID of the submit
+ * @param int $contestid ID of the mod_bacs contest, to which submit belongs to
+ * @return null
+ */
+function bacs_mark_submit_for_incidents_recalc($submitid, $contestid) {
+    global $DB;
+
+    $fingerprintsrecord = $DB->get_record(
+        'bacs_submits_fingerprints',
+        ['submit_id' => $submitid], 
+        'id, submit_id, contest_id, status',
+        IGNORE_MISSING
+    );
+
+    if ($fingerprintsrecord) {
+        $fingerprintsrecord->status = 0;
+
+        $DB->update_record('bacs_submits_fingerprints', $fingerprintsrecord);
+    } else {
+        $fingerprintsrecord = new stdClass();
+        $fingerprintsrecord->submit_id = $submitid;
+        $fingerprintsrecord->contest_id = $contestid;
+        $fingerprintsrecord->status = 0;
+    
+        $DB->insert_record('bacs_submits_fingerprints', $fingerprintsrecord, false);
+    }
+}
+
+/**
  * This function
  * @return string[]
  */

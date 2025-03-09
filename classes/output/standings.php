@@ -49,6 +49,10 @@ class standings implements renderable, templatable {
     /**
      * @var mixed
      */
+    public $incidentsjsonbacs;
+    /**
+     * @var mixed
+     */
     public $localizedstringsjsonbacs;
 
     /**
@@ -86,14 +90,17 @@ class standings implements renderable, templatable {
     public function export_for_template(renderer_base $output) {
         global $USER;
 
-        if (is_null($this->submitsjsonbacs)           || $this->submitsjsonbacs == '') {
-            $this->submitsjsonbacs           = '[]';
+        if (is_null($this->submitsjsonbacs) || $this->submitsjsonbacs == '') {
+            $this->submitsjsonbacs = '[]';
         }
-        if (is_null($this->studentsjsonbacs)          || $this->studentsjsonbacs == '') {
-            $this->studentsjsonbacs          = '[]';
+        if (is_null($this->studentsjsonbacs) || $this->studentsjsonbacs == '') {
+            $this->studentsjsonbacs = '[]';
         }
-        if (is_null($this->tasksjsonbacs)             || $this->tasksjsonbacs == '') {
-            $this->tasksjsonbacs             = '[]';
+        if (is_null($this->tasksjsonbacs) || $this->tasksjsonbacs == '') {
+            $this->tasksjsonbacs = '[]';
+        }
+        if (is_null($this->incidentsjsonbacs) || $this->incidentsjsonbacs == '') {
+            $this->incidentsjsonbacs = '[]';
         }
         if (is_null($this->localizedstringsjsonbacs) || $this->localizedstringsjsonbacs == '') {
             $this->localizedstringsjsonbacs = '[]';
@@ -104,6 +111,7 @@ class standings implements renderable, templatable {
         $data->submits_json           = $this->submitsjsonbacs;
         $data->students_json          = $this->studentsjsonbacs;
         $data->tasks_json             = $this->tasksjsonbacs;
+        $data->incidents_json         = $this->incidentsjsonbacs;
         $data->localized_strings_json = $this->localizedstringsjsonbacs;
 
         $data->starttime       = $this->starttime;

@@ -75,6 +75,14 @@ print "<p><a href='update_standings.php?id=" . $contest->coursemodule->id . "'>
     <button class='btn btn-primary'>" . get_string('updatestandings', 'bacs') . "</button>
 </a></p>";
 
+print "<p><a href='recalculate_incidents.php?id=" . $contest->coursemodule->id . "'>
+    <button class='btn btn-primary'>" . get_string('recalculateincidents', 'bacs') . "</button>
+</a></p>";
+
+print "<p><a href='dashboard.php'>
+    <button class='btn btn-warning'>" . get_string('dashboard', 'bacs') . "</button>
+</a></p>";
+
 print "<p><a href='diagnostics.php'>
     <button class='btn btn-warning'>" . get_string('plugindiagnosticspage', 'bacs') . "</button>
 </a></p>";

@@ -106,6 +106,15 @@
 	</li>
 	{{/show_tab_virtual_participants}}
 
+	{{#show_tab_incidents}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_incidents}}active{{/active_tab_incidents}}" href="incidents.php?id={{coursemodule_id}}">
+			{{{icon_incidents}}}
+			{{#str}} incidents, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_incidents}}
+
 	{{#show_tab_more}}
 	<li class="nav-item dropdown">
 		<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
@@ -194,6 +203,15 @@
 				</a>
 			</li>
 			{{/show_more_item_virtual_participants}}
+
+			{{#show_more_item_incidents}}
+			<li>
+				<a class="dropdown-item {{#active_tab_incidents}}active{{/active_tab_incidents}}" href="incidents.php?id={{coursemodule_id}}">
+					{{{icon_incidents}}}
+					{{#str}} incidents, mod_bacs {{/str}}
+				</a>
+			</li>
+			{{/show_more_item_incidents}}
 
 			{{#show_more_item_actions}}
 			<li>

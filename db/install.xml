@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/bacs/db" VERSION="20240621" COMMENT="XMLDB file for Moodle mod/bacs"
+<XMLDB PATH="mod/bacs/db" VERSION="20250128" COMMENT="XMLDB file for Moodle mod/bacs"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -17,6 +17,9 @@
         <FIELD NAME="presolving" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Is presolving before contest allowed"/>
         <FIELD NAME="virtual_mode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Contest virtual mode"/>
         <FIELD NAME="isolate_participants" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Are contest participants isolated from each other"/>
+        <FIELD NAME="detect_incidents" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="incidents_settings" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="incidents_info" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -34,7 +37,7 @@
         <FIELD NAME="memory_limit_bytes" TYPE="int" LENGTH="7" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Execution memory limit in bytes"/>
         <FIELD NAME="count_tests" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="Test cases count"/>
         <FIELD NAME="count_pretests" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="Pretests (public test cases) count"/>
-        <FIELD NAME="test_points" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Points for tests (by default)"/>
+        <FIELD NAME="test_points" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Points for tests (by default)"/>
         <FIELD NAME="statement_url" TYPE="char" LENGTH="1023" NOTNULL="false" SEQUENCE="false" COMMENT="URL link for task statement"/>
         <FIELD NAME="author" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Task author"/>
         <FIELD NAME="revision" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Task revision"/>
@@ -64,7 +67,7 @@
         <FIELD NAME="task_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Task ID"/>
         <FIELD NAME="contest_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Contest ID"/>
         <FIELD NAME="task_order" TYPE="int" LENGTH="7" NOTNULL="true" SEQUENCE="false" COMMENT="Task order"/>
-        <FIELD NAME="test_points" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Points for task (contest-special)"/>
+        <FIELD NAME="test_points" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Points for task (contest-special)"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -221,6 +224,54 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="mdl_bacsvirtpart_usecongro_uix" UNIQUE="true" FIELDS="user_id, contest_id, group_id"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_incidents" COMMENT="This table stores information about incidents of suspicious user activity">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="contest_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Associated bacs instance ID"/>
+        <FIELD NAME="method" TYPE="char" LENGTH="32" NOTNULL="false" SEQUENCE="false" COMMENT="Incident detection method used"/>
+        <FIELD NAME="info" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="JSON-encoded incident info"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="contest-method" UNIQUE="false" FIELDS="contest_id, method"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_incidents_to_submits" COMMENT="Mapping between submits and incidents">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="incident_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="submit_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="unique-incident-submit" UNIQUE="true" FIELDS="incident_id, submit_id"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bacs_submits_fingerprints" COMMENT="Computed fingerprints for submits">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="submit_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="contest_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="status" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="tokenseq" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Token sequence"/>
+        <FIELD NAME="satokenseq" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Substitute-allowed token sequence"/>
+        <FIELD NAME="tokencounts" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Token count for each unique token"/>
+        <FIELD NAME="satokencounts" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Substitute-allowed token counts"/>
+        <FIELD NAME="tokenset" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Unique tokens used"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="submit_id" TYPE="foreign-unique" FIELDS="submit_id" REFTABLE="bacs_submits" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="contest_id" UNIQUE="false" FIELDS="contest_id"/>
+        <INDEX NAME="status" UNIQUE="false" FIELDS="status"/>
       </INDEXES>
     </TABLE>
   </TABLES>

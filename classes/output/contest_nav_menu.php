@@ -114,6 +114,10 @@ class contest_nav_menu implements renderable, templatable {
      * @var mixed
      */
     public $activetabvirtualcontestbacs;
+    /**
+     * @var mixed
+     */
+    public $activetabincidentsbacs;
 
     /**
      * @var mixed
@@ -563,6 +567,15 @@ xmlns="http://www.w3.org/2000/svg">
     /**
      *
      */
+    const HTML_ICON_EXCLAMATION_TRIANGE =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle" viewBox="0 0 16 16">
+        <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/>
+        <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+        </svg>';
+        
+    /**
+     *
+     */
     public function __construct() {
     }
 
@@ -572,17 +585,18 @@ xmlns="http://www.w3.org/2000/svg">
      * @return void
      */
     public function set_active_tab($activetab) {
-        $this->activetabviewbacs                 = ($activetab == 'view');
-        $this->activetabtasksbacs                = ($activetab == 'tasks');
-        $this->activetabstatusbacs               = ($activetab == 'status');
-        $this->activetabresultsbacs              = ($activetab == 'results');
+        $this->activetabviewbacs                = ($activetab == 'view');
+        $this->activetabtasksbacs               = ($activetab == 'tasks');
+        $this->activetabstatusbacs              = ($activetab == 'status');
+        $this->activetabresultsbacs             = ($activetab == 'results');
         $this->activetabanothersresultsbacs     = ($activetab == 'anothers_results');
-        $this->activetabactionsbacs              = ($activetab == 'actions');
+        $this->activetabactionsbacs             = ($activetab == 'actions');
         $this->activetabuserdynamicsbacs        = ($activetab == 'user_dynamics');
         $this->activetabtaskdynamicsbacs        = ($activetab == 'task_dynamics');
         $this->activetabresultsgraphbacs        = ($activetab == 'results_graph');
         $this->activetabvirtualcontestbacs      = ($activetab == 'virtual_contest');
         $this->activetabvirtualparticipantsbacs = ($activetab == 'virtual_participants');
+        $this->activetabincidentsbacs           = ($activetab == 'incidents');
     }
 
     /**
@@ -619,6 +633,7 @@ xmlns="http://www.w3.org/2000/svg">
         $data->icon_results_graph        = self::HTML_ICON_RISING_GRAPH;
         $data->icon_virtual_contest      = self::HTML_ICON_HOURGLASS;
         $data->icon_virtual_participants = self::HTML_ICON_HOURGLASS;
+        $data->icon_incidents            = self::HTML_ICON_EXCLAMATION_TRIANGE;
         $data->icon_settings             = self::HTML_ICON_GEAR;
         $data->icon_more                 = self::HTML_ICON_VERTICAL_DOTS;
 
@@ -669,6 +684,7 @@ xmlns="http://www.w3.org/2000/svg">
         $data->show_tab_results_graph        = $this->activetabresultsgraphbacs;
         $data->show_tab_virtual_contest      = ($sisolatedf && $sanyvirtual) || $this->activetabvirtualcontestbacs;
         $data->show_tab_virtual_participants = $this->activetabvirtualparticipantsbacs;
+        $data->show_tab_incidents            = $this->activetabincidentsbacs;
         $data->show_tab_more                 = $snoisolatedf;
 
         $data->show_more_item_view                 = true;
@@ -680,6 +696,7 @@ xmlns="http://www.w3.org/2000/svg">
         $data->show_more_item_results_graph        = true;
         $data->show_more_item_virtual_contest      = $sanyvirtual;
         $data->show_more_item_virtual_participants = $scanedit && $sanyvirtual;
+        $data->show_more_item_incidents            = $scanviewany;
         $data->show_more_item_actions              = $scanedit;
         $data->show_more_item_settings             = $scanedit;
 
@@ -694,6 +711,7 @@ xmlns="http://www.w3.org/2000/svg">
         $data->active_tab_results_graph        = $this->activetabresultsgraphbacs;
         $data->active_tab_virtual_contest      = $this->activetabvirtualcontestbacs;
         $data->active_tab_virtual_participants = $this->activetabvirtualparticipantsbacs;
+        $data->active_tab_incidents            = $this->activetabincidentsbacs;
 
         return $data;
     }

@@ -1,9 +1,9 @@
 /* jshint ignore:start */
 /* eslint-disable */
 class StandingsStudent {
-    constructor(student, tasks) {
+    constructor(student, standings) {
         this.student = student;
-        this.tasks = tasks;
+        this.standings = standings;
         this.rank_position = 42;
 
         console.log(this.student);
@@ -35,11 +35,15 @@ class StandingsStudent {
         return this.student.endtime;
     }
 
+    get tasks() {
+        return this.standings.tasks;
+    }
+
     add_submit(submit) {
         this.submits.push(submit);
     }
 
-    build_results(hide_upsolving) {
+    build_results() {
         this.active = false;
 
         this.results = this.tasks.map(task => ({
@@ -52,12 +56,13 @@ class StandingsStudent {
             points: 0,
             best_submit_time: 0,
             last_submit_time: 0,
-            penalty_time: 0
+            penalty_time: 0,
+            incident_level: 0,
         }));
 
         for (const submit of this.submits) {
             if (!submit.task) continue;
-            if (hide_upsolving && this.end_time_cut <= submit.submit_time) continue;
+            if (this.standings.hide_upsolving && this.end_time_cut <= submit.submit_time) continue;
 
             this.active = true;
 
@@ -66,10 +71,11 @@ class StandingsStudent {
 
             result.attempts++;
             result.last_submit_time = Math.max(0, Math.floor((submit.submit_time - this.start_time_cut) / 60));
+            result.incident_level = Math.max(result.incident_level, submit.incident_level);
 
-            console.log(this);
+            const is_improvement = this.standings.mode === StandingsRenderer.MODE_ICPC ? (submit.accepted && !result.accepted) : (result.points < submit.points);
 
-            if (result.points < submit.points) {
+            if (is_improvement) {
                 result.points = submit.points;
                 result.attempts_upto_best = result.attempts;
                 result.best_submit_time = result.last_submit_time;
@@ -126,6 +132,10 @@ class StandingsRenderer {
 
     get show_first_accepted_flag() {
         return this.standings.show_first_accepted_flag;
+    }
+
+    get show_incident_flags() {
+        return this.standings.show_incident_flags;
     }
 
     get show_testing_flag() {
@@ -277,6 +287,13 @@ class StandingsRenderer {
         return this.show_first_accepted_flag && result.is_first_accepted ? 'standings-cell-first-accepted' : '';
     }
 
+    part_incident_warning_flag_style_class(result) {
+        return this.show_incident_flags && (result.incident_level >= 10) ? 'standings-cell-incident-warning' : '';
+    }
+
+    part_incident_critical_flag_style_class(result) {
+        return this.show_incident_flags && (result.incident_level >= 20) ? 'standings-cell-incident-critical' : '';
+    }
 
     render_result_ioi(result, student, can_view) {
         if (result.attempts === 0) return '-';
@@ -336,9 +353,11 @@ class StandingsRenderer {
         }
 
         const first_accepted_style = this.part_first_accepted_flag_style_class(result);
+        const incident_warning_style = this.part_incident_warning_flag_style_class(result);
+        const incident_critical_style = this.part_incident_critical_flag_style_class(result);
 
         return `
-            <td class="text-center align-middle cell standings-cell ${first_accepted_style}" 
+            <td class="text-center align-middle cell standings-cell ${first_accepted_style} ${incident_warning_style} ${incident_critical_style}" 
                 title="${result.task.letter}. ${result.task.name}">
                 ${inner_html}
             </td>
@@ -365,7 +384,7 @@ class StandingsRenderer {
             can_view_link_html = `
                 <sub>
                     <a href="results.php?id=${this.standings.course_module_id}&user_id=${student.user_id}">
-                        [${this.get_string('submits')}]
+                        [${this.get_string('submitslowercase')}]
                     </a>
                 </sub>`;
         }
@@ -448,9 +467,10 @@ class Standings {
         hide_upsolving,
         hide_inactive,
         has_capability_view_any,
-        localized_strings
+        localized_strings,
+        incidents_info
     ) {
-        students = students.map(function (st) { return new StandingsStudent(st, tasks); });
+        students = students.map((student) => new StandingsStudent(student, this));
 
         // set up params
         this.students = students;
@@ -468,6 +488,7 @@ class Standings {
 
         // set up default params
         this.show_first_accepted_flag = true;
+        this.show_incident_flags = false;
         this.show_testing_flag = true;
         this.show_submits_upto_best = false;
         this.show_last_improvement_column = false;
@@ -476,6 +497,19 @@ class Standings {
         this.student_by_id = Object.fromEntries(students.map(student => [student.user_id, student]));
 
         this.task_by_id = Object.fromEntries(tasks.map(task => [task.task_id, task]));
+
+        this.incident_level_by_submit_id = {};
+        if (incidents_info) {
+            incidents_info.forEach(incident => {
+                const incident_level = (incident.method == "tokenseq" ? 20 : 10);
+
+                incident.submit_ids.forEach(submit_id => {
+                    const old_incident_level = this.incident_level_by_submit_id[submit_id] || 0;
+                    
+                    this.incident_level_by_submit_id[submit_id] = Math.max(incident_level, old_incident_level);
+                });
+            });
+        }
 
         // prepare virtual submit times
         submits.forEach(submit => {
@@ -498,11 +532,14 @@ class Standings {
 
         this.submits.forEach(submit => {
             submit.accepted = (submit.result_id == 13); // Accepted verdict
-            submit.judged = ![1, 2].includes(submit.result_id); // Pending and Running verdicts
+            submit.judged = 
+                (submit.result_id != 1 /* Pending verdict */ && 
+                submit.result_id != 2 /* Running verdict */);
             submit.task = this.task_by_id[submit.task_id];
             submit.is_first_accepted = false;
+            submit.incident_level = this.incident_level_by_submit_id[submit.id] || 0;
 
-            submit.points = parseInt(submit.points, 10); // Явное указание системы счисления
+            submit.points = parseInt(submit.points, 10);
 
             if (submit.accepted && this.student_by_id[submit.user_id]) {
                 submit.is_first_accepted = !globally_solved_tasks.has(submit.task_id);
@@ -564,6 +601,14 @@ class Standings {
 
         return this.show_first_accepted_flag;
     }
+    
+    toggle_show_incident_flags() {
+        this.show_incident_flags = !this.show_incident_flags;
+
+        this.build();
+
+        return this.show_incident_flags;
+    }
 
     toggle_show_testing_flag() {
         this.show_testing_flag = !this.show_testing_flag;
@@ -600,7 +645,7 @@ class Standings {
 
         // build each line
         this.students.forEach(student => {
-            student.build_results(this.hide_upsolving);
+            student.build_results();
         });
 
 

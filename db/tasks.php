@@ -51,5 +51,14 @@ $tasks = [
         'dayofweek' => '*',
         'month' => '*',
     ],
+    [
+        'classname' => 'mod_bacs\task\cron_incidents',
+        'blocking' => 0,
+        'minute' => '3',
+        'hour' => '*',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*',
+    ],
 
 ];

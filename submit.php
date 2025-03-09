@@ -83,7 +83,11 @@ if ($cansubmit && $contest->queryparamsbacs->key == $submitkey) {
         $record->result_id = 1;
         $record->submit_time = time();
 
-        $DB->insert_record('bacs_submits', $record, false);
+        $submitid = $DB->insert_record('bacs_submits', $record);
+
+        if ($contest->bacs->detect_incidents == 1) {
+            bacs_mark_submit_for_incidents_recalc($submitid);
+        }
 
         // ...redirect.
         print "Successful submit / Успешная отправка";

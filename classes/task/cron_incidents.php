@@ -22,28 +22,41 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_bacs\contest;
+namespace mod_bacs\task;
 
-require_once(dirname(__FILE__, 3) . '/config.php');
-require_once(dirname(__FILE__, 1) . '/lib.php');
-require_once(dirname(__FILE__, 1) . '/utils.php');
+defined('MOODLE_INTERNAL') || die();
 
-require_login();
+require_once(dirname(__FILE__, 2) . '/cron_lib.php');
 
-$contest = new contest();
-$contest->initialize_page();
+use mod_bacs\cron_lib;
+use core\session\exception;
+use core\task\scheduled_task;
+use dml_exception;
+use dml_transaction_exception;
 
-$contest->pageurlbacs = new moodle_url('/mod/bacs/virtual_contest.php', ['id' => $contest->coursemodule->id]);
+/**
+ * Class cron_incidents
+ *
+ * @package mod_bacs
+ */
+class cron_incidents extends scheduled_task {
+    /**
+     * This function
+     * @return string
+     */
+    public function get_name() {
+        return "Processing incidents";
+    }
 
-echo $OUTPUT->header();
+    /**
+     * This function
+     * @return void
+     * @throws exception
+     * @throws dml_exception
+     * @throws dml_transaction_exception
+     */
+    public function execute() {
 
-$contest->aceeditorshownbacs = false;
-$contest->print_contest_header('');
-
-print "<p class='alert alert-danger text-center' role='alert'>
-    This is development page without any content. It is intended to be used as template for any other contest pages.
-    <br>
-    Insert new content and actions instead of this message.
-</p>";
-
-echo $OUTPUT->footer();
+        cron_lib::cron_incidents();
+    }
+}

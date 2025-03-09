@@ -196,23 +196,26 @@ class results_submit {
             throw new Exception("This submit does not belong to provided contest");
         }
 
-        $this->compilerinfobacs   = $dbsubmit->info;
-        $this->submittimebacs     = $dbsubmit->submit_time;
-        $this->source          = $dbsubmit->source;
-        $this->maxtimeusedbacs   = $dbsubmit->max_time_used;
-        $this->maxmemoryusedbacs = $dbsubmit->max_memory_used;
-        $this->points          = $dbsubmit->points;
-        $this->submitidbacs       = $dbsubmit->id;
-        $this->resultidbacs       = $dbsubmit->result_id;
+        $this->submittimebacs = $dbsubmit->submit_time;
+        $this->points         = $dbsubmit->points;
+        $this->submitidbacs   = $dbsubmit->id;
+        $this->resultidbacs   = $dbsubmit->result_id;
+
+        $this->compilerinfobacs  = (property_exists($dbsubmit, 'info') ? $dbsubmit->info : '');
+        $this->source            = (property_exists($dbsubmit, 'source') ? $dbsubmit->source : '');
+        $this->maxtimeusedbacs   = (property_exists($dbsubmit, 'max_time_used') ? $dbsubmit->max_time_used : 0);
+        $this->maxmemoryusedbacs = (property_exists($dbsubmit, 'max_memory_used') ? $dbsubmit->max_memory_used : 0);
 
         $this->useridbacs = $dbsubmit->user_id;
         $conteststudents = $contest->get_students();
         if (array_key_exists($this->useridbacs, $conteststudents)) {
-            // ...only names of students can be shown this way.
-            // ...and are expected to be shown.
+            // only names of students can be shown this way
             $submitauthor = $conteststudents[$this->useridbacs];
             $this->userfirstnamebacs  = $submitauthor->firstname;
             $this->userlastnamebacs   = $submitauthor->lastname;
+        } else {
+            $this->userfirstnamebacs  = "[USER ID=$dbsubmit->user_id]";
+            $this->userlastnamebacs   = "";
         }
 
         $lang = $contest->get_lang_by_lang_id($dbsubmit->lang_id);

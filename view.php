@@ -45,7 +45,7 @@ $standings = new standings();
 
 $standings->usercapabilitiesbacs = $contest->usercapabilitiesbacs;
 $standings->coursemoduleidbacs   = $contest->coursemodule->id;
-$standings->mode              = $contest->bacs->mode;
+$standings->mode                 = $contest->bacs->mode;
 
 $standings->endtime   = $contest->endtime;
 $standings->starttime = $contest->starttime;
@@ -64,6 +64,8 @@ if ($contest->currentgroupidbacs == 0) {
         $standings->starttime = $groupinfoentry->starttime;
     }
 }
+
+$standings->incidentsjsonbacs = ($contest->usercapabilitiesbacs->viewany ? $contest->bacs->incidents_info : "[]");
 
 // ...prepare students.
 $selectedstudents = $contest->get_students();
@@ -96,6 +98,7 @@ $standings->tasksjsonbacs = json_encode($tasks);
 // ...prepare localized strings.
 $standings->localizedstringsjsonbacs = json_encode([
     'submits'          => get_string('submits', 'mod_bacs'),
+    'submitslowercase' => get_string('submitslowercase', 'mod_bacs'),
     'username'         => get_string('username', 'mod_bacs'),
     'points'           => get_string('points', 'mod_bacs'),
     'penalty'          => get_string('penalty', 'mod_bacs'),
