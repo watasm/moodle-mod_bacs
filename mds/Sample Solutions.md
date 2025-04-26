@@ -183,10 +183,50 @@ a, b = gets.split.map(&:to_i)
 puts a + b
 ```
 
-### JavaScript:
+### JavaScript (d8):
 
 ```javascript
 // These functions are added for input/output
 var [a, b] = readline().split(" ").map(Number);
 print(a + b);
+```
+
+### Rust:
+
+```rust
+fn main() {
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input).unwrap();
+    let nums: Vec<i32> = input
+        .split_whitespace()
+        .map(|s| s.parse().unwrap())
+        .collect();
+    let a = nums[0];
+    let b = nums[1];
+    println!("{}", a + b);
+}
+```
+
+### PHP 8.1:
+
+```php
+<?php
+[$a, $b] = explode(' ', trim(fgets(STDIN)));
+echo $a + $b;
+```
+
+### TypeScript (Bun):
+
+```typescript
+const input: string = await Bun.stdin.text();
+const [a, b]: number[] = input.trim().split(' ').map(Number);
+console.log(a + b);
+```
+
+### JavaScript (Bun):
+
+```javascript
+const input = await Bun.stdin.text();
+const [a, b] = input.trim().split(' ').map(Number);
+console.log(a + b);
 ```
