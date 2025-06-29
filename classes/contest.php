@@ -504,6 +504,7 @@ class contest {
         $task->count_pretests = 0;
         $task->test_points = "";
         $task->statement_url = "";
+        $task->statement_urls = [];
         $task->author = "";
         $task->revision = "";
         $task->statement_format = "";

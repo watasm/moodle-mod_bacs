@@ -892,5 +892,19 @@ function xmldb_bacs_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2025012800, 'bacs');
     }
 
+    if ($oldversion < 2025060900) {
+        // Define field statements_urls to be added to bacs_tasks.
+        $table = new xmldb_table('bacs_tasks');
+        $field = new xmldb_field('statement_urls', XMLDB_TYPE_TEXT, null, null, null, null, null);
+
+        // Conditionally launch add field incidents_info.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2025061500, modname: 'bacs');
+    }
+
     return true;
 }

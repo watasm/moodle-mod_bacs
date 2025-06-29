@@ -50,15 +50,26 @@
 
             {{^is_missing}}
                 {{#user_capability_readtasks}}
-                    {{#statement_format_is_html}}
-                        <a href="{{statement_url}}" target="_blank">{{#str}} open, mod_bacs {{/str}}</a>
-                    {{/statement_format_is_html}}
+                    {{#is_multi_statements}}
+                        {{#statement_urls}}
+                            <a class="d-block" href="{{url}}" target="_blank">{{#str}} open, mod_bacs {{/str}} ({{lang}})</a>
+                        {{/statement_urls}}
+                    {{/is_multi_statements}}
+
+                    {{^is_multi_statements}}
+                        {{#statement_format_is_html}}
+                            {{#statement_url}}
+                                <a href="{{statement_url}}" target="_blank">{{#str}} open, mod_bacs {{/str}}</a>
+                            {{/statement_url}}
+                        {{/statement_format_is_html}}
+                        
+                        {{^statement_format_is_html}}
+                            <a href="http://docs.google.com/viewer?url={{statement_url}}" target="_blank">{{#str}} open, mod_bacs {{/str}}</a> 
+                            / 
+                            <a href="{{statement_url}}" target="_blank">{{#str}} download, mod_bacs {{/str}}</a>
+                        {{/statement_format_is_html}}
+                    {{/is_multi_statements}}
                     
-                    {{^statement_format_is_html}}
-                        <a href="http://docs.google.com/viewer?url={{statement_url}}" target="_blank">{{#str}} open, mod_bacs {{/str}}</a> 
-                        / 
-                        <a href="{{statement_url}}" target="_blank">{{#str}} download, mod_bacs {{/str}}</a>
-                    {{/statement_format_is_html}}
                 {{/user_capability_readtasks}}
 
                 {{^user_capability_readtasks}}

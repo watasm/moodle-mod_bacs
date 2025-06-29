@@ -292,6 +292,7 @@ function tov3_create_tasks() {
             ['count_pretests', XMLDB_TYPE_INTEGER, 3, null, null, null, null],
             ['test_points', XMLDB_TYPE_CHAR, 255, null, null, null, null],
             ['statement_url', XMLDB_TYPE_CHAR, 511, null, null, null, null],
+            ['statement_urls', XMLDB_TYPE_TEXT, null, null, null, null],
             ['revision', XMLDB_TYPE_CHAR, 255, null, null, null, null],
         ],
         [

@@ -58,6 +58,15 @@ foreach ($contest->tasks as $task) {
     $tasklisttask = new stdClass();
 
     $tasklisttask->statement_url    = $task->statement_url;
+    if(isset($task->statement_urls)) {
+        $tasklisttask->statement_urls = json_decode($task->statement_urls, true);
+        $tasklisttask->is_multi_statements = empty($tasklisttask->statement_urls) ? 0 : count($tasklisttask->statement_urls) > 0;
+        if($tasklisttask->is_multi_statements) {
+            $tasklisttask->statement_urls = array_map(function($lang, $url) {
+                return ['lang' => $lang, 'url' => $url];
+            }, array_keys($tasklisttask->statement_urls ), array_values($tasklisttask->statement_urls ));
+        }
+    }
     $tasklisttask->statement_format = $task->statement_format;
     $tasklisttask->name             = $task->name;
     $tasklisttask->letter           = $task->letter;
@@ -68,6 +77,7 @@ foreach ($contest->tasks as $task) {
 
     $tasklisttask->statement_format_is_html =
         (strtoupper($tasklisttask->statement_format) == 'HTML');
+
 
     $showsubmitsspamwarning = ($tasklist->recentsubmitsbacs > 40);
     $showsubmitsspampenalty = ($tasklist->recentsubmitsbacs > 50);

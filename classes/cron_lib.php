@@ -517,9 +517,12 @@ class cron_lib {
                         $record->count_pretests
                     );
 
-                    $record->statement_url = $item->statementUrl;
+                    if(isset($item->statementUrl)) {
+                        $record->statement_url = $item->statementUrl;
+                    }
+                    $record->statement_urls = json_encode($item->statementUrls);
                     $record->statement_format = $item->format;
-                    $record->revision = md5($item->statementUrl);
+                    $record->revision = md5(json_encode($item->statementUrls));
 
                     print "<p>Inserting problem $record->task_id...</p>";
                     $lastinsertid = $DB->insert_record('bacs_tasks', $record, false);
