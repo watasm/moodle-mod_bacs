@@ -42,7 +42,17 @@
             </svg>
             {{letter}}
         </td>
-        <td class="cell c1 cursor-pointer" {{{td_toggle_attr}}}>{{name}}</td>
+        <td class="cell c1 cursor-pointer" {{{td_toggle_attr}}}>
+            {{#is_multi_names}}
+                {{#names}}
+                    {{name}}
+                {{/names}}
+            {{/is_multi_names}}
+
+            {{^is_multi_names}}
+                {{name}}
+            {{/is_multi_names}}
+        </td>
         <td class="cell c2 text-nowrap">
             {{#is_missing}}
             -
@@ -52,7 +62,7 @@
                 {{#user_capability_readtasks}}
                     {{#is_multi_statements}}
                         {{#statement_urls}}
-                            <a class="d-block" href="{{url}}" target="_blank">{{#str}} open, mod_bacs {{/str}} ({{lang}})</a>
+                            <a class="d-inline-block" href="{{url}}" target="_blank">{{lang}}</a>
                         {{/statement_urls}}
                     {{/is_multi_statements}}
 

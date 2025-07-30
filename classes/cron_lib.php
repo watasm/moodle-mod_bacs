@@ -521,6 +521,7 @@ class cron_lib {
                         $record->statement_url = $item->statementUrl;
                     }
                     $record->statement_urls = json_encode($item->statementUrls);
+                    $record->names = json_encode($item->names);
                     $record->statement_format = $item->format;
                     $record->revision = md5(json_encode($item->statementUrls));
 

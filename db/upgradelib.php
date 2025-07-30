@@ -286,6 +286,7 @@ function tov3_create_tasks() {
             ['id', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null],
             ['task_id', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0],
             ['name', XMLDB_TYPE_CHAR, 255, null, XMLDB_NOTNULL, null, null],
+            ['names', XMLDB_TYPE_TEXT, null, null, null, null, null],
             ['time_limit_millis', XMLDB_TYPE_INTEGER, 7, null, XMLDB_NOTNULL, null, 0],
             ['memory_limit_bytes', XMLDB_TYPE_INTEGER, 7, null, XMLDB_NOTNULL, null, 0],
             ['count_tests', XMLDB_TYPE_INTEGER, 3, null, null, null, null],

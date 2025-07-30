@@ -498,6 +498,7 @@ class contest {
         $task->id = 0;
         $task->task_id = $taskid;
         $task->name = "[" . get_string('uppercasetasknotfound', 'mod_bacs') . ", ID = $taskid]";
+        $task->names = [];
         $task->time_limit_millis = 0;
         $task->memory_limit_bytes = 0;
         $task->count_tests = 0;

@@ -33,6 +33,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
         <FIELD NAME="task_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Task ID"/>
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Task name"/>
+        <FIELD NAME="names" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Task names on different languages"/>
         <FIELD NAME="time_limit_millis" TYPE="int" LENGTH="7" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Execution time limit in milliseconds"/>
         <FIELD NAME="memory_limit_bytes" TYPE="int" LENGTH="7" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Execution memory limit in bytes"/>
         <FIELD NAME="count_tests" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="Test cases count"/>
