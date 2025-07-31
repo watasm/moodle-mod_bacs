@@ -57,4 +57,19 @@ if ($ADMIN->fulltree) {
             5
         )
     );
+
+    $settings->add(
+        new admin_setting_configmultiselect(
+            'mod_bacs/preferedlanguages',
+            get_string('preferedlanguage', 'mod_bacs'),
+            get_string('configpreferedlanguage', 'mod_bacs'),
+            [],
+            [
+                'en' => 'English',
+                'ru' => 'Русский',
+                'es' => 'Español',
+                'C' => 'Default author language'
+            ],
+        )
+    );
 }

@@ -343,7 +343,9 @@ class mod_bacs_mod_form extends moodleform_mod {
                        tasks_to_collections.collection_id,
                        tasks.task_id,
                        tasks.name,
+                       tasks.names,
                        tasks.statement_url,
+                       tasks.statement_urls,
                        tasks.count_tests,
                        tasks.count_pretests,
                        tasks.test_points,
@@ -370,12 +372,14 @@ class mod_bacs_mod_form extends moodleform_mod {
                     'global_tasks_info["' . $curtask->task_id . '"] = {
                     task_id:             "' . $curtask->task_id . '",
                     name:                "' . $curtask->name . '",
-                    author:              "' . $curtask->author . '",
+                    names:               JSON.parse(`' . $curtask->names . '`),
+                    author:              "' . $curtask->author . '",   
                     statement_format:    "' . $curtask->statement_format . '",
                     default_test_points: "' . $curtask->test_points . '",
                     count_tests:         "' . $curtask->count_tests . '",
                     count_pretests:      "' . $curtask->count_pretests . '",
                     statement_url:       "' . $curtask->statement_url . '",
+                    statement_urls:       JSON.parse(`' . $curtask->statement_urls . '`),
                 };';
         }
         return $globaltasksinfoscript;
