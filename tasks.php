@@ -32,28 +32,28 @@ require_once(dirname(__FILE__) . '/utils.php');
 require_login();
 
 /**
- * Фильтрует многоязычные данные по предпочитаемым языкам
+ * Filters multilingual data by preferred languages
  * 
- * @param array $data Многоязычные данные в формате ['lang' => 'value']
- * @param array $preferedlanguages Массив предпочитаемых языков
- * @param string $valueKey Ключ для значения в результирующем массиве ('url' или 'name')
- * @return array Отфильтрованные данные в формате [['lang' => 'lang', $valueKey => 'value']]
+ * @param array $data Multilingual data in format ['lang' => 'value']
+ * @param array $preferedlanguages Array of preferred languages
+ * @param string $valueKey Key for value in resulting array ('url' or 'name')
+ * @return array Filtered data in format [['lang' => 'lang', $valueKey => 'value']]
  */
 function filter_multilingual_data($data, $preferedlanguages, $valueKey) {
     if (empty($data)) {
         return [];
     }
     
-    // Фильтруем по предпочитаемым языкам
+    // filter by preferred languages
     $filtered_data = array_intersect_key($data, array_flip($preferedlanguages));
     
     if (!empty($filtered_data)) {
-        // Если есть совпадения с предпочитаемыми языками, используем только их
+        // if there are matches with preferred languages, use only them
         return array_map(function($lang, $value) use ($valueKey) {
             return ['lang' => strtoupper($lang), $valueKey => $value];
         }, array_keys($filtered_data), array_values($filtered_data));
     } else {
-        // Если нет совпадений, используем все доступные
+        // if no matches, use all available
         return array_map(function($lang, $value) use ($valueKey) {
             return ['lang' => strtoupper($lang), $valueKey => $value];
         }, array_keys($data), array_values($data));
@@ -61,12 +61,12 @@ function filter_multilingual_data($data, $preferedlanguages, $valueKey) {
 }
 
 /**
- * Находит значение по языку в массиве ассоциативных массивов
+ * Finds value by language in array of associative arrays
  * 
- * @param array $data Массив ассоциативных массивов с ключами 'lang' и 'valueKey'
- * @param string $lang Искомый язык
- * @param string $valueKey Ключ для значения ('url' или 'name')
- * @return mixed|null Найденное значение или null
+ * @param array $data Array of associative arrays with keys 'lang' and 'valueKey'
+ * @param string $lang Search language
+ * @param string $valueKey Key for value ('url' or 'name')
+ * @return mixed|null Found value or null
  */
 function find_value_by_lang($data, $lang, $valueKey) {
     foreach ($data as $item) {
@@ -103,10 +103,10 @@ $tasklist->showpointsbacs       = $contest->get_show_points();
 foreach ($contest->tasks as $task) {
     $tasklisttask = new stdClass();
 
-    // Получаем предпочитаемые языки из настроек модуля
+    // getting preferred languages from module settings
     $preferedlanguages = explode(',', get_config('mod_bacs', 'preferedlanguages'));
-    $preferedlanguages = array_filter($preferedlanguages); // Убираем пустые значения
-    // Получаем текущий язык интерфейса Moodle
+    $preferedlanguages = array_filter($preferedlanguages); // remove empty values
+    // getting current language from moodle
     $currentlang = current_language();
     
     $tasklisttask->statement_url = $task->statement_url;
@@ -123,7 +123,7 @@ foreach ($contest->tasks as $task) {
             $tasklisttask->statement_urls = filter_multilingual_data($tasklisttask->statement_urls, $preferedlanguages, 'url');
 
             if(count($preferedlanguages) == 1) {
-                // Ищем URL по приоритету: предпочитаемый язык -> C -> RU -> первый доступный
+                // search url by priority: preferred language -> C -> RU -> first available
                 $preferred_url = find_value_by_lang($tasklisttask->statement_urls, $preferedlanguages[0], 'url');
                 
                 if ($preferred_url === null) {
@@ -134,7 +134,7 @@ foreach ($contest->tasks as $task) {
                     $preferred_url = find_value_by_lang($tasklisttask->statement_urls, 'RU', 'url');
                 }
                 
-                // Если ничего не найдено, берем первый доступный
+                // if nothing is found, take the first available
                 if ($preferred_url === null && !empty($tasklisttask->statement_urls)) {
                     $preferred_url = $tasklisttask->statement_urls[0]['url'];
                 }
