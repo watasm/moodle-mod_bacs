@@ -18,6 +18,11 @@
 </script>
 
 <table class="table cwidetable accordion">
+    <style>
+        .table > :not(caption) > * > * {
+            background-color: transparent !important;
+        }
+    </style>
 
 <thead>
     <tr>
@@ -45,6 +50,8 @@
                 class="{{verdict_css_class}} {{collapsed_class_header}} {{#rcfg_can_be_collapsed}}cursor-pointer{{/rcfg_can_be_collapsed}}"
                 title="{{task_letter}}. {{task_name}}"
                 {{#rcfg_can_be_collapsed}}
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse{{idx}}"
                     data-toggle="collapse"
                     data-target="#collapse{{idx}}"
                 {{/rcfg_can_be_collapsed}}
@@ -148,7 +155,7 @@
                             <button type="button" class="btn btn-secondary" onclick="request_and_set_comment();">{{#str}} setcomment, mod_bacs {{/str}}</button>
 
                             <div class="btn-group" role="group">
-                                <button id="setVerdictBtnGroupDrop" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                <button id="setVerdictBtnGroupDrop" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" data-toggle="dropdown" aria-expanded="false">
                                     {{#str}} setverdict, mod_bacs {{/str}}
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="setVerdictBtnGroupDrop">

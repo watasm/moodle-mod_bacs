@@ -25,16 +25,23 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($ADMIN->fulltree) {
-    $settings->add(
-        new admin_setting_configtext(
-            'mod_bacs/sybonapikey',
-            get_string('sybonapikey', 'mod_bacs'),
-            get_string('configsybonapikey', 'mod_bacs'),
-            "NoDefaultKey",
-            PARAM_TEXT,
-            30
-        )
+
+    $sybonapikey = new admin_setting_configtext(
+        'mod_bacs/sybonapikey',
+        get_string('sybonapikey', 'mod_bacs'),
+        get_string('configsybonapikey', 'mod_bacs'),
+        "NoDefaultKey",
+        PARAM_TEXT,
+        30
     );
+
+    $sybonapikey->set_updatedcallback(function () {
+        \mod_bacs\cron_lib::cron_langs();
+        \mod_bacs\cron_lib::cron_tasks();
+    });
+
+    $settings->add(
+        $sybonapikey);
 
     $settings->add(
         new admin_setting_configtext(

@@ -271,6 +271,8 @@ foreach ($contest->tasks as $task) {
     }
 
     $tasklisttask->td_toggle_attr = "
+        data-bs-toggle='collapse'
+        data-bs-target='#collapse$task->task_order'
         data-toggle='collapse'
         data-target='#collapse$task->task_order'
         onclick='$prepareaceeditorjs'
