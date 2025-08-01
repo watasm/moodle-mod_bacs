@@ -139,15 +139,13 @@
                             <label for="id_s__completiondefault">{{#str}}language, mod_bacs{{/str}}</label>
                             </div>
                             <div class="form-setting">
-                                <div class="form-select defaultsnext">
-                                    <select id="acelangselect{{task_order}}" name="lang_id" onchange="{{change_lang_js}}">
-                                        {{#langs}}
-                                            <option value='{{lang_id}}' data-acemode='{{acemode}}' {{#is_last_used}}selected{{/is_last_used}}>
-                                                {{name}}
-                                            </option>
-                                        {{/langs}}
-                                    </select>
-                                </div>
+                                <select class="form-select" id="acelangselect{{task_order}}" name="lang_id" onchange="{{change_lang_js}}">
+                                    {{#langs}}
+                                        <option value='{{lang_id}}' data-acemode='{{acemode}}' {{#is_last_used}}selected{{/is_last_used}}>
+                                            {{name}}
+                                        </option>
+                                    {{/langs}}
+                                </select>
                             </div>
                         </div>
 
