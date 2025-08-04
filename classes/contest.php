@@ -268,6 +268,7 @@ class contest {
         global $DB, $PAGE;
 
         require_once(dirname(dirname(__FILE__)) . '/submit_verdicts.php');
+        require_once(dirname(dirname(__FILE__)) . '/locale_utils.php');
 
         $this->specificmodebacs = $specificmode;
 
@@ -445,7 +446,9 @@ class contest {
             $task->task_order  = $tasktocontest->task_order;
             $task->test_points = $tasktocontest->test_points;
             $task->letter = chr(ord('A') + $task->task_order - 1);
-            $task->lettered_name = "$task->letter. $task->name";
+            
+            $task->lettered_name = "$task->letter. " . bacs_get_localized_name($task);
+            
             $task->is_missing = $taskismissing;
 
             $this->tasks[] = $task;
@@ -981,4 +984,5 @@ class contest {
 
         print $this->bacsoutput->render($contestnavmenu);
     }
+
 }
