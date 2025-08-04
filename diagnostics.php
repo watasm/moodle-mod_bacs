@@ -55,7 +55,7 @@ if ($selectedchecksparam == '') {
 $checkresults = [];
 
 // ...run checks and write logs.
-print "<div class='container'><p><button class='btn btn-info collapsed' data-toggle='collapse' data-target='#logscontainer'>" .
+print "<div class='container'><p><button class='btn btn-info collapsed' data-bs-toggle='collapse' data-toggle='collapse' data-bs-target='#logscontainer' data-target='#logscontainer'>" .
         get_string('diagnostics:showdetailedlogs', 'mod_bacs') .
     "</button></p>";
 print "<div id='logscontainer' class='collapse'>";
