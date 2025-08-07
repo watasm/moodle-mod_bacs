@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/bacs/lib.php');
+require_once(dirname(__FILE__) . '/locale_utils.php');
 
 /**
  * Class mod_bacs_mod_form
@@ -371,7 +372,7 @@ class mod_bacs_mod_form extends moodleform_mod {
             $globaltasksinfoscript .=
                     'global_tasks_info["' . $curtask->task_id . '"] = {
                     task_id:             "' . $curtask->task_id . '",
-                    name:                "' . $curtask->name . '",
+                    name:                "' . bacs_get_localized_name($curtask) . '",
                     names:               JSON.parse(`' . $curtask->names . '`),
                     author:              "' . $curtask->author . '",   
                     statement_format:    "' . $curtask->statement_format . '",
@@ -417,7 +418,7 @@ class mod_bacs_mod_form extends moodleform_mod {
                       onmouseout=\"this.style.backgroundColor='transparent';\">" .
                 "<td>" . $task->task_id . "</td>" .
                 "<td><a href='" . $task->statement_url . "' target='_blank'>"
-                . htmlspecialchars($task->name) . "</a></td>" .
+                . htmlspecialchars(bacs_get_localized_name($task)) . "</a></td>" .
                 "<td>" . strtoupper($task->statement_format) . "</td>" .
                 "<td>" . $task->author . "</td>" .
                 "<td><span class='tm_clickable' onclick='trl_add_task(" .

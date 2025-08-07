@@ -27,6 +27,7 @@ use mod_bacs\contest;
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/lib.php');
 require_once(dirname(__FILE__) . '/utils.php');
+require_once(dirname(__FILE__) . '/locale_utils.php');
 
 require_login();
 
@@ -50,7 +51,8 @@ $htmlinputcoursemoduleid = "<input type='hidden' name='id' value='" . $contest->
 
 $htmltaskidoptions = "<option value='0'>" . get_string('alltasks', 'bacs') . "</option>";
 foreach ($contest->tasks as $task) {
-    $htmltaskidoptions .= "<option value='$task->task_id'>$task->letter. $task->name</option>";
+    $localized_name = bacs_get_localized_name($task);
+    $htmltaskidoptions .= "<option value='$task->task_id'>$task->letter. $localized_name</option>";
 }
 
 $htmlselecttaskid = "<select name='task_id' class='form-control mx-2 d-inline' value='0'>$htmltaskidoptions</select>";

@@ -28,6 +28,7 @@ use mod_bacs\output\standings;
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/lib.php');
 require_once(dirname(__FILE__) . '/utils.php');
+require_once(dirname(__FILE__) . '/locale_utils.php');
 
 require_login();
 
@@ -88,7 +89,7 @@ foreach ($contest->tasks as $task) {
     $standingstask = new stdClass();
 
     $standingstask->task_id    = $task->task_id;
-    $standingstask->name       = $task->name;
+    $standingstask->name       = bacs_get_localized_name($task);
     $standingstask->task_order = $task->task_order;
 
     $tasks[] = $standingstask;

@@ -28,6 +28,7 @@ use mod_bacs\output\tasklist;
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/lib.php');
 require_once(dirname(__FILE__) . '/utils.php');
+require_once(dirname(__FILE__) . '/locale_utils.php');
 
 require_login();
 
@@ -148,7 +149,7 @@ foreach ($contest->tasks as $task) {
         $tasklisttask->names = json_decode($task->names, true);
         $tasklisttask->is_multi_names = empty($tasklisttask->names) ? 0 : count($tasklisttask->names) > 0;
         if($tasklisttask->is_multi_names) {
-            $tasklisttask->names = filter_multilingual_data($tasklisttask->names, [$currentlang], 'name');
+            $tasklisttask->names = bacs_filter_multilingual_data($tasklisttask->names, [$currentlang], 'name');
         }
     }
 

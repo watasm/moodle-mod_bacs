@@ -244,7 +244,7 @@ class results_submit {
         } else {
             // Task exists in current contest.
             $this->taskletterbacs = $task->letter;
-            $this->tasknamebacs = $task->name;
+            $this->tasknamebacs = bacs_get_localized_name($task);
         }
 
         if (!$loadfullinformation) {

@@ -24,6 +24,7 @@
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/lib.php');
+require_once(dirname(__FILE__) . '/locale_utils.php');
 require_once("{$CFG->libdir}/formslib.php");
 
 require_login();
@@ -90,7 +91,8 @@ class filter_form extends moodleform {
         // Task selector
         $tasks = [0 => 'All'];
         foreach (get_all_tasks() as $task) {
-            $tasks[$task->task_id] = $task->name;
+            $localized_name = bacs_get_localized_name($task);
+            $tasks[$task->task_id] = $localized_name;
         }
         $mform->addElement('select', 'task_id', get_string('task', 'bacs'), $tasks);
         $mform->setDefault('task_id', $this->default_task_id);
@@ -222,7 +224,7 @@ class verdict_chart_database_manipulator{
             foreach ($result_contests as $contest){
                 $tasks = self::get_tasks_from_the_contest($contest->id);
                 foreach ($tasks as $task){
-                    $all_visible_tasks[$task->task_id] = $task->name;
+                    $all_visible_tasks[$task->task_id] = bacs_get_localized_name($task);
                 }
             }
         }
@@ -232,7 +234,7 @@ class verdict_chart_database_manipulator{
         global $DB;
         $all_tasks = [];
         foreach ($DB->get_records('bacs_tasks', [], 'id, task_id, name') as $task) {
-            $all_visible_tasks[$task->task_id] = $task->name;
+            $all_visible_tasks[$task->task_id] = bacs_get_localized_name($task);
         }
 
         return $all_tasks;
