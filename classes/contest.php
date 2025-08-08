@@ -921,7 +921,7 @@ class contest {
         $contestheader = new contest_header();
 
         $contestheader->coursemoduleidbacs   = $this->coursemodule->id;
-        $contestheader->contestnamebacs      = $this->bacs->name;
+        $contestheader->contestnamebacs      = format_string($this->bacs->name, true, ['filter' => true]);
         $contestheader->usercapabilitiesbacs = $this->usercapabilitiesbacs;
 
         $contestheader->isolateparticipantsbacs = $this->isolateparticipantsbacs;
@@ -959,7 +959,7 @@ class contest {
         $contestnavmenu = new contest_nav_menu();
 
         $contestnavmenu->coursemoduleidbacs    = $this->coursemodule->id;
-        $contestnavmenu->contestname       = $this->bacs->name;
+        $contestnavmenu->contestname       = format_string($this->bacs->name, true, ['filter' => true]);
         $contestnavmenu->usercapabilitiesbacs  = $this->usercapabilitiesbacs;
 
         $contestnavmenu->conteststatusbacs     = $contestheader->conteststatusbacs;
