@@ -368,19 +368,25 @@ class mod_bacs_mod_form extends moodleform_mod {
             var global_notify_user_to_recalc_points = true;
             var global_tasks_info = { };
         ';
+
+        $names = json_decode($curtask->names, true);
+        $statement_urls = json_decode($curtask->statement_urls, true);
+        $names_json = json_encode($names, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $statement_urls_json = json_encode($statement_urls, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
         foreach ($taskids as $curtask) {
             $globaltasksinfoscript .=
                     'global_tasks_info["' . $curtask->task_id . '"] = {
                     task_id:             "' . $curtask->task_id . '",
                     name:                "' . bacs_get_localized_name($curtask) . '",
-                    names:               JSON.parse(`' . $curtask->names . '`),
+                    names:                ' . $names_json . ',
                     author:              "' . $curtask->author . '",   
                     statement_format:    "' . $curtask->statement_format . '",
                     default_test_points: "' . $curtask->test_points . '",
                     count_tests:         "' . $curtask->count_tests . '",
                     count_pretests:      "' . $curtask->count_pretests . '",
                     statement_url:       "' . $curtask->statement_url . '",
-                    statement_urls:       JSON.parse(`' . $curtask->statement_urls . '`),
+                    statement_urls:       ' . $statement_urls_json . ',
                 };';
         }
         return $globaltasksinfoscript;
