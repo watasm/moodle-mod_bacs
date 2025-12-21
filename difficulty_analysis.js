@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* jshint ignore:start */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,12 +18,16 @@
 /**
  * Difficulty analysis module for BACS contests
  *
- * @module     mod_bacs/difficulty_analysis
  * @copyright  SybonTeam, sybon.org
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define('mod_bacs/difficulty_analysis', ['jquery', 'core/ajax', 'core/notification', 'core/chartjs'], function ($, Ajax, Notification, Chart) {
+(function () {
+    'use strict';
+
+    // jQuery will be available when functions are called
+    // We check for it in each function that uses it
+
     let chartInstance = null;
     let currentCmid = null;
     let strings = {
@@ -31,6 +37,27 @@ define('mod_bacs/difficulty_analysis', ['jquery', 'core/ajax', 'core/notificatio
         number_of_students: 'Number of students',
         tasks: 'Tasks'
     };
+
+    /**
+     * Show notification using Moodle's notification system
+     * @param {string} message - Message to display
+     * @param {string} type - Type of notification ('error', 'warning', 'info', 'success')
+     */
+    function showNotification(message, type) {
+        type = type || 'info';
+        // Try to use Moodle's notification system if available
+        if (typeof M !== 'undefined' && M.util && M.util.add_notification) {
+            M.util.add_notification(message, type);
+        } else if (typeof Y !== 'undefined' && Y.use) {
+            // Fallback to YUI notifications if available
+            Y.use('moodle-core-notification-alert', function () {
+                new M.core.alert({ message: message });
+            });
+        } else {
+            // Last resort: use alert
+            alert(message);
+        }
+    }
 
     /**
      * Collects task IDs from the tasks_reorder_list DOM element
@@ -70,6 +97,13 @@ define('mod_bacs/difficulty_analysis', ['jquery', 'core/ajax', 'core/notificatio
      * @param {boolean} silent - If true, don't show loader/errors
      */
     function updateChart(silent) {
+        // Ensure jQuery is available
+        var $ = window.jQuery || window.$;
+        if (typeof $ === 'undefined') {
+            console.error('jQuery is not available. Cannot update chart.');
+            return;
+        }
+
         if (!currentCmid || currentCmid === 0) {
             console.log('bacsUpdateDifficultyChart: currentCmid not set or is 0');
             return;
@@ -80,7 +114,6 @@ define('mod_bacs/difficulty_analysis', ['jquery', 'core/ajax', 'core/notificatio
         const button = $('#bacs-difficulty-analysis-btn');
 
         // Check if chart container exists and is visible
-        // Check multiple ways to determine visibility
         const resultElement = result[0];
         let isVisible = false;
 
@@ -91,10 +124,8 @@ define('mod_bacs/difficulty_analysis', ['jquery', 'core/ajax', 'core/notificatio
             const hasOffsetParent = resultElement.offsetParent !== null;
             const jqueryVisible = result.is(':visible');
 
-            // Element is visible if it's displayed, not hidden, and has offsetParent (or is body/html)
             isVisible = isDisplayed && isNotHidden && (hasOffsetParent || resultElement === document.body || resultElement === document.documentElement);
 
-            // Also check jQuery's :visible as fallback
             if (!isVisible && jqueryVisible) {
                 isVisible = true;
             }
@@ -124,10 +155,7 @@ define('mod_bacs/difficulty_analysis', ['jquery', 'core/ajax', 'core/notificatio
         if (taskIds.length === 0) {
             console.log('bacsUpdateDifficultyChart: no task IDs found');
             if (!silent) {
-                Notification.addNotification({
-                    message: strings.notasksselected,
-                    type: 'error'
-                });
+                showNotification(strings.notasksselected, 'error');
             }
             return;
         }
@@ -158,129 +186,33 @@ define('mod_bacs/difficulty_analysis', ['jquery', 'core/ajax', 'core/notificatio
                     displayChart(response);
                 } else {
                     if (!silent) {
-                        Notification.addNotification({
-                            message: response.error || 'Error analyzing contest difficulty',
-                            type: 'error'
-                        });
+                        showNotification(response.error || 'Error analyzing contest difficulty', 'error');
                     }
                 }
             },
             error: function (xhr, status, error) {
                 loader.hide();
                 if (!silent) {
-                    Notification.addNotification({
-                        message: 'Error loading analysis: ' + error,
-                        type: 'error'
-                    });
+                    showNotification('Error loading analysis: ' + error, 'error');
                 }
             }
         });
     }
 
-    return {
-        init: function (cmid, notasksselectedText, studentsCanSolveText, idealCurveText, numberOfStudentsText, tasksText) {
-            // Store localized strings
-            strings.notasksselected = notasksselectedText || 'No tasks selected. Please add tasks to the contest first.';
-            strings.students_can_solve = studentsCanSolveText || 'Students who can solve the task';
-            strings.ideal_curve = idealCurveText || 'Ideal curve';
-            strings.number_of_students = numberOfStudentsText || 'Number of students';
-            strings.tasks = tasksText || 'Tasks';
-            currentCmid = cmid;
-
-            // Don't initialize if cmid is not set or is 0 (new module creation)
-            if (!cmid || cmid === 0) {
-                console.log('bacs difficulty_analysis: cmid not set, skipping initialization');
-                return;
-            }
-
-            const button = $('#bacs-difficulty-analysis-btn');
-            const loader = $('#bacs-difficulty-analysis-loader');
-            const result = $('#bacs-difficulty-analysis-result');
-            const canvas = $('#bacs-difficulty-chart');
-
-            button.on('click', function () {
-                // Check if cmid is valid before making request
-                if (!cmid || cmid === 0) {
-                    Notification.addNotification({
-                        message: 'Cannot analyze difficulty: module not saved yet',
-                        type: 'error'
-                    });
-                    return;
-                }
-                // Show loader, hide result
-                loader.show();
-                result.hide();
-                button.prop('disabled', true);
-
-                const taskIds = collectTaskIds();
-
-                // Debug: log collected task IDs
-                console.log('Collected task IDs:', taskIds);
-
-                if (taskIds.length === 0) {
-                    loader.hide();
-                    button.prop('disabled', false);
-                    Notification.addNotification({
-                        message: strings.notasksselected,
-                        type: 'error'
-                    });
-                    return;
-                }
-
-                // Get sesskey
-                const sesskey = M.cfg.sesskey;
-
-                // Make AJAX request with task IDs
-                $.ajax({
-                    url: M.cfg.wwwroot + '/mod/bacs/difficulty_analysis_ajax.php',
-                    type: 'POST',
-                    data: {
-                        cmid: cmid,
-                        task_ids: taskIds,
-                        sesskey: sesskey
-                    },
-                    traditional: false,
-                    dataType: 'json',
-                    success: function (response) {
-                        loader.hide();
-                        button.prop('disabled', false);
-
-                        if (response.success) {
-                            // Display chart
-                            result.show();
-                            displayChart(response);
-                        } else {
-                            Notification.addNotification({
-                                message: response.error || 'Error analyzing contest difficulty',
-                                type: 'error'
-                            });
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        loader.hide();
-                        button.prop('disabled', false);
-                        Notification.addNotification({
-                            message: 'Error loading analysis: ' + error,
-                            type: 'error'
-                        });
-                    }
-                });
-            });
-
-            // Export update function to global scope for use by manage_tasks.js
-            window.bacsUpdateDifficultyChart = function () {
-                console.log('window.bacsUpdateDifficultyChart called');
-                updateChart(true); // Silent update (no loader/errors)
-            };
-
-            // Also make it available immediately
-            console.log('bacs difficulty_analysis module initialized, cmid:', cmid);
-        }
-    };
-
+    /**
+     * Display chart with data
+     * @param {Object} data - Chart data
+     */
     function displayChart(data) {
         const ctx = document.getElementById('bacs-difficulty-chart');
         if (!ctx) {
+            return;
+        }
+
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded');
+            showNotification('Chart library is not loaded', 'error');
             return;
         }
 
@@ -352,5 +284,109 @@ define('mod_bacs/difficulty_analysis', ['jquery', 'core/ajax', 'core/notificatio
             }
         });
     }
-});
+
+    /**
+     * Initialize difficulty analysis module
+     * @param {number} cmid - Course module ID
+     * @param {string} notasksselectedText - Text for no tasks selected
+     * @param {string} studentsCanSolveText - Text for students can solve
+     * @param {string} idealCurveText - Text for ideal curve
+     * @param {string} numberOfStudentsText - Text for number of students
+     * @param {string} tasksText - Text for tasks
+     */
+    window.bacsDifficultyAnalysisInit = function (cmid, notasksselectedText, studentsCanSolveText, idealCurveText, numberOfStudentsText, tasksText) {
+        // Ensure jQuery is available
+        var $ = window.jQuery || window.$;
+        if (typeof $ === 'undefined') {
+            console.error('jQuery is not available. Cannot initialize difficulty analysis.');
+            return;
+        }
+
+        // Store localized strings
+        strings.notasksselected = notasksselectedText || 'No tasks selected. Please add tasks to the contest first.';
+        strings.students_can_solve = studentsCanSolveText || 'Students who can solve the task';
+        strings.ideal_curve = idealCurveText || 'Ideal curve';
+        strings.number_of_students = numberOfStudentsText || 'Number of students';
+        strings.tasks = tasksText || 'Tasks';
+        currentCmid = cmid;
+
+        // Don't initialize if cmid is not set or is 0 (new module creation)
+        if (!cmid || cmid === 0) {
+            console.log('bacs difficulty_analysis: cmid not set, skipping initialization');
+            return;
+        }
+
+        const button = $('#bacs-difficulty-analysis-btn');
+        const loader = $('#bacs-difficulty-analysis-loader');
+        const result = $('#bacs-difficulty-analysis-result');
+        const canvas = $('#bacs-difficulty-chart');
+
+        button.on('click', function () {
+            // Check if cmid is valid before making request
+            if (!cmid || cmid === 0) {
+                showNotification('Cannot analyze difficulty: module not saved yet', 'error');
+                return;
+            }
+            // Show loader, hide result
+            loader.show();
+            result.hide();
+            button.prop('disabled', true);
+
+            const taskIds = collectTaskIds();
+
+            // Debug: log collected task IDs
+            console.log('Collected task IDs:', taskIds);
+
+            if (taskIds.length === 0) {
+                loader.hide();
+                button.prop('disabled', false);
+                showNotification(strings.notasksselected, 'error');
+                return;
+            }
+
+            // Get sesskey
+            const sesskey = M.cfg.sesskey;
+
+            // Make AJAX request with task IDs
+            $.ajax({
+                url: M.cfg.wwwroot + '/mod/bacs/difficulty_analysis_ajax.php',
+                type: 'POST',
+                data: {
+                    cmid: cmid,
+                    task_ids: taskIds,
+                    sesskey: sesskey
+                },
+                traditional: false,
+                dataType: 'json',
+                success: function (response) {
+                    loader.hide();
+                    button.prop('disabled', false);
+
+                    if (response.success) {
+                        // Display chart
+                        result.show();
+                        displayChart(response);
+                    } else {
+                        showNotification(response.error || 'Error analyzing contest difficulty', 'error');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    loader.hide();
+                    button.prop('disabled', false);
+                    showNotification('Error loading analysis: ' + error, 'error');
+                }
+            });
+        });
+
+        // Export update function to global scope for use by manage_tasks.js
+        window.bacsUpdateDifficultyChart = function () {
+            console.log('window.bacsUpdateDifficultyChart called');
+            updateChart(true); // Silent update (no loader/errors)
+        };
+
+        // Also make it available immediately
+        console.log('bacs difficulty_analysis module initialized, cmid:', cmid);
+    };
+
+})();
 

@@ -45,6 +45,7 @@ class mod_bacs_mod_form extends moodleform_mod
         global $DB, $PAGE;
 
         $mform = $this->_form;
+        $id = optional_param('update', 0, PARAM_INT);
 
         $stringman = get_string_manager();
         $strings = $stringman->load_component_strings('bacs', 'ru');
@@ -53,8 +54,9 @@ class mod_bacs_mod_form extends moodleform_mod
         $PAGE->requires->js('/mod/bacs/manage_tasks.js', true);
         $PAGE->requires->js('/mod/bacs/mod_form.js', true);
         $PAGE->requires->js('/mod/bacs/manage_test_points.js', true);
+        $this->init_difficulty_analysis($id ? $id : optional_param('course', 0, PARAM_INT));
 
-        $id = optional_param('update', 0, PARAM_INT);
+
         $groupmode = 0; // ...no groups by default.
         if ($id) {
             // ...load bacs.
@@ -182,7 +184,7 @@ class mod_bacs_mod_form extends moodleform_mod
 
         // Tasks tab settings.
         $mform->addElement('header', 'tasks_header', get_string('tasks', 'bacs'));
-        $mform->addElement('html', $this->get_tasks_header($collectionsinfo, $alltasks, $taskids, $id));
+        $mform->addElement('html', $this->get_tasks_header($collectionsinfo, $alltasks, $taskids));
 
         // Test points tab settings.
         $mform->addElement('header', 'testpoints_header', get_string('testpoints', 'bacs'));
@@ -442,6 +444,58 @@ class mod_bacs_mod_form extends moodleform_mod
             "</tr>";
     }
 
+    private function init_difficulty_analysis($cmid = 0)
+    {
+        global $PAGE;
+
+        $notasksselected_text = get_string('notasksselected', 'bacs');
+        $students_can_solve_text = get_string('difficulty_analysis_students_can_solve', 'bacs');
+        $ideal_curve_text = get_string('difficulty_analysis_ideal_curve', 'bacs');
+        $number_of_students_text = get_string('difficulty_analysis_number_of_students', 'bacs');
+        $tasks_text = get_string('difficulty_analysis_tasks', 'bacs');
+
+        // Load difficulty analysis JavaScript
+        $PAGE->requires->js('/mod/bacs/difficulty_analysis.js', true);
+
+        // Load jQuery, Chart.js and initialize difficulty analysis module
+        $PAGE->requires->js_init_code("
+            (function() {
+                var initDifficultyAnalysis = function() {
+                    // Ensure jQuery is available globally
+                    require(['jquery', 'core/chartjs'], function($, ChartJS) {
+                        // Make jQuery and Chart available globally
+                        if (typeof window.jQuery === 'undefined') {
+                            window.jQuery = $;
+                            window.$ = $;
+                        }
+                        window.Chart = ChartJS;
+                        
+                        // Initialize difficulty analysis after dependencies are loaded
+                        if (typeof window.bacsDifficultyAnalysisInit === 'function') {
+                            window.bacsDifficultyAnalysisInit(
+                                " . json_encode($cmid) . ",
+                                " . json_encode($notasksselected_text) . ",
+                                " . json_encode($students_can_solve_text) . ",
+                                " . json_encode($ideal_curve_text) . ",
+                                " . json_encode($number_of_students_text) . ",
+                                " . json_encode($tasks_text) . "
+                            );
+                        } else {
+                            // Retry if script not loaded yet
+                            setTimeout(initDifficultyAnalysis, 100);
+                        }
+                    });
+                };
+                // Wait for DOM and scripts to be ready
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initDifficultyAnalysis);
+                } else {
+                    setTimeout(initDifficultyAnalysis, 100);
+                }
+            })();
+        ");
+    }
+
     /**
      * This function
      * @param array $collectionsinfo
@@ -450,25 +504,10 @@ class mod_bacs_mod_form extends moodleform_mod
      * @return string
      * @throws coding_exception
      */
-    private function get_tasks_header($collectionsinfo, $alltasks, $taskids, $cmid = 0)
+    private function get_tasks_header($collectionsinfo, $alltasks, $taskids)
     {
-        global $PAGE;
-
         // Initialize difficulty analysis JavaScript if contest exists
         $difficulty_analysis_html = '';
-        $notasksselected_text = get_string('notasksselected', 'bacs');
-        $students_can_solve_text = get_string('difficulty_analysis_students_can_solve', 'bacs');
-        $ideal_curve_text = get_string('difficulty_analysis_ideal_curve', 'bacs');
-        $number_of_students_text = get_string('difficulty_analysis_number_of_students', 'bacs');
-        $tasks_text = get_string('difficulty_analysis_tasks', 'bacs');
-        $PAGE->requires->js_call_amd('mod_bacs/difficulty_analysis', 'init', [
-            $cmid,
-            $notasksselected_text,
-            $students_can_solve_text,
-            $ideal_curve_text,
-            $number_of_students_text,
-            $tasks_text
-        ]);
         $button_text = get_string('analyzecontestdifficulty', 'bacs');
         $is_plugin_presented = bacs_is_plugin_presented('block_bacs_rating');
 
