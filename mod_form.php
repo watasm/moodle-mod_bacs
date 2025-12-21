@@ -26,19 +26,22 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/bacs/lib.php');
 require_once(dirname(__FILE__) . '/locale_utils.php');
+require_once(dirname(__FILE__) . '/utils.php');
 
 /**
  * Class mod_bacs_mod_form
  * @package mod_bacs
  */
-class mod_bacs_mod_form extends moodleform_mod {
+class mod_bacs_mod_form extends moodleform_mod
+{
     /**
      * This function
      * @return void
      * @throws coding_exception
      * @throws dml_exception
      */
-    public function definition() {
+    public function definition()
+    {
         global $DB, $PAGE;
 
         $mform = $this->_form;
@@ -81,9 +84,9 @@ class mod_bacs_mod_form extends moodleform_mod {
             'mode',
             get_string('contestmode', 'bacs'),
             [
-                    0 => "IOI",
-                    1 => "ICPC",
-                    2 => "General",
+                0 => "IOI",
+                1 => "ICPC",
+                2 => "General",
             ]
         );
 
@@ -92,9 +95,9 @@ class mod_bacs_mod_form extends moodleform_mod {
             'starttime',
             get_string('from', 'bacs'),
             [
-                    'startyear' => get_config('mod_bacs', 'minselectableyear'),
-                    'stopyear'  => get_config('mod_bacs', 'maxselectableyear'),
-                    'step' => 5,
+                'startyear' => get_config('mod_bacs', 'minselectableyear'),
+                'stopyear' => get_config('mod_bacs', 'maxselectableyear'),
+                'step' => 5,
             ]
         );
         $mform->addElement(
@@ -102,9 +105,9 @@ class mod_bacs_mod_form extends moodleform_mod {
             'endtime',
             get_string('to', 'bacs'),
             [
-                    'startyear' => get_config('mod_bacs', 'minselectableyear'),
-                    'stopyear'  => get_config('mod_bacs', 'maxselectableyear'),
-                    'step' => 5,
+                'startyear' => get_config('mod_bacs', 'minselectableyear'),
+                'stopyear' => get_config('mod_bacs', 'maxselectableyear'),
+                'step' => 5,
             ]
         );
 
@@ -113,9 +116,9 @@ class mod_bacs_mod_form extends moodleform_mod {
             'virtual_mode',
             get_string('virtualparticipation', 'bacs'),
             [
-                    0 => get_string('virtualparticipationdisable', 'bacs'),
-                    1 => get_string('virtualparticipationallow', 'bacs'),
-                    2 => get_string('virtualparticipationonly', 'bacs'),
+                0 => get_string('virtualparticipationdisable', 'bacs'),
+                1 => get_string('virtualparticipationallow', 'bacs'),
+                2 => get_string('virtualparticipationonly', 'bacs'),
             ]
         );
 
@@ -179,7 +182,7 @@ class mod_bacs_mod_form extends moodleform_mod {
 
         // Tasks tab settings.
         $mform->addElement('header', 'tasks_header', get_string('tasks', 'bacs'));
-        $mform->addElement('html', $this->get_tasks_header($collectionsinfo, $alltasks, $taskids));
+        $mform->addElement('html', $this->get_tasks_header($collectionsinfo, $alltasks, $taskids, $id));
 
         // Test points tab settings.
         $mform->addElement('header', 'testpoints_header', get_string('testpoints', 'bacs'));
@@ -211,8 +214,8 @@ class mod_bacs_mod_form extends moodleform_mod {
             'contest_task_ids',
             get_string('rawcontesttaskids', 'bacs'),
             [
-                    'value' => $presetcontesttaskids,
-                    'size' => 80,
+                'value' => $presetcontesttaskids,
+                'size' => 80,
             ]
         );
         $mform->setType('contest_task_ids', PARAM_RAW);
@@ -222,8 +225,8 @@ class mod_bacs_mod_form extends moodleform_mod {
             'contest_task_test_points',
             get_string('rawcontesttasktestpoints', 'bacs'),
             [
-                    'value' => $presetcontesttasktestpoints,
-                    'size' => 80,
+                'value' => $presetcontesttasktestpoints,
+                'size' => 80,
             ]
         );
         $mform->setType('contest_task_test_points', PARAM_RAW);
@@ -240,9 +243,10 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @return string
      * @throws coding_exception
      */
-    private function get_group_settings($groupsettingshtml, $id) {
-        return  '<p style="text-align: center;">' .
-                $groupsettingshtml . '
+    private function get_group_settings($groupsettingshtml, $id)
+    {
+        return '<p style="text-align: center;">' .
+            $groupsettingshtml . '
                     <br>
                     <a href="/mod/bacs/groups_settings.php?id=' . $id . '" target="_blank">
                         ' . get_string('gotogroupsettings', 'bacs') . '
@@ -258,7 +262,8 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @throws coding_exception
      * @throws dml_exception
      */
-    private function load_groups($bacs, $course) {
+    private function load_groups($bacs, $course)
+    {
         global $DB;
         $groups = groups_get_all_groups($course->id);
 
@@ -283,8 +288,8 @@ class mod_bacs_mod_form extends moodleform_mod {
             $groupsettingshtml = get_string('groupsettingsarenotused', 'bacs');
         } else {
             $strparamsobj = (object) [
-                    'with_group_settings' => $groupswithgroupsettings,
-                    'total_count' => $groupstotalcount,
+                'with_group_settings' => $groupswithgroupsettings,
+                'total_count' => $groupstotalcount,
             ];
 
             $groupsettingshtml = get_string('groupsettingsareused', 'bacs', $strparamsobj);
@@ -298,7 +303,8 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @return stdClass
      * @throws dml_exception
      */
-    private function load_contest_tasks($bacs) {
+    private function load_contest_tasks($bacs)
+    {
         global $DB;
 
         $data = new stdClass();
@@ -337,7 +343,8 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @return array
      * @throws dml_exception
      */
-    private function load_task_ids() {
+    private function load_task_ids()
+    {
         // ...load tasks.
         global $DB;
         $sql = "SELECT tasks_to_collections.id,
@@ -398,7 +405,8 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @return string
      * @throws coding_exception
      */
-    private function get_collection_container($containerid) {
+    private function get_collection_container($containerid)
+    {
         return "<div id='" . $containerid . "'
                 style='width: 99%; max-height: 80vh; overflow: auto; display: none;' >
                 <table class='generaltable accordion' style = 'white-space: nowrap;'>
@@ -418,19 +426,20 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @return string
      * @throws coding_exception
      */
-    private function get_tablein($task) {
+    private function get_tablein($task)
+    {
         return "<tr class='bacs-mod-form' style='background-color: transparent;'
                      onmouseover=\"this.style.backgroundColor='#ececec';\"
                       onmouseout=\"this.style.backgroundColor='transparent';\">" .
-                "<td>" . $task->task_id . "</td>" .
-                "<td><a href='" . $task->statement_url . "' target='_blank'>"
-                . htmlspecialchars(bacs_get_localized_name($task)) . "</a></td>" .
-                "<td>" . strtoupper($task->statement_format) . "</td>" .
-                "<td>" . $task->author . "</td>" .
-                "<td><span class='tm_clickable' onclick='trl_add_task(" .
-                $task->task_id . ")'>" .
-                get_string('add', 'bacs') . "</span></td>" .
-                "</tr>";
+            "<td>" . $task->task_id . "</td>" .
+            "<td><a href='" . $task->statement_url . "' target='_blank'>"
+            . htmlspecialchars(bacs_get_localized_name($task)) . "</a></td>" .
+            "<td>" . strtoupper($task->statement_format) . "</td>" .
+            "<td>" . $task->author . "</td>" .
+            "<td><span class='tm_clickable' onclick='trl_add_task(" .
+            $task->task_id . ")'>" .
+            get_string('add', 'bacs') . "</span></td>" .
+            "</tr>";
     }
 
     /**
@@ -441,37 +450,36 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @return string
      * @throws coding_exception
      */
-    private function get_tasks_header($collectionsinfo, $alltasks, $taskids, $id = 0)
+    private function get_tasks_header($collectionsinfo, $alltasks, $taskids, $cmid = 0)
     {
         global $PAGE;
 
         // Initialize difficulty analysis JavaScript if contest exists
         $difficulty_analysis_html = '';
-        if ($id) {
-            $notasksselected_text = get_string('notasksselected', 'bacs');
-            $students_can_solve_text = get_string('difficulty_analysis_students_can_solve', 'bacs');
-            $ideal_curve_text = get_string('difficulty_analysis_ideal_curve', 'bacs');
-            $number_of_students_text = get_string('difficulty_analysis_number_of_students', 'bacs');
-            $tasks_text = get_string('difficulty_analysis_tasks', 'bacs');
-            $PAGE->requires->js_call_amd('mod_bacs/difficulty_analysis', 'init', [
-                $id,
-                $notasksselected_text,
-                $students_can_solve_text,
-                $ideal_curve_text,
-                $number_of_students_text,
-                $tasks_text
-            ]);
-            $button_text = get_string('analyzecontestdifficulty', 'bacs');
-            $is_plugin_presented = bacs_is_plugin_presented('block_bacs_rating');
+        $notasksselected_text = get_string('notasksselected', 'bacs');
+        $students_can_solve_text = get_string('difficulty_analysis_students_can_solve', 'bacs');
+        $ideal_curve_text = get_string('difficulty_analysis_ideal_curve', 'bacs');
+        $number_of_students_text = get_string('difficulty_analysis_number_of_students', 'bacs');
+        $tasks_text = get_string('difficulty_analysis_tasks', 'bacs');
+        $PAGE->requires->js_call_amd('mod_bacs/difficulty_analysis', 'init', [
+            $cmid,
+            $notasksselected_text,
+            $students_can_solve_text,
+            $ideal_curve_text,
+            $number_of_students_text,
+            $tasks_text
+        ]);
+        $button_text = get_string('analyzecontestdifficulty', 'bacs');
+        $is_plugin_presented = bacs_is_plugin_presented('block_bacs_rating');
 
-            $button_id = 'bacs-difficulty-analysis-btn';
-            $loader_id = 'bacs-difficulty-analysis-loader';
-            $result_id = 'bacs-difficulty-analysis-result';
+        $button_id = 'bacs-difficulty-analysis-btn';
+        $loader_id = 'bacs-difficulty-analysis-loader';
+        $result_id = 'bacs-difficulty-analysis-result';
 
-            $is_disabled = !$is_plugin_presented;
-            $disabled_attr = $is_disabled ? 'disabled="true"' : '';
+        $is_disabled = !$is_plugin_presented;
+        $disabled_attr = $is_disabled ? 'disabled="true"' : '';
 
-            $difficulty_analysis_html = '
+        $difficulty_analysis_html = '
             <div id="bacs-difficulty-analysis-container" style="margin-top: 20px; margin-bottom: 20px;">
                 <button id="' . $button_id . '" class="btn btn-primary" type="button" ' . $disabled_attr . '>
                     ' . $button_text . '
@@ -486,11 +494,9 @@ class mod_bacs_mod_form extends moodleform_mod {
                 </div>
             </div>';
 
-            if (!$is_plugin_presented) {
-                $difficulty_analysis_html = $difficulty_analysis_html . '<p>' . get_string('no_plugin_installed', 'bacs') . '</p>';
-            }
+        if (!$is_plugin_presented) {
+            $difficulty_analysis_html = $difficulty_analysis_html . '<p>' . get_string('no_plugin_installed', 'bacs') . '</p>';
         }
-
         $result = '
              <p class="tm_caption_p">' . get_string('contesttasks', 'bacs') . ':</p>
              <table width="100%"><tr class="bacs-mod-form">
@@ -550,11 +556,12 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @return string
      * @throws coding_exception
      */
-    private function get_testpoints_header() {
+    private function get_testpoints_header()
+    {
         return '<p class="tm_caption_p"> ' . get_string('choosetask', 'bacs') . ':</p>' .
-                '<select id="test_editor_task_selector"
+            '<select id="test_editor_task_selector"
                 onchange="test_editor_load_task()"><option value="" selected>-</option></select>' .
-                '<div id="test_editor_container" style="display: none;">
+            '<div id="test_editor_container" style="display: none;">
                 <input class="bacs-mod-form" type="checkbox" id="test_editor_use_custom" onclick="test_editor_switch_mode()">
                 <label for="test_editor_use_custom">' . get_string('usecustomtestpoints', 'bacs') . '</label><br><br>
                 ' . get_string('amountoftests', 'bacs') . ': <span id="test_editor_tests_amount">0</span><br>
@@ -581,14 +588,15 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @return string
      * @throws coding_exception
      */
-    private function get_advanced_settings_header() {
+    private function get_advanced_settings_header()
+    {
         return '<div class="alert alert-warning">' .
-                '<p>' . get_string('advancedsettingsmessage1', 'bacs') . '</p>' .
-                '<p>' . get_string('advancedsettingsmessage2', 'bacs') . '</p>' .
-                '<p>' .
-                '<b>' . get_string('advancedwarning', 'bacs') . '</b>' . ' ' .
-                get_string('advancedsettingsmessage3', 'bacs') .
-                '</p>' .
-                '</div>';
+            '<p>' . get_string('advancedsettingsmessage1', 'bacs') . '</p>' .
+            '<p>' . get_string('advancedsettingsmessage2', 'bacs') . '</p>' .
+            '<p>' .
+            '<b>' . get_string('advancedwarning', 'bacs') . '</b>' . ' ' .
+            get_string('advancedsettingsmessage3', 'bacs') .
+            '</p>' .
+            '</div>';
     }
 }
