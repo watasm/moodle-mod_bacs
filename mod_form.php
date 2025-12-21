@@ -363,20 +363,20 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @param array $taskids
      * @return string
      */
-    private function load_tasks($taskids) {
+    private function load_tasks($taskids)
+    {
         $globaltasksinfoscript = '
             var global_notify_user_to_recalc_points = true;
             var global_tasks_info = { };
         ';
 
-        $names = json_decode($curtask->names, true);
-        $statement_urls = json_decode($curtask->statement_urls, true);
-        $names_json = json_encode($names, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $statement_urls_json = json_encode($statement_urls, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
         foreach ($taskids as $curtask) {
+            $names = json_decode($curtask->names, true);
+            $statement_urls = json_decode($curtask->statement_urls, true);
+            $names_json = json_encode($names, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $statement_urls_json = json_encode($statement_urls, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             $globaltasksinfoscript .=
-                    'global_tasks_info["' . $curtask->task_id . '"] = {
+                'global_tasks_info["' . $curtask->task_id . '"] = {
                     task_id:             "' . $curtask->task_id . '",
                     name:                "' . bacs_get_localized_name($curtask) . '",
                     names:                ' . $names_json . ',
