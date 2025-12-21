@@ -23,6 +23,19 @@
  */
 
 /**
+ * Elo rating calculation constants for difficulty analysis
+ */
+if (!defined('BACS_ELO_BASE_RATING')) {
+    define('BACS_ELO_BASE_RATING', 1200);
+}
+if (!defined('BACS_ELO_LOG_SCALE_FACTOR')) {
+    define('BACS_ELO_LOG_SCALE_FACTOR', 500);
+}
+if (!defined('BACS_ELO_K_FACTOR')) {
+    define('BACS_ELO_K_FACTOR', 16);
+}
+
+/**
  * Class status_contest
  * @package mod_bacs
  */
@@ -427,4 +440,26 @@ function bacs_ace_theme_selector($url) {
     </div>';
 
     return $msg;
+}
+
+/**
+ * Calculates the probability that a user can solve a task based on Elo ratings.
+ * Uses the standard Elo formula: P = 1 / (1 + 10^((R_task - R_user) / 500))
+ * 
+ * @param float $R_task Task Elo rating
+ * @param float $R_user User Elo rating
+ * @return float Probability between 0 and 1
+ */
+function bacs_calculate_solve_probability(float $R_task, float $R_user): float
+{
+    return 1 / (1 + pow(10, ($R_task - $R_user) / BACS_ELO_LOG_SCALE_FACTOR));
+}
+
+function bacs_is_plugin_presented($plugin_name)
+{
+    $pluginmanager = \core_plugin_manager::instance();
+    $parsed_plugin_name_str = explode("_", $plugin_name);
+    $name = implode("_", array_slice($parsed_plugin_name_str, 1));
+    $plugins_by_type = $pluginmanager->get_present_plugins($parsed_plugin_name_str[0]);
+    return isset($plugins_by_type[$name]);
 }

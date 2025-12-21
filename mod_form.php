@@ -441,7 +441,56 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @return string
      * @throws coding_exception
      */
-    private function get_tasks_header($collectionsinfo, $alltasks, $taskids) {
+    private function get_tasks_header($collectionsinfo, $alltasks, $taskids, $id = 0)
+    {
+        global $PAGE;
+
+        // Initialize difficulty analysis JavaScript if contest exists
+        $difficulty_analysis_html = '';
+        if ($id) {
+            $notasksselected_text = get_string('notasksselected', 'bacs');
+            $students_can_solve_text = get_string('difficulty_analysis_students_can_solve', 'bacs');
+            $ideal_curve_text = get_string('difficulty_analysis_ideal_curve', 'bacs');
+            $number_of_students_text = get_string('difficulty_analysis_number_of_students', 'bacs');
+            $tasks_text = get_string('difficulty_analysis_tasks', 'bacs');
+            $PAGE->requires->js_call_amd('mod_bacs/difficulty_analysis', 'init', [
+                $id,
+                $notasksselected_text,
+                $students_can_solve_text,
+                $ideal_curve_text,
+                $number_of_students_text,
+                $tasks_text
+            ]);
+            $button_text = get_string('analyzecontestdifficulty', 'bacs');
+            $is_plugin_presented = bacs_is_plugin_presented('block_bacs_rating');
+
+            $button_id = 'bacs-difficulty-analysis-btn';
+            $loader_id = 'bacs-difficulty-analysis-loader';
+            $result_id = 'bacs-difficulty-analysis-result';
+
+            $is_disabled = !$is_plugin_presented;
+            $disabled_attr = $is_disabled ? 'disabled="true"' : '';
+
+            $difficulty_analysis_html = '
+            <div id="bacs-difficulty-analysis-container" style="margin-top: 20px; margin-bottom: 20px;">
+                <button id="' . $button_id . '" class="btn btn-primary" type="button" ' . $disabled_attr . '>
+                    ' . $button_text . '
+                </button>
+                <div id="' . $loader_id . '" style="display: none; margin-top: 10px;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+                <div id="' . $result_id . '" style="display: none; margin-top: 20px;">
+                    <canvas id="bacs-difficulty-chart" style="max-width: 100%; height: 400px;"></canvas>
+                </div>
+            </div>';
+
+            if (!$is_plugin_presented) {
+                $difficulty_analysis_html = $difficulty_analysis_html . '<p>' . get_string('no_plugin_installed', 'bacs') . '</p>';
+            }
+        }
+
         $result = '
              <p class="tm_caption_p">' . get_string('contesttasks', 'bacs') . ':</p>
              <table width="100%"><tr class="bacs-mod-form">
@@ -449,7 +498,8 @@ class mod_bacs_mod_form extends moodleform_mod {
                 <td><div id="tasks_reorder_list"></div></td>
             </tr></table>
             <script>getSortable();</script>' .
-                '<div style="margin-top: 20px"><b>' . get_string('alltasksfrom', 'bacs') . ':</b>
+            $difficulty_analysis_html .
+            '<div style="margin-top: 20px"><b>' . get_string('alltasksfrom', 'bacs') . ':</b>
              <select
                 class="form-control"
                 style="margin-left: 5px; width:200px; display:inline-block;"

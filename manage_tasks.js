@@ -112,6 +112,11 @@ function trl_update_sending_data() {
     task_id_list_holder.setAttribute("value", task_id_list);
     const task_tests_list_holder = document.getElementsByName("contest_task_test_points")[0];
     task_tests_list_holder.setAttribute("value", task_tests_list);
+
+    // Update difficulty analysis chart if available
+    if (typeof window.bacsUpdateDifficultyChart === 'function') {
+        window.bacsUpdateDifficultyChart();
+    }
 }
 
 function trl_update_event(evt) {

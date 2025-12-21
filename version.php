@@ -24,10 +24,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2025073020; // The current module version (Date: YYYYMMDDXX).
+$plugin->version = 2025122063; // The current module version (Date: YYYYMMDDXX).
 $plugin->requires = 2017111300; // Requires this Moodle version.
 $plugin->component = 'mod_bacs'; // Full name of the plugin (used for diagnostics)
 // Supported value is any of the predefined constants MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE.
 $plugin->maturity = MATURITY_BETA;
 $plugin->cron = 30; // Run cron every 30 sekonds.
 $plugin->release = 'v1.0';
+$plugin->amd = true;
