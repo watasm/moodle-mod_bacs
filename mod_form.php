@@ -153,6 +153,18 @@ class mod_bacs_mod_form extends moodleform_mod {
             $mform->addElement('html', $this->get_group_settings($groupsettingshtml, $id));
         }
 
+        $pluginman = \core\plugin_manager::instance();
+        $rating_plugin_info = $pluginman->get_plugin_info('block_bacs_rating');
+        $has_rating = $rating_plugin_info && $rating_plugin_info->is_installed_and_upgraded() && $rating_plugin_info->is_enabled();
+
+        $task_ratings = [];
+        if ($has_rating) {
+            $raw_ratings = $DB->get_records('bacs_rating_tasks', [], '', 'task_id, elo_rating');
+            foreach ($raw_ratings as $r) {
+                $task_ratings[$r->task_id] = round($r->elo_rating);
+            }
+        }
+
         // ...load contest tasks and test points if contest exists.
         $presetcontesttaskids = '';
         $presetcontesttasktestpoints = '';
@@ -174,12 +186,14 @@ class mod_bacs_mod_form extends moodleform_mod {
         $taskids = $this->load_task_ids();
         $alltasks = $DB->get_records('bacs_tasks');
         $collectionsinfo = $DB->get_records('bacs_tasks_collections', [], 'id ASC');
-        $globaltasksinfoscript = $this->load_tasks($taskids);
+        $globaltasksinfoscript = $this->load_tasks($taskids, $has_rating, $task_ratings);
         $mform->addElement('html', html_writer::script($globaltasksinfoscript));
+        $participants_rating_html = $this->get_participants_rating_summary($has_rating);
 
         // Tasks tab settings.
+
         $mform->addElement('header', 'tasks_header', get_string('tasks', 'bacs'));
-        $mform->addElement('html', $this->get_tasks_header($collectionsinfo, $alltasks, $taskids));
+        $mform->addElement('html', $this->get_tasks_header($collectionsinfo, $alltasks, $taskids, $has_rating, $task_ratings, $participants_rating_html));
 
         // Test points tab settings.
         $mform->addElement('header', 'testpoints_header', get_string('testpoints', 'bacs'));
@@ -363,7 +377,7 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @param array $taskids
      * @return string
      */
-    private function load_tasks($taskids) {
+    private function load_tasks($taskids, $has_rating = false, $task_ratings = []) {
         $globaltasksinfoscript = '
             var global_notify_user_to_recalc_points = true;
             var global_tasks_info = { };
@@ -375,6 +389,7 @@ class mod_bacs_mod_form extends moodleform_mod {
         $statement_urls_json = json_encode($statement_urls, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         foreach ($taskids as $curtask) {
+            $rating_val = ($has_rating && isset($task_ratings[$curtask->task_id])) ? $task_ratings[$curtask->task_id] : '-';
             $globaltasksinfoscript .=
                     'global_tasks_info["' . $curtask->task_id . '"] = {
                     task_id:             "' . $curtask->task_id . '",
@@ -387,6 +402,7 @@ class mod_bacs_mod_form extends moodleform_mod {
                     count_pretests:      "' . $curtask->count_pretests . '",
                     statement_url:       "' . $curtask->statement_url . '",
                     statement_urls:       ' . $statement_urls_json . ',
+                    rating:              "' . $rating_val . '",
                 };';
         }
         return $globaltasksinfoscript;
@@ -395,42 +411,60 @@ class mod_bacs_mod_form extends moodleform_mod {
     /**
      * This function
      * @param int $containerid
+     * @param bool $has_rating
      * @return string
      * @throws coding_exception
      */
-    private function get_collection_container($containerid) {
-        return "<div id='" . $containerid . "'
+    private function get_collection_container($containerid, $has_rating) {
+        $html = "<div id='" . $containerid . "'
                 style='width: 99%; max-height: 80vh; overflow: auto; display: none;' >
                 <table class='generaltable accordion' style = 'white-space: nowrap;'>
                 <thead><tr class='bacs-mod-form'>
                     <td><b>" . get_string('taskid', 'bacs') . "</b></td>
-                    <td><b>" . get_string('taskname', 'bacs') . "</b></td>
-                    <td><b>" . get_string('format', 'bacs') . "</b></td>
+                    <td><b>" . get_string('taskname', 'bacs') . "</b></td>";
+
+        if ($has_rating) {
+            $html .= "<td><b>" . get_string('bacsrating:rating', 'bacs') . "</b></td>";
+        }
+
+        $html .= "<td><b>" . get_string('format', 'bacs') . "</b></td>
                     <td><b>" . get_string('author', 'bacs') . "</b></td>
                     <td><b>" . get_string('actions', 'bacs') . "</b></td>
                     </tr></thead>
                 <tbody class='chesspaint-bacs-mod-form'>";
+
+        return $html;
     }
 
     /**
      * This function
      * @param object $task
+     * @param bool $has_rating
+     * @param array $task_ratings
      * @return string
      * @throws coding_exception
      */
-    private function get_tablein($task) {
-        return "<tr class='bacs-mod-form' style='background-color: transparent;'
+    private function get_tablein($task, $has_rating, $task_ratings) {
+        $html = "<tr class='bacs-mod-form' style='background-color: transparent;'
                      onmouseover=\"this.style.backgroundColor='#ececec';\"
                       onmouseout=\"this.style.backgroundColor='transparent';\">" .
-                "<td>" . $task->task_id . "</td>" .
-                "<td><a href='" . $task->statement_url . "' target='_blank'>"
-                . htmlspecialchars(bacs_get_localized_name($task)) . "</a></td>" .
-                "<td>" . strtoupper($task->statement_format) . "</td>" .
-                "<td>" . $task->author . "</td>" .
-                "<td><span class='tm_clickable' onclick='trl_add_task(" .
-                $task->task_id . ")'>" .
-                get_string('add', 'bacs') . "</span></td>" .
-                "</tr>";
+            "<td>" . $task->task_id . "</td>" .
+            "<td><a href='" . $task->statement_url . "' target='_blank'>"
+            . htmlspecialchars(bacs_get_localized_name($task)) . "</a></td>";
+
+        if ($has_rating) {
+            $rating_val = isset($task_ratings[$task->task_id]) ? $task_ratings[$task->task_id] : '-';
+            $html .= "<td>" . $rating_val . "</td>";
+        }
+
+        $html .= "<td>" . strtoupper($task->statement_format) . "</td>" .
+            "<td>" . $task->author . "</td>" .
+            "<td><span class='tm_clickable' onclick='trl_add_task(" .
+            $task->task_id . ")'>" .
+            get_string('add', 'bacs') . "</span></td>" .
+            "</tr>";
+
+        return $html;
     }
 
     /**
@@ -438,18 +472,25 @@ class mod_bacs_mod_form extends moodleform_mod {
      * @param array $collectionsinfo
      * @param array $alltasks
      * @param array $taskids
+     * @param bool $has_rating
+     * @param array $task_ratings
      * @return string
      * @throws coding_exception
      */
-    private function get_tasks_header($collectionsinfo, $alltasks, $taskids) {
+    private function get_tasks_header($collectionsinfo, $alltasks, $taskids, $has_rating, $task_ratings, $participants_rating_html = '') {
         $result = '
              <p class="tm_caption_p">' . get_string('contesttasks', 'bacs') . ':</p>
              <table width="100%"><tr class="bacs-mod-form">
                 <td width="1%"><div id="letters_column"></div></td>
                 <td><div id="tasks_reorder_list"></div></td>
             </tr></table>
-            <script>getSortable();</script>' .
-                '<div style="margin-top: 20px"><b>' . get_string('alltasksfrom', 'bacs') . ':</b>
+            <script>getSortable();</script>';
+
+        if (!empty($participants_rating_html)) {
+            $result .= $participants_rating_html;
+        }
+
+        $result .= '<div style="margin-top: 20px"><b>' . get_string('alltasksfrom', 'bacs') . ':</b>
              <select
                 class="form-control"
                 style="margin-left: 5px; width:200px; display:inline-block;"
@@ -459,6 +500,7 @@ class mod_bacs_mod_form extends moodleform_mod {
         foreach ($collectionsinfo as $collectioninfo) {
             $result .= "<option value='$collectioninfo->collection_id'>$collectioninfo->name</option>";
         }
+
         $result .= '</select><div class="form-control" id="srchFld" >
             <input class="bacs-mod-form" type="search"
                 placeholder="' . get_string('search', 'bacs') . '" id="search-text"
@@ -469,11 +511,24 @@ class mod_bacs_mod_form extends moodleform_mod {
                 onclick="cleanSearch()">
                 </div></div>';
 
+        if ($has_rating) {
+            $result .= '<div style="margin-top: 10px; margin-bottom: 10px"><b>' . get_string('bacsrating:sortby', 'bacs') . ':</b>
+            <select
+                class="form-control"
+                style="margin-left: 5px; width:200px; display:inline-block;"
+                id="bacs_sort_selector"
+                onchange="apply_sort()">
+                
+                <option value="" selected disabled hidden>...</option>
+                <option value="rating_desc">'. get_string('bacsrating:sortby:rating_desc', 'bacs') . '</option>
+                <option value="rating_asc">'. get_string('bacsrating:sortby:rating_asc', 'bacs') . '</option></select></div>';
+        }
+
         foreach ($collectionsinfo as $collectioninfo) {
-            $result .= $this->get_collection_container("collection_container_" . $collectioninfo->collection_id);
+            $result .= $this->get_collection_container("collection_container_" . $collectioninfo->collection_id, $has_rating);
             foreach ($taskids as $taskid) {
                 if ($taskid->collection_id == $collectioninfo->collection_id) {
-                    $result .= $this->get_tablein($taskid);
+                    $result .= $this->get_tablein($taskid, $has_rating, $task_ratings);
                 }
             }
             $result .= "</tbody></table></div>";
@@ -482,14 +537,20 @@ class mod_bacs_mod_form extends moodleform_mod {
             <table class='generaltable accordion' style = 'white-space: nowrap;'>
             <thead><tr class='bacs-mod-form'>
                 <td><b>" . get_string('taskid', 'bacs') . "</b></td>
-                <td><b>" . get_string('taskname', 'bacs') . "</b></td>
-                <td><b>" . get_string('format', 'bacs') . "</b></td>
+                <td><b>" . get_string('taskname', 'bacs') . "</b></td>";
+
+        if ($has_rating) {
+            $rating_str = get_string('bacsrating:rating', 'bacs');
+            $result .= "<td><b>" . $rating_str . "</b></td>";
+        }
+
+        $result .= "<td><b>" . get_string('format', 'bacs') . "</b></td>
                 <td><b>" . get_string('author', 'bacs') . "</b></td>
                 <td><b>" . get_string('actions', 'bacs') . "</b></td>
                 </tr></thead>
             <tbody class='chesspaint-bacs-mod-form'>";
         foreach ($alltasks as $curtask) {
-            $result .= $this->get_tablein($curtask);
+            $result .= $this->get_tablein($curtask, $has_rating, $task_ratings);
         }
         $result .= "</tbody></table></div>";
         return $result;
@@ -540,5 +601,98 @@ class mod_bacs_mod_form extends moodleform_mod {
                 get_string('advancedsettingsmessage3', 'bacs') .
                 '</p>' .
                 '</div>';
+    }
+
+    /**
+    * This function
+    * @param bool $has_rating
+    * @return string
+    * @throws coding_exception|dml_exception
+     */
+    private function get_participants_rating_summary($has_rating) {
+        global $DB, $PAGE;
+
+        if (!$has_rating) {
+            return '';
+        }
+
+        $context = $PAGE->context;
+
+        $users = get_enrolled_users($context, 'mod/bacs:view', 0, 'u.*');
+
+        if (empty($users)) {
+            return '';
+        }
+
+        $user_ids = array_keys($users);
+        $count_rated = 0;
+        $sum_rating = 0;
+        $users_data = [];
+
+        list($insql, $inparams) = $DB->get_in_or_equal($user_ids);
+        $sql = "SELECT userid, rating FROM {bacs_user_ratings} WHERE userid $insql";
+        $ratings = $DB->get_records_sql($sql, $inparams);
+
+        foreach ($users as $uid => $user) {
+            $rating = 0;
+            $has_val = false;
+
+            if (isset($ratings[$uid])) {
+                $rating = round($ratings[$uid]->rating);
+                $sum_rating += $rating;
+                $count_rated++;
+                $has_val = true;
+            }
+
+            $users_data[] = [
+                'name' => fullname($user),
+                'rating' => $has_val ? $rating : '-',
+                'sort_val' => $has_val ? $rating : -1
+            ];
+        }
+
+        $average = $count_rated > 0 ? round($sum_rating / $count_rated) : 0;
+
+        usort($users_data, function($a, $b) {
+            return $b['sort_val'] - $a['sort_val'];
+        });
+
+        $str_avg = get_string('bacsrating:averagerating', 'bacs');
+        $str_participants = get_string('bacsrating:participants', 'bacs');
+        $str_participants_list = get_string('bacsrating:participantslist', 'bacs');
+        $str_participant = get_string('bacsrating:participant', 'bacs'); // Для заголовка таблицы
+        $str_rating = get_string('bacsrating:rating', 'bacs');
+        $str_rated = get_string('bacsrating:rated', 'bacs');
+
+        $html = '<div style="margin: 20px 0; padding: 15px; border: 1px solid #dee2e6; border-radius: 5px; background-color: #f8f9fa;">';
+
+        $html .= '<div style="font-size: 1.1em; margin-bottom: 10px;">';
+        $html .= '<b>' . $str_avg . ': <span style="color: #0f6cbf;">' . $average . '</span></b> ';
+        $html .= '<span style="color: #666; font-size: 0.9em;">(' . $str_participants . ': ' . count($users) . ', '. $str_rated . ': ' . $count_rated . ')</span>';
+        $html .= '</div>';
+
+        $html .= '<details>';
+        $html .= '<summary style="cursor: pointer; color: #0f6cbf; font-weight: bold;">' . $str_participants_list . ' &#9662;</summary>';
+
+        $html .= '<div style="max-height: 300px; overflow-y: auto; margin-top: 10px; border-top: 1px solid #ddd;">';
+        $html .= '<table class="generaltable" style="width: 100%; font-size: 0.9em;">';
+        $html .= '<thead><tr><th style="position: sticky; top: 0; background: #eee;">' . $str_participant . '</th><th style="position: sticky; top: 0; background: #eee;">'. $str_rating .'</th></tr></thead>';
+        $html .= '<tbody>';
+
+        foreach ($users_data as $ud) {
+            $html .= '<tr>';
+            $html .= '<td>' . $ud['name'] . '</td>';
+
+            $style = ($ud['rating'] !== '-') ? 'font-weight: bold;' : 'color: #999;';
+            $html .= '<td style="' . $style . '">' . $ud['rating'] . '</td>';
+            $html .= '</tr>';
+        }
+
+        $html .= '</tbody></table>';
+        $html .= '</div>';
+        $html .= '</details>';
+        $html .= '</div>';
+
+        return $html;
     }
 }
