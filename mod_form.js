@@ -11,6 +11,8 @@ function collection_selector_change() {
     
     const curr_collection_container = document.getElementById('collection_container_' + selector.value);
     curr_collection_container.style.display = 'block';
+
+    apply_sort();
 }
 
 function tableSearch() {
@@ -70,4 +72,48 @@ function getSortable() {
             onEnd: trl_update_event
         }
     );
+}
+
+function apply_sort() {
+    var collSelect = document.getElementById('collection_container_selector');
+    var containerId = 'collection_container_' + collSelect.value;
+    var container = document.getElementById(containerId);
+
+    if (!container) return;
+
+    var sortSelect = document.getElementById('bacs_sort_selector');
+    var sortValue = sortSelect.value;
+
+    var parts = sortValue.split('_');
+    var type = parts[0];
+    var dir = parts[1];
+
+    var colIndex = (type === 'rating') ? 2 : 0;
+
+    var table = container.querySelector('table');
+    var tbody = table.querySelector('tbody');
+    var rows = Array.from(tbody.rows);
+
+    rows.sort(function(rowA, rowB) {
+        var cellA = rowA.cells[colIndex].innerText.trim();
+        var cellB = rowB.cells[colIndex].innerText.trim();
+        
+        var a = parseFloat(cellA);
+        var b = parseFloat(cellB);
+
+        var infiniteVal = (dir === 'asc') ? Infinity : -Infinity;
+
+        if (isNaN(a)) a = infiniteVal;
+        if (isNaN(b)) b = infiniteVal;
+
+        if (dir === 'asc') {
+            return a - b;
+        } else {
+            return b - a;
+        }
+    });
+
+    rows.forEach(function(row) {
+        tbody.appendChild(row);
+    });
 }
