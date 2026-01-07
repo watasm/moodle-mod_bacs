@@ -26,8 +26,22 @@ function trl_add_task(task_id) {
     const tasks_list = document.getElementById("tasks_reorder_list");
 
     let task_name;
+    let task_rating_html = '';
     if (task_id in global_tasks_info) {
-        task_name = global_tasks_info[task_id].name;
+        const info = global_tasks_info[task_id];
+        task_name = info.name;
+
+        if (info.rating && info.rating !== '-' && info.rating !== '') {
+            let label = 'Rating';
+            try {
+                label = M.util.get_string('bacsrating:rating', 'bacs');
+            } catch (e) {
+            }
+
+            task_rating_html = '<span style="font-weight: bold; color: #333; margin-right: 10px;">[' +
+                label + ': ' + info.rating +
+                ']</span>';
+        }
     } else {
         task_name = "[" + M.util.get_string('uppercasetasknotfound', 'bacs') + ", ID = " + task_id + "]";
     }
@@ -59,7 +73,7 @@ function trl_add_task(task_id) {
     new_task_el.setAttribute("class", "tasks_reorder_list_item");
     new_task_el.innerHTML =
         '<span class="tasks_reorder_list_idholder">' + task_id + '</span>' +
-        task_name +
+        task_name + ' ' + task_rating_html +
         '<span class="tasks_reorder_list_addinfo">' +
             '<span class="tasks_reorder_list_idinfo">' + '  (id: ' + task_id + ')</span> ' +
             delete_task_button +
