@@ -41,42 +41,8 @@ $bacs = $DB->get_record('bacs', ['id' => $cm->instance], '*', MUST_EXIST);
 $context = context_module::instance($cm->id);
 require_capability('mod/bacs:edit', $context);
 
-// Get task IDs from the request (they come as an array from JavaScript)
-// jQuery with traditional:false sends arrays as task_ids[]=1&task_ids[]=2
-// PHP automatically converts this to $_POST['task_ids'] as an array
-$task_ids = [];
 
-// Check raw POST data first (jQuery sends as task_ids[])
-if (isset($_POST['task_ids'])) {
-    if (is_array($_POST['task_ids'])) {
-        $task_ids = array_filter(array_map('intval', $_POST['task_ids']));
-    } else {
-        // Single value, convert to array
-        $task_ids = [intval($_POST['task_ids'])];
-    }
-}
-
-// If still empty, try Moodle's optional_param_array
-if (empty($task_ids)) {
-    $task_ids_param = optional_param_array('task_ids', [], PARAM_INT);
-    if (!empty($task_ids_param)) {
-        $task_ids = array_filter(array_map('intval', $task_ids_param));
-    }
-}
-
-// If still empty, check all POST keys for task_ids variations
-if (empty($task_ids)) {
-    foreach ($_POST as $key => $value) {
-        if (strpos($key, 'task_ids') !== false) {
-            if (is_array($value)) {
-                $task_ids = array_merge($task_ids, array_filter(array_map('intval', $value)));
-            } else {
-                $task_ids[] = intval($value);
-            }
-        }
-    }
-    $task_ids = array_unique(array_filter($task_ids));
-}
+$task_ids = optional_param_array('task_ids', [], PARAM_INT);
 
 if (empty($task_ids)) {
     echo json_encode([
