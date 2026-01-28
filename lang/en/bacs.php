@@ -356,3 +356,6 @@ $string['difficulty_analysis_students_can_solve'] = 'Students who can solve the 
 $string['difficulty_analysis_ideal_curve'] = 'Ideal curve';
 $string['difficulty_analysis_number_of_students'] = 'Number of students';
 $string['difficulty_analysis_tasks'] = 'Tasks';
+$string['difficulty_analysis_no_students'] = 'No students are enrolled in this course.';
+$string['difficulty_analysis_no_taskids'] = 'No task IDs were found.';
+$string['difficulty_analysis_no_userids'] = 'No user IDs were found.';

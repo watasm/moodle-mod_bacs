@@ -356,3 +356,6 @@ $string['difficulty_analysis_students_can_solve'] = 'Estudiantes que pueden reso
 $string['difficulty_analysis_ideal_curve'] = 'Curva ideal';
 $string['difficulty_analysis_number_of_students'] = 'Número de estudiantes';
 $string['difficulty_analysis_tasks'] = 'Tareas';
+$string['difficulty_analysis_no_students'] = 'No hay estudiantes matriculados en este curso.';
+$string['difficulty_analysis_no_taskids'] = 'No se encontraron identificadores de tareas.';
+$string['difficulty_analysis_no_userids'] = 'No se encontraron identificadores de usuarios.';
