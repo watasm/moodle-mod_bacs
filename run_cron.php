@@ -73,11 +73,6 @@ switch ($cronaction) {
         cron_lib::cron_incidents(true);
         break;
 
-    case 'special':
-        // ...some dark debugging rituals might happen there.
-        bacs_delete_submits(0, 3);
-        break;
-
     default:
         if ($cronaction == '') {
             print "You must specify cron 'action' parameter.";

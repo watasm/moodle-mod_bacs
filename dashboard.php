@@ -234,7 +234,7 @@ class verdict_chart_database_manipulator{
         global $DB;
         $all_tasks = [];
         foreach ($DB->get_records('bacs_tasks', [], 'id, task_id, name') as $task) {
-            $all_visible_tasks[$task->task_id] = bacs_get_localized_name($task);
+            $all_tasks[$task->task_id] = bacs_get_localized_name($task);
         }
 
         return $all_tasks;

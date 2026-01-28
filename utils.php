@@ -195,7 +195,7 @@ function bacs_menu($link) {
     }
 
     $menuitems = [
-        'view' => '<i class="icon-' . (rand(-77, 77) ? 'flag' : 'fire') . '"></i> ' . get_string('standings', 'mod_bacs'),
+        'view' => '<i class="icon-flag"></i> ' . get_string('standings', 'mod_bacs'),
         'tasks' => '<i class="icon-list"></i> ' . get_string('tasklist', 'mod_bacs'),
         'results' => '<i class="icon-envelope"></i> ' . get_string('mysubmits', 'mod_bacs'),
     ];

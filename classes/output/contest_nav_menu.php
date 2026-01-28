@@ -608,21 +608,7 @@ xmlns="http://www.w3.org/2000/svg">
     public function export_for_template(renderer_base $output) {
         $data = new stdClass();
 
-        // ...prepare icons.
-        $rv = rand() & 255;
-
-        if ($rv == 0) {
-            $data->icon_standings = self::HTML_ICON_STORM;
-        } else if ($rv == 1) {
-            $data->icon_standings = self::HTML_ICON_LIGHTNING;
-        } else if ($rv == 2) {
-            $data->icon_standings = self::HTML_ICON_SHIELD;
-        } else if ($rv == 3) {
-            $data->icon_standings = self::HTML_ICON_STARS;
-        } else {
-            $data->icon_standings = self::HTML_ICON_FLAG;
-        }
-
+        $data->icon_standings            = self::HTML_ICON_FLAG;
         $data->icon_tasklist             = self::HTML_ICON_TASKLIST;
         $data->icon_status               = self::HTML_ICON_ACTIVITY;
         $data->icon_results              = self::HTML_ICON_ENVELOPE;
