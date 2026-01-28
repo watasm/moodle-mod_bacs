@@ -358,3 +358,6 @@ $string['difficulty_analysis_students_can_solve'] = 'Студенты, кото�
 $string['difficulty_analysis_ideal_curve'] = 'Идеальная кривая';
 $string['difficulty_analysis_number_of_students'] = 'Количество студентов';
 $string['difficulty_analysis_tasks'] = 'Задачи';
+$string['difficulty_analysis_no_students'] = 'В этот курс не зачислено ни одного студента.';
+$string['difficulty_analysis_no_taskids'] = 'Не удалось получить идентификаторы задач.';
+$string['difficulty_analysis_no_userids'] = 'Не удалось получить идентификаторы пользователей.';

@@ -48,7 +48,7 @@ if (empty($task_ids)) {
     echo json_encode([
         'success' => false,
         'error' => get_string('notasksselected', 'bacs')
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -69,8 +69,8 @@ $total_students = count($enrolled_users);
 if ($total_students == 0) {
     echo json_encode([
         'success' => false,
-        'error' => 'No students enrolled in course'
-    ]);
+        'error' => get_string('difficulty_analysis_no_students', 'bacs')
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -79,8 +79,8 @@ $task_ids_for_query = array_column($contest_tasks, 'task_id');
 if (empty($task_ids_for_query)) {
     echo json_encode([
         'success' => false,
-        'error' => 'No task IDs found'
-    ]);
+        'error' => get_string('difficulty_analysis_no_taskids', 'bacs')
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -103,8 +103,8 @@ $user_ids = array_keys($enrolled_users);
 if (empty($user_ids)) {
     echo json_encode([
         'success' => false,
-        'error' => 'No user IDs found'
-    ]);
+        'error' => get_string('difficulty_analysis_no_userids', 'bacs')
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -201,5 +201,5 @@ if (defined('DEBUG_DIFFICULTY_ANALYSIS') && DEBUG_DIFFICULTY_ANALYSIS) {
     $response['debug'] = $debug_info;
 }
 
-echo json_encode($response);
+echo json_encode($response, JSON_UNESCAPED_UNICODE);
 
