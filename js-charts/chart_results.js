@@ -1,17 +1,15 @@
 /* global BacsUtils, Chart */
 window.renderResultsGraph = () => {
   if (window.resultsChartInstance) {
- return;
-}
+    return;
+  }
   const canvasId = 'results-graph-chart';
   const prefix = 'results-graph';
+  const resetZoomBtn = document.getElementById('results-graph-reset-zoom');
 
   const layout = BacsUtils.createChartLayout(
-    canvasId,
-    prefix,
-    'bi-graph-up',
-    'График результатов пока пуст',
-    'Здесь появится индивидуальная динамика набора баллов. Отправьте решение, чтобы дать старт графику!',
+    canvasId, prefix, 'bi-graph-up', 'График результатов пока пуст',
+    'Здесь появится индивидуальная динамика набора баллов. Отправьте решение, чтобы дать старт графику!'
   );
   if (!layout) {
  return;
@@ -20,6 +18,7 @@ window.renderResultsGraph = () => {
   const submissions = window.BACS_PAGE_DATA.submissions || [];
   const students = window.BACS_PAGE_DATA.students || [];
   const contestData = window.BACS_PAGE_DATA.contest;
+  const durationMs = (contestData.endtime - contestData.starttime) * 1000;
 
   const hasPoints = submissions.some((s) => parseInt(s.points, 10) > 0);
   if (!hasPoints) {
@@ -32,14 +31,13 @@ window.renderResultsGraph = () => {
   }
 
   const taskMap = {},
-    taskFullMap = {};
+taskFullMap = {};
   (window.BACS_PAGE_DATA.tasks || []).forEach((t) => {
     taskMap[t.task_id] = t.task_order;
     taskFullMap[t.task_id] = t.task_order + '. ' + t.name;
   });
 
   const sortedSubmissions = submissions.slice().sort((a, b) => a.submit_time - b.submit_time);
-  const warper = BacsUtils.createTimeWarper(sortedSubmissions, contestData.starttime);
 
   const userData = {};
   students.forEach((student) => {
@@ -61,8 +59,8 @@ window.renderResultsGraph = () => {
  tempUserScores[sub.user_id] = {};
 }
     if (points > (tempUserScores[sub.user_id][sub.task_id] || 0)) {
- tempUserScores[sub.user_id][sub.task_id] = points;
-}
+      tempUserScores[sub.user_id][sub.task_id] = points;
+    }
   });
   Object.values(tempUserScores).forEach((tasks) => {
     const total = Object.values(tasks).reduce((a, b) => a + b, 0);
@@ -91,7 +89,7 @@ window.renderResultsGraph = () => {
 }
 
       user.data.push({
-        x: warper.r2v(realTimeElapsed),
+        x: realTimeElapsed,
         y: user.totalScore,
         taskName: taskFullMap[sub.task_id] || `Task ${sub.task_id}`,
         taskShort: taskMap[sub.task_id] || '?',
@@ -102,7 +100,7 @@ window.renderResultsGraph = () => {
   });
 
   const finalRealTimeMs = maxRealSubmitTimeMs > 0 ? maxRealSubmitTimeMs : Date.now() - contestData.starttime * 1000;
-  const chartMaxXVisual = warper.r2v(finalRealTimeMs) * 1.05;
+  const chartMaxXVisual = Math.max(durationMs, finalRealTimeMs) * 1.05;
 
   Object.values(userData).forEach((user) => {
     const lastPoint = user.data[user.data.length - 1];
@@ -115,12 +113,12 @@ window.renderResultsGraph = () => {
         y: lastPoint.y,
         taskName: null,
         delta: 0,
-        realTime: warper.v2r(chartMaxXVisual),
+        realTime: chartMaxXVisual,
       });
     }
   });
 
-  const curveOffset = Math.max(60000, chartMaxXVisual * 0.015);
+  const curveOffset = Math.max(60000, chartMaxXVisual * 0.005);
   Object.values(userData).forEach((user) => {
     let smoothData = [];
     for (let i = 0; i < user.data.length; i++) {
@@ -132,7 +130,7 @@ window.renderResultsGraph = () => {
           taskName: null,
           delta: 0,
           isDummy: true,
-          realTime: warper.v2r(pt.x - curveOffset),
+          realTime: pt.x - curveOffset,
         });
       }
       smoothData.push(pt);
@@ -205,7 +203,7 @@ window.renderResultsGraph = () => {
             if (dataPoint && !dataPoint.isDummy && dataPoint.delta > 0 && dataPoint.taskName) {
               const text = dataPoint.taskName;
               const x = element.x + 10,
-                y = element.y - 12;
+y = element.y - 12;
               const textWidth = ctx.measureText(text).width;
               ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
               ctx.beginPath();
@@ -222,11 +220,11 @@ window.renderResultsGraph = () => {
 
   const tooltipConfig = BacsUtils.getTooltipBaseConfig({
     title: (c) =>
-      c && c[0] && c[0].dataset && c[0].raw
-        ? c[0].raw.taskName
-          ? `${c[0].dataset.label} - ${c[0].raw.taskName}`
-          : c[0].dataset.label
-        : '',
+c && c[0] && c[0].dataset && c[0].raw
+? c[0].raw.taskName
+? `${c[0].dataset.label} - ${c[0].raw.taskName}`
+: c[0].dataset.label
+: '',
     label: (c) => {
       if (!c || !c.raw || c.raw.isDummy) {
  return '';
@@ -243,7 +241,7 @@ window.renderResultsGraph = () => {
   window.resultsChartInstance = new Chart(document.getElementById(canvasId).getContext('2d'), {
     type: 'line',
     data: {datasets: datasets},
-    plugins: [activeLabelsPlugin, BacsUtils.getLineClickPlugin(clickHandler)],
+    plugins: [activeLabelsPlugin, BacsUtils.getLineClickPlugin(clickHandler), BacsUtils.getTimelinePlugin(durationMs)],
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -253,7 +251,7 @@ window.renderResultsGraph = () => {
           type: 'linear',
           title: {
             display: true,
-            text: 'Time from start (Smart Compressed)',
+            text: 'Time from start (Linear)',
             color: TEXT_COLOR,
             font: {weight: '500'},
           },
@@ -261,7 +259,7 @@ window.renderResultsGraph = () => {
           ticks: {
             color: TEXT_COLOR,
             maxRotation: 0,
-            callback: (value) => BacsUtils.formatTime(warper.v2r(value) / 1000),
+            callback: (value) => BacsUtils.formatTime(value / 1000),
           },
           grid: {color: 'rgba(0,0,0,0)', drawBorder: false},
           max: chartMaxXVisual,
@@ -279,15 +277,59 @@ window.renderResultsGraph = () => {
           grid: {color: GRID_COLOR, drawBorder: false},
         },
       },
-      animation: {duration: 1000, easing: 'easeOutQuart'},
+      animation: {duration: 1000, easing: "easeOutQuart"},
+      transitions: {
+        zoom: {
+          animation: {
+            duration: 0
+          }
+        }
+      },
+      // -----------------------------------------------------------------
       plugins: {
         legend: {display: false},
         tooltip: tooltipConfig,
         zoom: {
-          zoom: {wheel: {enabled: false}, pinch: {enabled: false}, drag: {enabled: false}},
-          pan: {enabled: false},
-        },
+          limits: {
+            x: {minRange: 60000}
+          },
+          pan: {
+            enabled: true, mode: 'x',
+            onPanComplete: () => {
+ if (resetZoomBtn) {
+ resetZoomBtn.classList.remove('d-none');
+}
+}
+          },
+          zoom: {
+            wheel: {
+              enabled: true,
+              speed: 0.15
+            },
+            pinch: {enabled: true},
+            drag: {
+              enabled: true,
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              threshold: 20
+            },
+            mode: 'x',
+            onZoomComplete: () => {
+ if (resetZoomBtn) {
+ resetZoomBtn.classList.remove('d-none');
+}
+}
+          }
+        }
       },
     },
   });
+
+  if (resetZoomBtn) {
+    resetZoomBtn.addEventListener('click', function() {
+      if (window.resultsChartInstance) {
+ window.resultsChartInstance.resetZoom();
+}
+      this.classList.add('d-none');
+    });
+  }
 };

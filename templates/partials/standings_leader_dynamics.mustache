@@ -10,18 +10,28 @@
 
 <div id="view-leader-dynamics" class="bacs-view">
     <div class="bacs-chart-container">
-        <div id="leader-dynamics-controls" class="text-center mb-3">
+        <div id="leader-dynamics-controls" class="mb-3 d-flex justify-content-center align-items-center flex-wrap" style="gap: 15px;">
             <div class="btn-group btn-group-sm" role="group" aria-label="Chart mode toggles">
-                <button type="button" class="btn btn-outline-primary active" data-mode="realtime">
-                    {{#str}} chart_mode_realtime, mod_bacs {{/str}}
-                </button>
-                <button type="button" class="btn btn-outline-secondary" data-mode="normalized">
-                    {{#str}} chart_mode_normalized, mod_bacs {{/str}}
-                </button>
-                <button type="button" class="btn btn-outline-secondary" data-mode="events">
-                    {{#str}} chart_mode_events, mod_bacs {{/str}}
-                </button>
+                <button type="button" class="btn btn-outline-primary active" data-mode="realtime">{{#str}} chart_mode_realtime, mod_bacs {{/str}}</button>
+                <button type="button" class="btn btn-outline-secondary" data-mode="normalized">{{#str}} chart_mode_normalized, mod_bacs {{/str}}</button>
+                <button type="button" class="btn btn-outline-secondary" data-mode="events">Events</button>
             </div>
+            
+            <div id="leader-dynamics-step-container" class="d-none align-items-center">
+                <label for="leader-dynamics-step" class="me-2 text-muted fw-bold mb-0" style="font-size: 0.85rem;">Step:</label>
+                <select id="leader-dynamics-step" class="form-select form-select-sm w-auto shadow-sm">
+                    <option value="1">1%</option>
+                    <option value="2">2%</option>
+                    <option value="5" selected>5%</option>
+                    <option value="10">10%</option>
+                    <option value="20">20%</option>
+                    <option value="25">25%</option>
+                </select>
+            </div>
+
+            <button id="leader-dynamics-reset-zoom" class="btn btn-sm btn-outline-danger d-none shadow-sm">
+                <i class="bi bi-zoom-out"></i> Reset Zoom
+            </button>
         </div>
 
         <canvas id="leader-dynamics-chart" style="max-height: 600px;"></canvas>

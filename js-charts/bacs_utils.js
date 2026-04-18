@@ -190,59 +190,43 @@ window.BacsUtils = {
     `;
   },
 
-  createTimeWarper: (subs, startTime) => {
-    let times = subs.map(s => (s.submit_time - startTime) * 1000).filter(t => t >= 0);
-    times = [...new Set(times)].sort((a, b) => a - b);
-
-    let totalActiveTime = times.length > 1 ? times[times.length - 1] - times[0] : 0;
-    let MAX_GAP = Math.max(3600000, Math.min(12 * 3600000, totalActiveTime * 0.05));
-    if (times.length === 0) {
- MAX_GAP = Infinity;
-}
-
-    let points = [{r: 0, v: 0}];
-    let currentV = 0,
-currentR = 0;
-
-    for (let i = 0; i < times.length; i++) {
-        let gap = times[i] - currentR;
-        if (gap > 0) {
-            let vGap = Math.min(gap, MAX_GAP);
-            currentV += vGap;
-            currentR = times[i];
-            points.push({r: currentR, v: currentV});
-        }
-    }
-
+  getTimelinePlugin: (durationMs) => {
     return {
-        r2v: (rTime) => {
-            if (rTime <= 0) {
- return 0;
+      id: 'contestTimeline',
+      beforeDraw: (chart) => {
+        const xAxis = chart.scales.x;
+        const yAxis = chart.scales.y;
+        const ctx = chart.ctx;
+
+        if (xAxis.max <= 1000) {
+ return;
 }
-            for (let i = 1; i < points.length; i++) {
-                if (rTime <= points[i].r) {
-                    let p1 = points[i - 1],
-p2 = points[i];
-                    return p1.v + (rTime - p1.r) * ((p2.v - p1.v) / (p2.r - p1.r));
-                }
-            }
-            let last = points[points.length - 1];
-            return last.v + Math.min(rTime - last.r, MAX_GAP);
-        },
-        v2r: (vTime) => {
-            if (vTime <= 0) {
- return 0;
-}
-            for (let i = 1; i < points.length; i++) {
-                if (vTime <= points[i].v) {
-                    let p1 = points[i - 1],
-p2 = points[i];
-                    return p1.r + (vTime - p1.v) * ((p2.r - p1.r) / (p2.v - p1.v));
-                }
-            }
-            let last = points[points.length - 1];
-            return last.r + (vTime - last.v);
+
+        const drawLine = (xVal, color, text, align) => {
+          const xPixel = xAxis.getPixelForValue(xVal);
+          if (xPixel >= xAxis.left && xPixel <= xAxis.right) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(xPixel, yAxis.top);
+            ctx.lineTo(xPixel, yAxis.bottom);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = color;
+            ctx.setLineDash([4, 4]);
+            ctx.stroke();
+
+            ctx.fillStyle = color;
+            ctx.font = "bold 11px 'Inter', sans-serif";
+            ctx.textAlign = align;
+            ctx.fillText(text, align === 'left' ? xPixel + 6 : xPixel - 6, yAxis.top + 15);
+            ctx.restore();
+          }
+        };
+
+        drawLine(0, 'rgba(16, 185, 129, 0.8)', 'Start', 'left');
+        if (durationMs > 0) {
+          drawLine(durationMs, 'rgba(239, 68, 68, 0.8)', 'End', 'right');
         }
+      }
     };
   },
 
@@ -275,7 +259,9 @@ p2 = points[i];
         d.pointBorderColor = d.data.map(() => colorNormal);
         chart.getDatasetMeta(i).order = 0;
       });
-      document.querySelectorAll(`#${legendContainerId} .custom-legend-item`).forEach(el => { el.style.opacity = '1'; });
+      document.querySelectorAll(`#${legendContainerId} .custom-legend-item`).forEach(el => {
+ el.style.opacity = '1';
+});
     } else {
       chart.data.datasets.forEach((d, i) => {
         if (focusedIndices.includes(i)) {

@@ -3,6 +3,7 @@
 window.renderTaskDynamicsGraph = () => {
   const select = document.getElementById('task-dynamics-select');
   const studentSelect = document.getElementById('student-dynamics-select');
+  const intervalSelect = document.getElementById('task-dynamics-step-select');
   const canvas = document.getElementById('task-dynamics-chart');
   const placeholder = document.getElementById('task-dynamics-placeholder');
   const statsContainer = document.getElementById('task-stats-info');
@@ -70,12 +71,10 @@ window.renderTaskDynamicsGraph = () => {
   const cutoffTimestamp = contestData.starttime + ONE_YEAR_SECONDS;
   let relevantSubmissions = submissions.filter((sub) => sub.submit_time <= cutoffTimestamp);
 
-  // Filtering by task
   if (taskId !== -1 && !isNaN(taskId)) {
     relevantSubmissions = relevantSubmissions.filter((sub) => sub.task_id === taskId);
   }
 
-  // Filtering by student
   if (studentId !== -1 && !isNaN(studentId)) {
     relevantSubmissions = relevantSubmissions.filter((sub) => sub.user_id === studentId);
   }
@@ -123,7 +122,6 @@ window.renderTaskDynamicsGraph = () => {
   canvas.classList.remove('d-none');
   placeholder.classList.add('d-none');
 
-  // --- 2. CALCULATE GENERAL STATS ---
   const totalSubmits = relevantSubmissions.length;
   const VERDICT_ACCEPTED = 13;
   const acceptedSubmits = relevantSubmissions.filter((s) => s.result_id == VERDICT_ACCEPTED).length;
@@ -131,29 +129,34 @@ window.renderTaskDynamicsGraph = () => {
 
   BacsUtils.renderStatsBadges(statsContainer, totalSubmits, acceptedSubmits, successRate);
 
-  // --- 3. algorithm time stamps ---
   relevantSubmissions.sort((a, b) => a.submit_time - b.submit_time);
   const minTime = relevantSubmissions[0].submit_time;
   const maxTime = relevantSubmissions[relevantSubmissions.length - 1].submit_time;
   const span = maxTime - minTime;
 
+  const forcedStep = intervalSelect ? parseInt(intervalSelect.value, 10) : 0;
+
   let stepSeconds;
-  if (span === 0) {
-    stepSeconds = 3600;
-  } else if (span <= 4 * 3600) {
-    stepSeconds = 15 * 60;
-  } else if (span <= 24 * 3600) {
-    stepSeconds = 3600;
-  } else if (span <= 3 * 86400) {
-    stepSeconds = 4 * 3600;
-  } else if (span <= 7 * 86400) {
-    stepSeconds = 12 * 3600;
-  } else if (span <= 30 * 86400) {
-    stepSeconds = 86400;
-  } else if (span <= 90 * 86400) {
-    stepSeconds = 3 * 86400;
+  if (forcedStep > 0) {
+    stepSeconds = forcedStep;
   } else {
-    stepSeconds = 7 * 86400;
+    if (span === 0) {
+      stepSeconds = 3600;
+    } else if (span <= 4 * 3600) {
+      stepSeconds = 15 * 60;
+    } else if (span <= 24 * 3600) {
+      stepSeconds = 3600;
+    } else if (span <= 3 * 86400) {
+      stepSeconds = 4 * 3600;
+    } else if (span <= 7 * 86400) {
+      stepSeconds = 12 * 3600;
+    } else if (span <= 30 * 86400) {
+      stepSeconds = 86400;
+    } else if (span <= 90 * 86400) {
+      stepSeconds = 3 * 86400;
+    } else {
+      stepSeconds = 7 * 86400;
+    }
   }
 
   const bucketsMap = new Map();

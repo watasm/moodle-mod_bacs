@@ -50,13 +50,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const taskSelect = document.getElementById('task-dynamics-select');
   const studentSelect = document.getElementById('student-dynamics-select');
+  const intervalSelect = document.getElementById('task-dynamics-step-select');
 
   if (taskSelect) {
-    taskSelect.addEventListener('change', renderTaskGraph);
-  }
+ taskSelect.addEventListener('change', renderTaskGraph);
+}
   if (studentSelect) {
-    studentSelect.addEventListener('change', renderTaskGraph);
-  }
+ studentSelect.addEventListener('change', renderTaskGraph);
+}
+  if (intervalSelect) {
+ intervalSelect.addEventListener('change', renderTaskGraph);
+}
 
   if (typeof window.renderTaskDynamicsGraph === 'function') {
     window.renderTaskDynamicsGraph();

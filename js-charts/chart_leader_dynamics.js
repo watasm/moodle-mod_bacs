@@ -3,19 +3,23 @@ window.initializeLeaderDynamicsChart = () => {
   const canvasId = "leader-dynamics-chart";
   const prefix = "leader-dynamics";
   const controlsContainer = document.getElementById(`${prefix}-controls`);
+  const stepContainer = document.getElementById("leader-dynamics-step-container");
+  const stepSelect = document.getElementById("leader-dynamics-step");
+  const resetZoomBtn = document.getElementById("leader-dynamics-reset-zoom");
 
   const layout = BacsUtils.createChartLayout(
     canvasId, prefix, "bi-rocket-takeoff", "Гонка еще не началась",
     "График динамики лидеров появится здесь автоматически, как только участники начнут отправлять решения."
   );
   if (!layout) {
-    return;
-  }
+ return;
+}
 
   const rawSubmissions = window.BACS_PAGE_DATA.submissions || [];
   const students = window.BACS_PAGE_DATA.students || [];
   const tasks = window.BACS_PAGE_DATA.tasks || [];
   const contestData = window.BACS_PAGE_DATA.contest;
+  const durationMs = (contestData.endtime - contestData.starttime) * 1000;
 
   const validTaskIds = new Set(tasks.map(t => String(t.task_id)));
   const submissions = rawSubmissions.filter(s => validTaskIds.has(String(s.task_id)));
@@ -24,27 +28,24 @@ window.initializeLeaderDynamicsChart = () => {
   if (!hasPoints) {
     layout.flexContainer.style.display = 'none';
     if (controlsContainer) {
-      controlsContainer.style.display = 'none';
-    }
+ controlsContainer.style.display = 'none';
+}
     layout.emptyStateContainer.style.display = 'flex';
     return;
   } else {
     layout.flexContainer.style.display = 'flex';
     if (controlsContainer) {
-      controlsContainer.style.display = '';
-    }
+ controlsContainer.style.display = '';
+}
     layout.emptyStateContainer.style.display = 'none';
   }
 
   let currentMode = "realtime";
   let precomputedData = null;
   const MAX_PARTICIPANTS_TO_SHOW = 120;
-  const NORMALIZED_AGGREGATION_STEP = 5;
 
   const raceComparator = (a, b) => (b.points !== a.points) ? (b.points - a.points) : (a.lastImprovement - b.lastImprovement);
-
   const sortedSubmissions = submissions.slice().sort((a, b) => a.submit_time - b.submit_time);
-  const warper = BacsUtils.createTimeWarper(sortedSubmissions, contestData.starttime);
 
   const precomputeAllData = () => {
     let allUserStates = {};
@@ -64,6 +65,7 @@ window.initializeLeaderDynamicsChart = () => {
       const newPoints = parseInt(sub.points, 10) || 0;
       const userScores = (userTaskScores[sub.user_id] = userTaskScores[sub.user_id] || {});
       const oldTaskScore = userScores[sub.task_id] || 0;
+
       if (newPoints > oldTaskScore) {
         userScores[sub.task_id] = newPoints;
         const timeElapsedMs = Math.max(0, (sub.submit_time - contestData.starttime) * 1000);
@@ -111,38 +113,41 @@ globalMaxSubmitTime = 0;
 
   const generateChartConfig = (mode) => {
     if (!precomputedData) {
-      precomputedData = precomputeAllData();
-    }
+ precomputedData = precomputeAllData();
+}
     const {finalRankedUsers, rankSnapshots, eventsByUser, maxContestScore, globalMaxSubmitTime} = precomputedData;
     const topUsers = finalRankedUsers.slice(0, MAX_PARTICIPANTS_TO_SHOW);
+    const NORMALIZED_AGGREGATION_STEP = stepSelect ? parseInt(stepSelect.value, 10) : 5;
 
     const trueFinalRanks = {};
     finalRankedUsers.forEach((user, index) => {
-      trueFinalRanks[user.id] = index + 1;
-    });
+ trueFinalRanks[user.id] = index + 1;
+});
 
-    let chartMaxXVisual;
-    let xAxisTitle;
-    let curveOffset;
+    let chartMaxXVisual, xAxisTitle, curveOffset;
+    let minZoomRange = 1;
 
     if (mode === "normalized") {
       chartMaxXVisual = 100;
       xAxisTitle = "Progress to Contest Max Score (%)";
       curveOffset = 1.5;
+      minZoomRange = 5;
     } else if (mode === "events") {
       chartMaxXVisual = rankSnapshots.length - 1;
       xAxisTitle = "Successful Submissions (Sequence)";
       curveOffset = 0.4;
+      minZoomRange = 5;
     } else {
       const finalRealTimeMs = globalMaxSubmitTime > 0 ? globalMaxSubmitTime : (Date.now() - contestData.starttime * 1000);
-      chartMaxXVisual = warper.r2v(finalRealTimeMs) * 1.05;
-      xAxisTitle = "Time from start (Smart Compressed)";
-      curveOffset = Math.max(60000, chartMaxXVisual * 0.015);
+      chartMaxXVisual = Math.max(durationMs, finalRealTimeMs) * 1.05;
+      xAxisTitle = "Time from start (Linear)";
+      curveOffset = Math.max(60000, chartMaxXVisual * 0.005);
+      minZoomRange = 60000;
     }
 
     const datasets = [];
     const datasetsInfo = [];
-    layout.legendContainer.innerHTML = `<h6 class="text-muted mb-3" style="font-size:0.85rem; 
+    layout.legendContainer.innerHTML = `<h6 class="text-muted mb-3" style="font-size:0.85rem;
       font-weight:600; text-transform:uppercase;">Top Participants</h6>`;
 
     if (mode === "normalized") {
@@ -155,8 +160,8 @@ globalMaxSubmitTime = 0;
           for (const event of eventsByUser[user.id]) {
             cumulativePoints += event.delta;
             if (cumulativePoints >= targetPoints) {
-              timeAtProgress = event.time; break;
-            }
+ timeAtProgress = event.time; break;
+}
           }
           return {userId: user.id, time: timeAtProgress};
         });
@@ -243,21 +248,19 @@ globalMaxSubmitTime = 0;
     } else {
       topUsers.forEach((user) => {
         const rawData = rankSnapshots.map((snap) => ({
-          x: warper.r2v(snap.time),
-          y: snap.ranks[user.id] || (students.length + 1), realTime: snap.time
+          x: snap.time, y: snap.ranks[user.id] || (students.length + 1), realTime: snap.time
         }));
         let filteredData = rawData.filter(p => p.realTime <= user.lastImprovement);
 
         if (filteredData.length > 0 && filteredData[filteredData.length - 1].realTime < user.lastImprovement) {
-          filteredData.push({
-            x: warper.r2v(user.lastImprovement),
-            y: filteredData[filteredData.length - 1].y, realTime: user.lastImprovement
-          });
+          filteredData.push({x: user.lastImprovement, y: filteredData[filteredData.length - 1].y, realTime: user.lastImprovement});
         }
         if (filteredData.length > 0) {
           filteredData.push({
-            x: chartMaxXVisual, y: filteredData[filteredData.length - 1].y,
-            realTime: warper.v2r(chartMaxXVisual), isDummy: true
+            x: chartMaxXVisual,
+            y: filteredData[filteredData.length - 1].y,
+            realTime: chartMaxXVisual,
+            isDummy: true
           });
         }
 
@@ -271,7 +274,9 @@ globalMaxSubmitTime = 0;
               if ((pt.x - smoothData[smoothData.length - 1].x) > curveOffset * 1.2) {
                 smoothData.push({
                   x: pt.x - curveOffset,
-                  y: currentY, realTime: warper.v2r(pt.x - curveOffset), isDummy: true
+                  y: currentY,
+                  realTime: pt.x - curveOffset,
+                  isDummy: true
                 });
               }
               smoothData.push({...pt});
@@ -302,7 +307,7 @@ globalMaxSubmitTime = 0;
         backgroundColor: colorNormal,
         fill: false,
         stepped: false,
-        tension: 0.4,
+        tension: mode === "events" ? 0 : 0.4,
         cubicInterpolationMode: 'monotone',
         borderWidth: 2,
         clip: false,
@@ -332,11 +337,11 @@ globalMaxSubmitTime = 0;
         let timeStr = (c.raw.realTime !== undefined) ? BacsUtils.formatTime(c.raw.realTime / 1000) : "N/A";
 
         if (mode === "normalized") {
-          return `Rank: #${c.parsed.y} at ${c.parsed.x.toFixed(0)}% (Time: ${timeStr})`;
-        }
+ return `Rank: #${c.parsed.y} at ${c.parsed.x.toFixed(0)}% (Time: ${timeStr})`;
+}
         if (mode === "events") {
-          return `Rank: #${c.parsed.y} (Event #${Math.round(c.parsed.x)}) • ${timeStr}`;
-        }
+ return `Rank: #${c.parsed.y} (Event #${Math.round(c.parsed.x)}) • ${timeStr}`;
+}
         return `Rank: #${c.parsed.y}  •  ${timeStr}`;
       }
     });
@@ -344,7 +349,7 @@ globalMaxSubmitTime = 0;
     return {
       type: "line",
       data: {datasets},
-      plugins: [BacsUtils.getLineClickPlugin(clickHandler)],
+      plugins: [BacsUtils.getLineClickPlugin(clickHandler), BacsUtils.getTimelinePlugin(durationMs)],
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -360,12 +365,12 @@ globalMaxSubmitTime = 0;
               maxRotation: 0,
               callback: (value) => {
                 if (mode === "normalized") {
-                  return (value % 10 === 0 && value >= 0 && value <= 100 ? `${value}%` : "");
-                }
+ return (value % NORMALIZED_AGGREGATION_STEP === 0 && value >= 0 && value <= 100 ? `${value}%` : "");
+}
                 if (mode === "events") {
-                  return (Number.isInteger(value) && value >= 0 ? `#${value}` : "");
-                }
-                return (value >= 0 ? BacsUtils.formatTime(warper.v2r(value) / 1000) : "");
+ return (Number.isInteger(value) && value >= 0 ? `#${value}` : "");
+}
+                return (value >= 0 ? BacsUtils.formatTime(value / 1000) : "");
               }
             },
             grid: {color: "rgba(0,0,0,0)", drawBorder: false},
@@ -383,11 +388,48 @@ globalMaxSubmitTime = 0;
           },
         },
         animation: {duration: 1000, easing: "easeOutQuart"},
-        plugins: {
-          legend: {display: false},
-          tooltip: tooltipConfig,
-          zoom: {zoom: {wheel: {enabled: false}, pinch: {enabled: false}, drag: {enabled: false}}, pan: {enabled: false}}
-        },
+      transitions: {
+        zoom: {
+          animation: {
+            duration: 0
+          }
+        }
+      },
+      plugins: {
+        legend: {display: false},
+        tooltip: tooltipConfig,
+        zoom: {
+          limits: {
+            x: {minRange: minZoomRange}
+          },
+          pan: {
+            enabled: true, mode: 'x',
+            onPanComplete: () => {
+ if (resetZoomBtn) {
+ resetZoomBtn.classList.remove('d-none');
+}
+}
+          },
+          zoom: {
+            wheel: {
+              enabled: true,
+              speed: 0.15
+            },
+            pinch: {enabled: true},
+            drag: {
+              enabled: true,
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              threshold: 20
+            },
+            mode: 'x',
+            onZoomComplete: () => {
+ if (resetZoomBtn) {
+ resetZoomBtn.classList.remove('d-none');
+}
+}
+          }
+        }
+      },
       },
     };
   };
@@ -401,7 +443,27 @@ globalMaxSubmitTime = 0;
       window.leaderDynamicsChartInstance.destroy();
     }
     window.leaderDynamicsChartInstance = new Chart(document.getElementById(canvasId).getContext('2d'), config);
+    if (resetZoomBtn) {
+ resetZoomBtn.classList.add('d-none');
+}
   };
+
+  if (stepSelect) {
+    stepSelect.addEventListener("change", () => {
+      if (currentMode === "normalized") {
+ drawChart();
+}
+    });
+  }
+
+  if (resetZoomBtn) {
+    resetZoomBtn.addEventListener('click', function() {
+      if (window.leaderDynamicsChartInstance) {
+ window.leaderDynamicsChartInstance.resetZoom();
+}
+      this.classList.add('d-none');
+    });
+  }
 
   if (controlsContainer) {
     controlsContainer.addEventListener("click", (e) => {
@@ -418,6 +480,17 @@ globalMaxSubmitTime = 0;
           btn.classList.toggle("btn-primary", isActive);
           btn.classList.toggle("btn-outline-secondary", !isActive);
         });
+
+        if (stepContainer) {
+          if (newMode === "normalized") {
+            stepContainer.classList.remove("d-none");
+            stepContainer.classList.add("d-flex");
+          } else {
+            stepContainer.classList.remove("d-flex");
+            stepContainer.classList.add("d-none");
+          }
+        }
+
         drawChart();
       }
     });
