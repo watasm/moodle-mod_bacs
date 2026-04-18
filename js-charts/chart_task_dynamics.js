@@ -1,6 +1,8 @@
+/* eslint-disable complexity */
 /* global BacsUtils, Chart */
 window.renderTaskDynamicsGraph = () => {
   const select = document.getElementById('task-dynamics-select');
+  const studentSelect = document.getElementById('student-dynamics-select');
   const canvas = document.getElementById('task-dynamics-chart');
   const placeholder = document.getElementById('task-dynamics-placeholder');
   const statsContainer = document.getElementById('task-stats-info');
@@ -8,7 +10,7 @@ window.renderTaskDynamicsGraph = () => {
   const detailsTableBody = document.querySelector('#task-details-table tbody');
   const detailsTitle = document.getElementById('task-details-title');
 
-  if (!select || !canvas || !placeholder) {
+  if (!select || !studentSelect || !canvas || !placeholder) {
     return;
   }
 
@@ -22,12 +24,24 @@ window.renderTaskDynamicsGraph = () => {
   const students = window.BACS_PAGE_DATA.students || [];
   const tasks = window.BACS_PAGE_DATA.tasks || [];
 
-  if (select.options.length <= 2 && tasks.length > 0) {
+  if (select.options.length <= 1 && tasks.length > 0) {
     tasks.forEach((t) => {
       const option = document.createElement('option');
       option.value = t.task_id;
       option.textContent = `${t.task_order}. ${t.name}`;
       select.appendChild(option);
+    });
+  }
+
+  if (studentSelect.options.length <= 1 && students.length > 0) {
+    const sortedStudents = [...students].sort((a, b) =>
+      `${a.firstname} ${a.lastname}`.localeCompare(`${b.firstname} ${b.lastname}`)
+    );
+    sortedStudents.forEach((s) => {
+      const option = document.createElement('option');
+      option.value = s.id;
+      option.textContent = `${s.firstname} ${s.lastname}`;
+      studentSelect.appendChild(option);
     });
   }
 
@@ -50,23 +64,25 @@ window.renderTaskDynamicsGraph = () => {
   }
 
   const taskId = parseInt(select.value, 10);
-
-  if (taskId === 0 || isNaN(taskId)) {
-    canvas.classList.add('d-none');
-    placeholder.classList.remove('d-none');
-    const existingEmpty = document.getElementById('task-dynamics-empty-state');
-    if (existingEmpty) {
-      existingEmpty.style.display = 'none';
-    }
-    return;
-  }
+  const studentId = parseInt(studentSelect.value, 10);
 
   const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60;
   const cutoffTimestamp = contestData.starttime + ONE_YEAR_SECONDS;
   let relevantSubmissions = submissions.filter((sub) => sub.submit_time <= cutoffTimestamp);
 
-  if (taskId !== -1) {
+  // Filtering by task
+  if (taskId !== -1 && !isNaN(taskId)) {
     relevantSubmissions = relevantSubmissions.filter((sub) => sub.task_id === taskId);
+  }
+
+  // Filtering by student
+  if (studentId !== -1 && !isNaN(studentId)) {
+    relevantSubmissions = relevantSubmissions.filter((sub) => sub.user_id === studentId);
+  }
+
+  const existingEmpty = document.getElementById('task-dynamics-empty-state');
+  if (existingEmpty) {
+    existingEmpty.style.display = 'none';
   }
 
   if (relevantSubmissions.length === 0) {
@@ -74,30 +90,43 @@ window.renderTaskDynamicsGraph = () => {
     placeholder.classList.add('d-none');
 
     const isAllTasks = taskId === -1;
+    const isAllStudents = studentId === -1;
+
+    let title = 'Нет данных';
+    let desc = 'По заданным фильтрам посылок не найдено.';
+
+    if (isAllTasks && isAllStudents) {
+      title = 'В контесте пока нет посылок';
+      desc = 'График появится, как только участники начнут сдавать решения.';
+    } else if (!isAllTasks && isAllStudents) {
+      title = 'Задача пока не решалась';
+      desc = `По задаче <b>«${taskMap[taskId] || taskId}»</b> еще никто не отправлял решений.`;
+    } else if (isAllTasks && !isAllStudents) {
+      title = 'Участник еще не отправлял решения';
+      desc = `Участник <b>${studentMap[studentId] || ''}</b> пока ничего не отправлял в этом контесте.`;
+    } else {
+      title = 'Нет посылок';
+      desc = `Участник <b>${studentMap[studentId] || ''}</b> не отправлял решения по задаче <b>«${taskMap[taskId] || ''}»</b>.`;
+    }
+
     BacsUtils.createEmptyState(
       'task-dynamics-empty-state',
       placeholder.parentNode,
       placeholder.nextSibling,
       'bi-inbox',
-      isAllTasks ? 'В контесте пока нет посылок' : 'Задача пока не решена',
-      isAllTasks
-        ? 'График появится, как только участники начнут сдавать решения.'
-        : `По задаче <b>«${taskMap[taskId]}»</b> еще никто не отправлял решений.`,
+      title,
+      desc
     ).style.display = 'flex';
     return;
   }
 
   canvas.classList.remove('d-none');
   placeholder.classList.add('d-none');
-  const existingEmpty = document.getElementById('task-dynamics-empty-state');
-  if (existingEmpty) {
-    existingEmpty.style.display = 'none';
-  }
 
   // --- 2. CALCULATE GENERAL STATS ---
   const totalSubmits = relevantSubmissions.length;
   const VERDICT_ACCEPTED = 13;
-  const acceptedSubmits = relevantSubmissions.filter((s) => s.result_id === VERDICT_ACCEPTED).length;
+  const acceptedSubmits = relevantSubmissions.filter((s) => s.result_id == VERDICT_ACCEPTED).length;
   const successRate = totalSubmits > 0 ? ((acceptedSubmits / totalSubmits) * 100).toFixed(1) : 0;
 
   BacsUtils.renderStatsBadges(statsContainer, totalSubmits, acceptedSubmits, successRate);
@@ -147,12 +176,12 @@ window.renderTaskDynamicsGraph = () => {
 
   buckets.forEach((bucketSubs) => {
     let okCount = 0,
-      failCount = 0;
+failCount = 0;
     let bMinTime = Infinity,
-      bMaxTime = 0;
+bMaxTime = 0;
 
     bucketSubs.forEach((s) => {
-      if (s.result_id === VERDICT_ACCEPTED) {
+      if (s.result_id == VERDICT_ACCEPTED) {
         okCount++;
       } else {
         failCount++;
@@ -183,14 +212,14 @@ window.renderTaskDynamicsGraph = () => {
         const idx = context[0].dataIndex;
         const bucket = bucketSubmissions[idx];
         let minT = Infinity,
-          maxT = 0;
+maxT = 0;
         bucket.forEach((s) => {
           if (s.submit_time < minT) {
-            minT = s.submit_time;
-          }
+ minT = s.submit_time;
+}
           if (s.submit_time > maxT) {
-            maxT = s.submit_time;
-          }
+ maxT = s.submit_time;
+}
         });
         const minStr = BacsUtils.formatFullDate(minT);
         const maxStr = BacsUtils.formatFullDate(maxT);
@@ -288,7 +317,7 @@ window.renderTaskDynamicsGraph = () => {
               .map((sub) => {
                 const studentName = studentMap[sub.user_id] || `User ${sub.user_id}`;
                 const taskName = taskMap[sub.task_id] || sub.task_id;
-                const isOk = sub.result_id === VERDICT_ACCEPTED;
+                const isOk = sub.result_id == VERDICT_ACCEPTED;
                 const timeFromStartStr = BacsUtils.formatTime(sub.submit_time - contestData.starttime);
                 const realDateStr = BacsUtils.formatFullDate(sub.submit_time);
                 const statusBadge = isOk

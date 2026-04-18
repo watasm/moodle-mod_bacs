@@ -371,5 +371,5 @@ $string['view_taskdynamics'] = 'Динамика задач';
 $string['select_task'] = 'Выберите задачу';
 $string['view_monitor'] = 'Участники';
 $string['verdict_ok'] = 'Принято (OK)';
-$string['verdict_not_ok'] = 'Отклонено (Not OK)';
+$string['verdict_not_ok'] = 'Отклонено (Failed)';
 $string['timefromstart'] = 'Время от начала контеста';

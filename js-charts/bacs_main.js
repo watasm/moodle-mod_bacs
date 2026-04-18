@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleContainer.addEventListener('click', (e) => {
       const button = e.target.closest('button');
       if (!button) {
- return;
-}
+        return;
+      }
       const targetViewId = 'view-' + button.dataset.view;
 
       toggleContainer.querySelectorAll('button').forEach((btn) => {
@@ -42,16 +42,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  const taskSelect = document.getElementById('task-dynamics-select');
-  if (taskSelect) {
-    if (taskSelect.value === '0' && taskSelect.options.length > 1) {
-      taskSelect.selectedIndex = 1;
+  const renderTaskGraph = () => {
+    if (typeof window.renderTaskDynamicsGraph === 'function') {
+      window.renderTaskDynamicsGraph();
     }
-    taskSelect.addEventListener('change', () => {
-      if (typeof window.renderTaskDynamicsGraph === 'function') {
- window.renderTaskDynamicsGraph();
-}
-    });
+  };
+
+  const taskSelect = document.getElementById('task-dynamics-select');
+  const studentSelect = document.getElementById('student-dynamics-select');
+
+  if (taskSelect) {
+    taskSelect.addEventListener('change', renderTaskGraph);
+  }
+  if (studentSelect) {
+    studentSelect.addEventListener('change', renderTaskGraph);
   }
 
   if (typeof window.renderTaskDynamicsGraph === 'function') {
