@@ -1,9 +1,9 @@
 <div id="view-task-dynamics" class="bacs-view">
-    <div class="d-flex flex-wrap align-items-center justify-content-center mb-4">
-        
-        <div class="d-flex align-items-center me-md-4 me-2 mb-3">
-            <label for="task-dynamics-select" class="me-2 fw-bold text-muted text-nowrap">Task:</label>
-            <select id="task-dynamics-select" class="form-select form-select-sm w-auto shadow-sm" style="min-width: 150px;">
+    
+    <div class="mb-3 d-flex flex-wrap justify-content-center align-items-center" style="gap: 12px;">
+        <div class="d-flex align-items-center bg-light p-1 rounded border shadow-sm">
+            <label for="task-dynamics-select" class="me-2 ms-2 fw-bold text-muted text-nowrap" style="font-size: 0.85rem;">Task:</label>
+            <select id="task-dynamics-select" class="form-select form-select-sm border-0" style="min-width: 150px; background: transparent;">
                 <option value="-1">All Tasks</option>
                 {{#tasks_for_template}}
                     <option value="{{task_id}}">{{task_order}}. {{name}}</option>
@@ -11,16 +11,16 @@
             </select>
         </div>
         
-        <div class="d-flex align-items-center me-md-4 me-2 mb-3">
-            <label for="student-dynamics-select" class="me-2 fw-bold text-muted text-nowrap">Participant:</label>
-            <select id="student-dynamics-select" class="form-select form-select-sm w-auto shadow-sm" style="min-width: 180px; max-width: 300px;">
+        <div class="d-flex align-items-center bg-light p-1 rounded border shadow-sm">
+            <label for="student-dynamics-select" class="me-2 ms-2 fw-bold text-muted text-nowrap" style="font-size: 0.85rem;">Participant:</label>
+            <select id="student-dynamics-select" class="form-select form-select-sm border-0" style="min-width: 180px; max-width: 300px; background: transparent;">
                 <option value="-1">All Participants</option>
             </select>
         </div>
 
-        <div class="d-flex align-items-center mb-3">
-            <label for="task-dynamics-step-select" class="me-2 fw-bold text-muted text-nowrap">Interval:</label>
-            <select id="task-dynamics-step-select" class="form-select form-select-sm w-auto shadow-sm" style="min-width: 100px;">
+        <div class="d-flex align-items-center bg-light p-1 rounded border shadow-sm">
+            <label for="task-dynamics-step-select" class="me-2 ms-2 fw-bold text-muted text-nowrap" style="font-size: 0.85rem;">Interval:</label>
+            <select id="task-dynamics-step-select" class="form-select form-select-sm border-0" style="min-width: 100px; background: transparent;">
                 <option value="0" selected>Auto</option>
                 <option value="900">15 min</option>
                 <option value="3600">1 hour</option>
@@ -30,6 +30,28 @@
                 <option value="259200">3 days</option>
                 <option value="604800">1 week</option>
             </select>
+        </div>
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <div>
+            <button id="task-dynamics-reset-zoom" class="btn btn-sm btn-outline-danger d-none shadow-sm">
+                <i class="bi bi-zoom-out"></i> Reset Zoom
+            </button>
+        </div>
+        <div class="d-flex flex-wrap justify-content-end align-items-center ms-auto" style="gap: 12px; min-height: 38px;">
+            <div class="form-check form-switch d-flex align-items-center m-0">
+                <input class="form-check-input me-2" type="checkbox" id="task-dynamics-hide-upsolving" style="cursor: pointer;">
+                <label class="form-check-label text-muted fw-bold" style="font-size: 0.85rem; cursor: pointer; user-select: none;" for="task-dynamics-hide-upsolving">Hide Upsolving</label>
+            </div>
+
+            <div class="d-flex align-items-center bg-light p-1 rounded border shadow-sm" id="task-dynamics-manual-zoom">
+                <span class="text-muted ms-2 me-2" style="font-size: 0.85rem;"><i class="bi bi-calendar-range"></i> View:</span>
+                <input type="datetime-local" id="task-zoom-start" class="form-control form-control-sm border-0" style="max-width: 175px; background: transparent;">
+                <span class="text-muted mx-1">—</span>
+                <input type="datetime-local" id="task-zoom-end" class="form-control form-control-sm border-0" style="max-width: 175px; background: transparent;">
+                <button id="task-zoom-apply" class="btn btn-sm btn-primary ms-2 px-3 rounded-pill">Go</button>
+            </div>
         </div>
     </div>
 
@@ -61,7 +83,3 @@
         </div>
     </div>
 </div>
-
-<style>
-    #view-task-dynamics .form-select { border-color: #ced4da; }
-</style>

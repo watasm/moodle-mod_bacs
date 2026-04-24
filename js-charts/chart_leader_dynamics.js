@@ -1,4 +1,14 @@
 /* global BacsUtils, Chart */
+window._bacsUserColors = window._bacsUserColors || {};
+window._bacsNextColorIdx = window._bacsNextColorIdx || 0;
+
+window.BacsUtils = window.BacsUtils || {};
+window.BacsUtils.toDateTimeLocal = window.BacsUtils.toDateTimeLocal || function(ms) {
+  const d = new Date(ms);
+  const pad = (n) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 window.initializeLeaderDynamicsChart = () => {
   const canvasId = "leader-dynamics-chart";
   const prefix = "leader-dynamics";
@@ -6,6 +16,13 @@ window.initializeLeaderDynamicsChart = () => {
   const stepContainer = document.getElementById("leader-dynamics-step-container");
   const stepSelect = document.getElementById("leader-dynamics-step");
   const resetZoomBtn = document.getElementById("leader-dynamics-reset-zoom");
+  const hideUpsolvingCheckbox = document.getElementById("leader-dynamics-hide-upsolving");
+  const hideUpsolvingContainer = document.getElementById("leader-dynamics-hide-upsolving-container");
+
+  const manualZoomContainer = document.getElementById("leader-dynamics-manual-zoom");
+  const zoomStartInput = document.getElementById('leader-zoom-start');
+  const zoomEndInput = document.getElementById('leader-zoom-end');
+  const zoomApplyBtn = document.getElementById('leader-zoom-apply');
 
   const layout = BacsUtils.createChartLayout(
     canvasId, prefix, "bi-rocket-takeoff", "Гонка еще не началась",
@@ -21,33 +38,98 @@ window.initializeLeaderDynamicsChart = () => {
   const contestData = window.BACS_PAGE_DATA.contest;
   const durationMs = (contestData.endtime - contestData.starttime) * 1000;
 
-  const validTaskIds = new Set(tasks.map(t => String(t.task_id)));
-  const submissions = rawSubmissions.filter(s => validTaskIds.has(String(s.task_id)));
+  let currentMode = "realtime";
 
-  const hasPoints = submissions.some(s => parseInt(s.points, 10) > 0);
-  if (!hasPoints) {
-    layout.flexContainer.style.display = 'none';
-    if (controlsContainer) {
- controlsContainer.style.display = 'none';
-}
-    layout.emptyStateContainer.style.display = 'flex';
-    return;
-  } else {
-    layout.flexContainer.style.display = 'flex';
-    if (controlsContainer) {
- controlsContainer.style.display = '';
-}
-    layout.emptyStateContainer.style.display = 'none';
+  const canvasEl = document.getElementById(canvasId);
+  let dragTooltip = document.getElementById(`${prefix}-drag-tooltip`);
+  if (!dragTooltip) {
+    dragTooltip = document.createElement('div');
+    dragTooltip.id = `${prefix}-drag-tooltip`;
+    dragTooltip.innerHTML = '<i class="bi bi-zoom-in" style="color: #60a5fa; margin-right: 5px;"></i> <span id="' + prefix + '-drag-text"></span>';
+    dragTooltip.style.cssText = `position: absolute; top: 40px; left: 50%; transform: translateX(-50%); background: rgba(17, 24, 39, 0.9); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-family: 'Inter', sans-serif; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 100; white-space: nowrap; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);`;
+    canvasEl.parentElement.appendChild(dragTooltip);
+    canvasEl.parentElement.style.position = 'relative';
   }
 
-  let currentMode = "realtime";
+  let isDragging = false;
+  let startX = 0;
+
+  const formatDragValue = (val) => {
+    if (currentMode === 'normalized') {
+ return `${Math.max(0, Math.round(val))}%`;
+}
+    if (currentMode === 'events') {
+ return `Event #${Math.max(0, Math.round(val))}`;
+}
+    if (val < 0) {
+ val = 0;
+}
+    const d = new Date(contestData.starttime * 1000 + val);
+    return `${d.toLocaleDateString(undefined, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})}`;
+  };
+
+  canvasEl.removeEventListener('mousedown', canvasEl._bacsMouseDown);
+  canvasEl.removeEventListener('mousemove', canvasEl._bacsMouseMove);
+  window.removeEventListener('mouseup', canvasEl._bacsMouseUp);
+
+  canvasEl._bacsMouseDown = (e) => {
+ isDragging = true; startX = e.offsetX;
+};
+  canvasEl._bacsMouseMove = (e) => {
+    if (!isDragging) {
+ return;
+}
+    const currentX = e.offsetX;
+    if (Math.abs(currentX - startX) > 20) {
+      const chart = window.leaderDynamicsChartInstance;
+      if (!chart) {
+ return;
+}
+      const xAxis = chart.scales.x;
+      const val1 = xAxis.getValueForPixel(startX);
+      const val2 = xAxis.getValueForPixel(currentX);
+
+      const str1 = formatDragValue(Math.min(val1, val2));
+      const str2 = formatDragValue(Math.max(val1, val2));
+
+      document.getElementById(`${prefix}-drag-text`).innerText = `${str1}  →  ${str2}`;
+
+      const midX = (startX + currentX) / 2;
+      dragTooltip.style.left = midX + 'px';
+      dragTooltip.style.opacity = '1';
+    } else {
+      dragTooltip.style.opacity = '0';
+    }
+  };
+  canvasEl._bacsMouseUp = () => {
+ isDragging = false; dragTooltip.style.opacity = '0';
+};
+
+  canvasEl.addEventListener('mousedown', canvasEl._bacsMouseDown);
+  canvasEl.addEventListener('mousemove', canvasEl._bacsMouseMove);
+  window.addEventListener('mouseup', canvasEl._bacsMouseUp);
+
+  const updateManualZoomInputs = ({chart}) => {
+    if (currentMode !== "realtime" || !zoomStartInput || !zoomEndInput) {
+      if (resetZoomBtn) {
+ resetZoomBtn.classList.remove('d-none');
+}
+      return;
+    }
+    const minMs = contestData.starttime * 1000 + chart.scales.x.min;
+    const maxMs = contestData.starttime * 1000 + chart.scales.x.max;
+    zoomStartInput.value = BacsUtils.toDateTimeLocal(minMs);
+    zoomEndInput.value = BacsUtils.toDateTimeLocal(maxMs);
+    if (resetZoomBtn) {
+ resetZoomBtn.classList.remove('d-none');
+}
+  };
+
   let precomputedData = null;
   const MAX_PARTICIPANTS_TO_SHOW = 120;
-
   const raceComparator = (a, b) => (b.points !== a.points) ? (b.points - a.points) : (a.lastImprovement - b.lastImprovement);
-  const sortedSubmissions = submissions.slice().sort((a, b) => a.submit_time - b.submit_time);
 
-  const precomputeAllData = () => {
+  const precomputeAllData = (submissions) => {
     let allUserStates = {};
     students.forEach((student) => {
       allUserStates[student.id] = {id: student.id, name: `${student.firstname} ${student.lastname}`, points: 0, lastImprovement: 0};
@@ -58,6 +140,8 @@ window.initializeLeaderDynamicsChart = () => {
     students.forEach((s) => (eventsByUser[s.id] = []));
 
     const userTaskScores = {};
+    const sortedSubmissions = submissions.slice().sort((a, b) => a.submit_time - b.submit_time);
+
     sortedSubmissions.forEach((sub) => {
       if (!allUserStates[sub.user_id]) {
  return;
@@ -112,8 +196,25 @@ globalMaxSubmitTime = 0;
   };
 
   const generateChartConfig = (mode) => {
+    const validTaskIds = new Set(tasks.map(t => String(t.task_id)));
+    let submissions = rawSubmissions.filter(s => validTaskIds.has(String(s.task_id)));
+
+    if (mode === "realtime" && hideUpsolvingCheckbox && hideUpsolvingCheckbox.checked) {
+      submissions = submissions.filter(s => s.submit_time <= contestData.endtime);
+    }
+
+    const hasPoints = submissions.some(s => parseInt(s.points, 10) > 0);
+    if (!hasPoints) {
+      layout.flexContainer.style.display = 'none';
+      layout.emptyStateContainer.style.display = 'flex';
+      return null;
+    } else {
+      layout.flexContainer.style.display = 'flex';
+      layout.emptyStateContainer.style.display = 'none';
+    }
+
     if (!precomputedData) {
- precomputedData = precomputeAllData();
+ precomputedData = precomputeAllData(submissions);
 }
     const {finalRankedUsers, rankSnapshots, eventsByUser, maxContestScore, globalMaxSubmitTime} = precomputedData;
     const topUsers = finalRankedUsers.slice(0, MAX_PARTICIPANTS_TO_SHOW);
@@ -124,8 +225,7 @@ globalMaxSubmitTime = 0;
  trueFinalRanks[user.id] = index + 1;
 });
 
-    let chartMaxXVisual, xAxisTitle, curveOffset;
-    let minZoomRange = 1;
+    let chartMaxXVisual, xAxisTitle, curveOffset, minZoomRange;
 
     if (mode === "normalized") {
       chartMaxXVisual = 100;
@@ -139,16 +239,24 @@ globalMaxSubmitTime = 0;
       minZoomRange = 5;
     } else {
       const finalRealTimeMs = globalMaxSubmitTime > 0 ? globalMaxSubmitTime : (Date.now() - contestData.starttime * 1000);
-      chartMaxXVisual = Math.max(durationMs, finalRealTimeMs) * 1.05;
-      xAxisTitle = "Time from start (Linear)";
+      if (hideUpsolvingCheckbox && hideUpsolvingCheckbox.checked) {
+        chartMaxXVisual = durationMs;
+      } else {
+        chartMaxXVisual = Math.max(durationMs, finalRealTimeMs) * 1.05;
+      }
+      xAxisTitle = "Time from start";
       curveOffset = Math.max(60000, chartMaxXVisual * 0.005);
       minZoomRange = 60000;
     }
 
+    if (mode === "realtime" && zoomStartInput && zoomEndInput) {
+      zoomStartInput.value = BacsUtils.toDateTimeLocal(contestData.starttime * 1000);
+      zoomEndInput.value = BacsUtils.toDateTimeLocal(contestData.starttime * 1000 + chartMaxXVisual);
+    }
+
     const datasets = [];
     const datasetsInfo = [];
-    layout.legendContainer.innerHTML = `<h6 class="text-muted mb-3" style="font-size:0.85rem;
-      font-weight:600; text-transform:uppercase;">Top Participants</h6>`;
+    layout.legendContainer.innerHTML = `<h6 class="text-muted mb-3" style="font-size:0.85rem; font-weight:600; text-transform:uppercase;">Top Participants</h6>`;
 
     if (mode === "normalized") {
       const normalizedSnapshots = [];
@@ -190,78 +298,57 @@ globalMaxSubmitTime = 0;
           }
           smoothData.push({...pt});
         }
-        if (smoothData.length > 0) {
-          smoothData[smoothData.length - 1].isLast = true;
-          datasetsInfo.push({user, smoothData, trueRank: trueFinalRanks[user.id]});
+        for (let i = smoothData.length - 1; i >= 0; i--) {
+          if (!smoothData[i].isDummy) {
+ smoothData[i].isLast = true; break;
+}
         }
+        if (smoothData.length > 0) {
+ datasetsInfo.push({user, smoothData, trueRank: trueFinalRanks[user.id]});
+}
       });
     } else if (mode === "events") {
       const maxEventIndex = rankSnapshots.length - 1;
-
       topUsers.forEach((user) => {
         let smoothData = [];
         let lastRank = rankSnapshots[0].ranks[user.id] || (students.length + 1);
 
-        smoothData.push({
-          x: 0,
-          y: lastRank,
-          realTime: rankSnapshots[0].time
-        });
+        smoothData.push({x: 0, y: lastRank, realTime: rankSnapshots[0].time});
 
         for (let eventIndex = 1; eventIndex <= maxEventIndex; eventIndex++) {
           const snap = rankSnapshots[eventIndex];
           const currentRank = snap.ranks[user.id] || (students.length + 1);
 
           if (currentRank !== lastRank) {
-            smoothData.push({
-              x: eventIndex - curveOffset,
-              y: lastRank,
-              realTime: snap.time,
-              isDummy: true
-            });
-
-            smoothData.push({
-              x: eventIndex,
-              y: currentRank,
-              realTime: snap.time
-            });
-
+            smoothData.push({x: eventIndex - curveOffset, y: lastRank, realTime: snap.time, isDummy: true});
+            smoothData.push({x: eventIndex, y: currentRank, realTime: snap.time});
             lastRank = currentRank;
           }
         }
 
         const lastPointAdded = smoothData[smoothData.length - 1];
         if (lastPointAdded.x < maxEventIndex) {
-          smoothData.push({
-            x: maxEventIndex,
-            y: lastRank,
-            realTime: rankSnapshots[maxEventIndex].time,
-            isDummy: true
-          });
+          smoothData.push({x: maxEventIndex, y: lastRank, realTime: rankSnapshots[maxEventIndex].time, isDummy: true});
+        }
+
+        for (let i = smoothData.length - 1; i >= 0; i--) {
+          if (!smoothData[i].isDummy) {
+ smoothData[i].isLast = true; break;
+}
         }
 
         if (smoothData.length > 0) {
-          smoothData[smoothData.length - 1].isLast = true;
           datasetsInfo.push({user, smoothData, trueRank: trueFinalRanks[user.id]});
         }
       });
     } else {
       topUsers.forEach((user) => {
-        const rawData = rankSnapshots.map((snap) => ({
+        let filteredData = rankSnapshots.map((snap) => ({
           x: snap.time, y: snap.ranks[user.id] || (students.length + 1), realTime: snap.time
         }));
-        let filteredData = rawData.filter(p => p.realTime <= user.lastImprovement);
 
-        if (filteredData.length > 0 && filteredData[filteredData.length - 1].realTime < user.lastImprovement) {
-          filteredData.push({x: user.lastImprovement, y: filteredData[filteredData.length - 1].y, realTime: user.lastImprovement});
-        }
         if (filteredData.length > 0) {
-          filteredData.push({
-            x: chartMaxXVisual,
-            y: filteredData[filteredData.length - 1].y,
-            realTime: chartMaxXVisual,
-            isDummy: true
-          });
+          filteredData.push({x: chartMaxXVisual, y: filteredData[filteredData.length - 1].y, realTime: chartMaxXVisual, isDummy: true});
         }
 
         let smoothData = [];
@@ -272,12 +359,7 @@ globalMaxSubmitTime = 0;
             let pt = filteredData[i];
             if (pt.y !== currentY) {
               if ((pt.x - smoothData[smoothData.length - 1].x) > curveOffset * 1.2) {
-                smoothData.push({
-                  x: pt.x - curveOffset,
-                  y: currentY,
-                  realTime: pt.x - curveOffset,
-                  isDummy: true
-                });
+                smoothData.push({x: pt.x - curveOffset, y: currentY, realTime: pt.x - curveOffset, isDummy: true});
               }
               smoothData.push({...pt});
               currentY = pt.y;
@@ -286,16 +368,27 @@ globalMaxSubmitTime = 0;
             }
           }
         }
+
+        for (let i = smoothData.length - 1; i >= 0; i--) {
+          if (!smoothData[i].isDummy) {
+ smoothData[i].isLast = true; break;
+}
+        }
+
         if (smoothData.length > 0) {
-          smoothData[smoothData.length - 1].isLast = true;
           datasetsInfo.push({user, smoothData, trueRank: trueFinalRanks[user.id]});
         }
       });
     }
 
     datasetsInfo.sort((a, b) => a.trueRank - b.trueRank);
-    datasetsInfo.forEach((info, index) => {
-      const baseHex = BacsUtils.COLORS[index % BacsUtils.COLORS.length];
+    datasetsInfo.forEach((info) => {
+      if (!window._bacsUserColors[info.user.id]) {
+        window._bacsUserColors[info.user.id] = BacsUtils.COLORS[window._bacsNextColorIdx % BacsUtils.COLORS.length];
+        window._bacsNextColorIdx++;
+      }
+
+      const baseHex = window._bacsUserColors[info.user.id];
       const colorNormal = baseHex + "E6";
       const dsIndex = datasets.length;
 
@@ -315,7 +408,7 @@ globalMaxSubmitTime = 0;
         pointBackgroundColor: info.smoothData.map(() => "#FFFFFF"),
         pointBorderColor: info.smoothData.map(() => colorNormal),
         pointBorderWidth: info.smoothData.map(() => 2),
-        pointHoverRadius: 6,
+        pointHoverRadius: info.smoothData.map(p => p.isDummy ? 0 : 6),
         pointHoverBackgroundColor: colorNormal,
         pointHoverBorderColor: "#FFFFFF",
         pointHoverBorderWidth: 2,
@@ -336,13 +429,19 @@ globalMaxSubmitTime = 0;
 }
         let timeStr = (c.raw.realTime !== undefined) ? BacsUtils.formatTime(c.raw.realTime / 1000) : "N/A";
 
+        let dateStr = "";
+        if (c.raw.realTime !== undefined) {
+          const d = new Date(contestData.starttime * 1000 + c.raw.realTime);
+          dateStr = ` (${d.toLocaleDateString(undefined, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})})`;
+        }
+
         if (mode === "normalized") {
- return `Rank: #${c.parsed.y} at ${c.parsed.x.toFixed(0)}% (Time: ${timeStr})`;
+ return `Rank: #${c.parsed.y} at ${c.parsed.x.toFixed(0)}% (Time: +${timeStr}${dateStr})`;
 }
         if (mode === "events") {
- return `Rank: #${c.parsed.y} (Event #${Math.round(c.parsed.x)}) • ${timeStr}`;
+ return `Rank: #${c.parsed.y} (Event #${Math.round(c.parsed.x)}) • +${timeStr}${dateStr}`;
 }
-        return `Rank: #${c.parsed.y}  •  ${timeStr}`;
+        return `Rank: #${c.parsed.y}  •  +${timeStr}${dateStr}`;
       }
     });
 
@@ -358,11 +457,12 @@ globalMaxSubmitTime = 0;
         scales: {
           x: {
             type: "linear",
-            title: {display: true, text: xAxisTitle, color: TEXT_COLOR, font: {weight: '500'}},
+            title: {display: false},
             border: {display: false},
             ticks: {
               color: TEXT_COLOR,
               maxRotation: 0,
+              autoSkipPadding: 20,
               callback: (value) => {
                 if (mode === "normalized") {
  return (value % NORMALIZED_AGGREGATION_STEP === 0 && value >= 0 && value <= 100 ? `${value}%` : "");
@@ -370,7 +470,14 @@ globalMaxSubmitTime = 0;
                 if (mode === "events") {
  return (Number.isInteger(value) && value >= 0 ? `#${value}` : "");
 }
-                return (value >= 0 ? BacsUtils.formatTime(value / 1000) : "");
+
+                if (value >= 0) {
+                  const elapsed = BacsUtils.formatTime(value / 1000);
+                  const d = new Date(contestData.starttime * 1000 + value);
+                  const dateStr = `${d.toLocaleDateString(undefined, {day: 'numeric', month: 'short', year: 'numeric'})}, ${d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})}`;
+                  return [`+ ${elapsed}`, dateStr];
+                }
+                return "";
               }
             },
             grid: {color: "rgba(0,0,0,0)", drawBorder: false},
@@ -388,53 +495,33 @@ globalMaxSubmitTime = 0;
           },
         },
         animation: {duration: 1000, easing: "easeOutQuart"},
-      transitions: {
-        zoom: {
-          animation: {
-            duration: 0
-          }
-        }
-      },
-      plugins: {
-        legend: {display: false},
-        tooltip: tooltipConfig,
-        zoom: {
-          limits: {
-            x: {minRange: minZoomRange}
-          },
-          pan: {
-            enabled: true, mode: 'x',
-            onPanComplete: () => {
- if (resetZoomBtn) {
- resetZoomBtn.classList.remove('d-none');
-}
-}
-          },
+        transitions: {zoom: {animation: {duration: 0}}},
+        plugins: {
+          legend: {display: false},
+          tooltip: tooltipConfig,
           zoom: {
-            wheel: {
-              enabled: true,
-              speed: 0.15
+            limits: {
+              x: {min: 'original', max: 'original', minRange: minZoomRange}
             },
-            pinch: {enabled: true},
-            drag: {
-              enabled: true,
-              backgroundColor: 'rgba(54, 162, 235, 0.2)',
-              threshold: 20
+            pan: {
+              enabled: true, mode: 'x',
+              onPanComplete: updateManualZoomInputs
             },
-            mode: 'x',
-            onZoomComplete: () => {
- if (resetZoomBtn) {
- resetZoomBtn.classList.remove('d-none');
-}
-}
+            zoom: {
+              wheel: {enabled: true, speed: 0.15},
+              pinch: {enabled: true},
+              drag: {enabled: true, backgroundColor: 'rgba(54, 162, 235, 0.2)', threshold: 20},
+              mode: 'x',
+              onZoomComplete: updateManualZoomInputs
+            }
           }
-        }
-      },
+        },
       },
     };
   };
 
   const drawChart = () => {
+    precomputedData = null;
     const config = generateChartConfig(currentMode);
     if (!config) {
  return;
@@ -447,6 +534,35 @@ globalMaxSubmitTime = 0;
  resetZoomBtn.classList.add('d-none');
 }
   };
+
+  if (zoomApplyBtn && zoomStartInput && zoomEndInput) {
+    zoomApplyBtn.addEventListener('click', () => {
+      if (currentMode !== "realtime") {
+ return;
+}
+      const chart = window.leaderDynamicsChartInstance;
+      if (!chart) {
+ return;
+}
+      const t1 = new Date(zoomStartInput.value).getTime();
+      const t2 = new Date(zoomEndInput.value).getTime();
+      if (isNaN(t1) || isNaN(t2)) {
+ return;
+}
+
+      const startMs = Math.min(t1, t2) - contestData.starttime * 1000;
+      const endMs = Math.max(t1, t2) - contestData.starttime * 1000;
+
+      chart.zoomScale('x', {min: Math.max(0, startMs), max: endMs}, 'default');
+      if (resetZoomBtn) {
+ resetZoomBtn.classList.remove('d-none');
+}
+    });
+  }
+
+  if (hideUpsolvingCheckbox) {
+    hideUpsolvingCheckbox.addEventListener("change", drawChart);
+  }
 
   if (stepSelect) {
     stepSelect.addEventListener("change", () => {
@@ -462,6 +578,10 @@ globalMaxSubmitTime = 0;
  window.leaderDynamicsChartInstance.resetZoom();
 }
       this.classList.add('d-none');
+      if (currentMode === "realtime" && zoomStartInput && zoomEndInput) {
+        zoomStartInput.value = BacsUtils.toDateTimeLocal(contestData.starttime * 1000);
+        zoomEndInput.value = BacsUtils.toDateTimeLocal(contestData.starttime * 1000 + window.leaderDynamicsChartInstance.scales.x.max);
+      }
     });
   }
 
@@ -488,6 +608,26 @@ globalMaxSubmitTime = 0;
           } else {
             stepContainer.classList.remove("d-flex");
             stepContainer.classList.add("d-none");
+          }
+        }
+
+        if (hideUpsolvingContainer) {
+          if (newMode === "realtime") {
+            hideUpsolvingContainer.classList.remove("d-none");
+            hideUpsolvingContainer.classList.add("d-flex");
+          } else {
+            hideUpsolvingContainer.classList.remove("d-flex");
+            hideUpsolvingContainer.classList.add("d-none");
+          }
+        }
+
+        if (manualZoomContainer) {
+          if (newMode === "realtime") {
+            manualZoomContainer.classList.remove("d-none");
+            manualZoomContainer.classList.add("d-flex");
+          } else {
+            manualZoomContainer.classList.remove("d-flex");
+            manualZoomContainer.classList.add("d-none");
           }
         }
 
