@@ -213,18 +213,27 @@ foreach ($contest->tasks as $task) {
     $latest_failed_submit_id = null;
     $latest_failed_test_num = null; 
 
+    $latest_running_time = 0;
+    $latest_running_status = "";
+    $latest_running_submit_id = null;
+
     $has_any_submits = false;
 
     foreach ($submits as $submit) {
         $has_any_submits = true;
 
-        if ($submit->result_id == VERDICT_PENDING || $submit->result_id == VERDICT_RUNNING) {
-            continue;
-        }
-
         $points = intval($submit->points);
         if ($points > $best_points) {
             $best_points = $points;
+        }
+
+        if ($submit->result_id == VERDICT_PENDING || $submit->result_id == VERDICT_RUNNING) {
+            if ($submit->submit_time > $latest_running_time) {
+                $latest_running_time = $submit->submit_time;
+                $latest_running_submit_id = $submit->id;
+                $latest_running_status = format_verdict($submit->result_id);
+            }
+            continue;
         }
 
         if ($submit->result_id == VERDICT_ACCEPTED) {
@@ -246,11 +255,17 @@ foreach ($contest->tasks as $task) {
     if ($has_any_submits) {
         $tasklisttask->points = $best_points;
         
-        if ($is_accepted) {
+        if ($latest_running_time > 0) {
+            $tasklisttask->tr_color_class = "verdict-none";
+            $tasklisttask->current_status = $latest_running_status;
+            $tasklisttask->best_submit_id = $latest_running_submit_id;
+        }
+        elseif ($is_accepted) {
             $tasklisttask->tr_color_class = "verdict-accepted";
             $tasklisttask->current_status = format_verdict(VERDICT_ACCEPTED);
             $tasklisttask->best_submit_id = $latest_accepted_submit_id;
-        } elseif ($latest_failed_time > 0) {
+        } 
+        elseif ($latest_failed_time > 0) {
             $tasklisttask->tr_color_class = "verdict-failed";
             
             if ($latest_failed_test_num !== null) {

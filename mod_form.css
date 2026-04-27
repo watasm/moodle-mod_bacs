@@ -138,15 +138,13 @@
 
 /* TOGGLES & MODES */
 .modern-toggles-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
 
-.modern-toggles-container .fitem {
-    display: flex;
-    align-items: center;
+.modern-toggles-container .form-check {
+    padding: 0;
+    margin: 0;
 }
 
 .mode-selection-container {
@@ -276,12 +274,28 @@
     border-bottom: 1px solid var(--bacs-border);
 }
 
-.close-manager-btn {
+.manager-footer {
+    height: var(--manager-footer-height);
+    padding: 0 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    border-top: 1px solid var(--bacs-border);
+    background-color: #f8faf9;
+}
+
+.manager-header .close-manager-btn {
     font-size: 2rem;
     background: none;
     border: none;
     cursor: pointer;
     line-height: 1;
+    color: #6b7280;
+    transition: color 0.2s;
+}
+
+.manager-header .close-manager-btn:hover {
+    color: #ef4444;
 }
 
 /* GRID & COLUMNS */

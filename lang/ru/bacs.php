@@ -373,3 +373,7 @@ $string['view_monitor'] = 'Участники';
 $string['verdict_ok'] = 'Принято (OK)';
 $string['verdict_not_ok'] = 'Отклонено (Failed)';
 $string['timefromstart'] = 'Время от начала контеста';
+$string['timing'] = 'Время проведения';
+$string['showmaxpoints'] = 'Показывать максимальный балл';
+$string['showmaxpoints_help'] = 'Если включено, участники будут видеть максимально возможный балл рядом со своим текущим результатом (например, "80/100").';
+$string['splitfullname'] = 'Разделить Имя и Фамилию';

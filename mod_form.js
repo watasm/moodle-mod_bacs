@@ -72,8 +72,8 @@ document.addEventListener('DOMContentLoaded', function() {
           hour: getMoodleSelect(prefix, 'hour'),
           min: getMoodleSelect(prefix, 'minute'),
         };
-        if (els.d) {
-          els.d.value = d.getDate();
+        if (els.day) {
+          els.day.value = d.getDate();
         }
         if (els.month) {
           els.month.value = d.getMonth() + 1;

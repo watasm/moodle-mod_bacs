@@ -334,7 +334,7 @@ class cron_lib {
             $submit->max_memory_used = $maxmemoryused;
             $DB->update_record('bacs_submits', $submit);
 
-            bacs_calculate_sumbit_points($submitid);
+            bacs_calculate_submit_points($submitid);
 
             $transaction->allow_commit();
 

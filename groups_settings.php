@@ -50,7 +50,7 @@ $PAGE->set_url('/mod/bacs/groups_settings.php', ['id' => $cm->id]);
 
 echo $OUTPUT->header();
 
-print "<h1>$bacs->name</h1>";
+print "<h1>" . format_string($bacs->name) . "</h1>";
 
 $mform = new groups_settings_form();
 

@@ -232,6 +232,10 @@ class mod_bacs_mod_form extends moodleform_mod
         $mform->setType('contest_task_test_points', PARAM_RAW);
         $mform->setDefault('contest_task_test_points', implode('_', array_values($initial_test_points)));
 
+        $mform->setExpanded('timing_header');
+        $mform->setExpanded('options_header');
+        $mform->setExpanded('tasks_header');
+
         $this->standard_coursemodule_elements();
         $this->add_action_buttons();
     }
@@ -601,7 +605,9 @@ class mod_bacs_mod_form extends moodleform_mod
                             <div id="manager-target-list" class="manager-list custom-scroll"></div>
                         </div>
                     </div>
-                    <div class="manager-footer"><button type="button" class="btn btn-secondary close-manager-btn">' . get_string('save', 'core') . '</button></div>
+                    <div class="manager-footer">
+                        <button type="button" class="btn btn-success fw-bold px-4 close-manager-btn">' . get_string('save', 'core') . '</button>
+                    </div>
                 </div>
             </div>
 

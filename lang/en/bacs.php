@@ -371,3 +371,7 @@ $string['view_monitor'] = 'View monitor';
 $string['verdict_ok'] = 'Accepted';
 $string['verdict_not_ok'] = 'Failed';
 $string['timefromstart'] = 'Time from start';
+$string['timing'] = 'Timing';
+$string['showmaxpoints'] = 'Show maximum points';
+$string['showmaxpoints_help'] = 'If enabled, students will see the maximum possible score next to their current result (e.g., "80/100").';
+$string['splitfullname'] = 'Split Full Name';

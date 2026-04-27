@@ -95,18 +95,14 @@ window.renderTaskDynamicsGraph = () => {
 
   if (hideUpsolvingCheckbox && hideUpsolvingCheckbox.checked) {
     relevantSubmissions = relevantSubmissions.filter((sub) => sub.submit_time <= contestData.endtime);
-  } else {
-    const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60;
-    const cutoffTimestamp = contestData.starttime + ONE_YEAR_SECONDS;
-    relevantSubmissions = relevantSubmissions.filter((sub) => sub.submit_time <= cutoffTimestamp);
   }
 
   if (taskId !== -1 && !isNaN(taskId)) {
- relevantSubmissions = relevantSubmissions.filter((sub) => sub.task_id === taskId);
-}
+    relevantSubmissions = relevantSubmissions.filter((sub) => String(sub.task_id) === String(taskId));
+  }
   if (studentId !== -1 && !isNaN(studentId)) {
- relevantSubmissions = relevantSubmissions.filter((sub) => sub.user_id === studentId);
-}
+    relevantSubmissions = relevantSubmissions.filter((sub) => String(sub.user_id) === String(studentId));
+  }
 
   const existingEmpty = document.getElementById('task-dynamics-empty-state');
   if (existingEmpty) {

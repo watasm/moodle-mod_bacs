@@ -228,7 +228,7 @@ function bacs_print_contest_title() {
     global $bacs, $cm, $student;
 
     print "<table><tr>";
-    print "<td><h1 class='d-inline-block'>$bacs->name</h1><br></td>";
+    print "<td><h1 class='d-inline-block'>" . format_string($bacs->name) . "</h1><br></td>";
     if (!$student) {
         print "<td><a href='/course/modedit.php?update=$cm->id&return=0&sr=0'>" .
         "<i class='icon-cog'></i>" . get_string('settings', 'mod_bacs') .
@@ -244,7 +244,7 @@ function bacs_print_contest_title() {
  * @return void
  * @throws dml_exception
  */
-function bacs_calculate_sumbit_points($submitid, $testpointsstring = null) {
+function bacs_calculate_submit_points($submitid, $testpointsstring = null) {
     global $DB;
 
     $submit = $DB->get_record('bacs_submits', ['id' => $submitid], '*', MUST_EXIST);
