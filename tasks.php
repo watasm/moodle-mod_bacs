@@ -50,7 +50,11 @@ $tasklist = new tasklist();
 
 $now = time();
 $recenttime = $now - 5 * 60;
-$tasklist->recentsubmitsbacs = $DB->count_records_select('bacs_submits', "submit_time > $recenttime AND user_id = $USER->id");
+$tasklist->recentsubmitsbacs = $DB->count_records_select(
+    'bacs_submits', 
+    'submit_time > :recenttime AND user_id = :userid', 
+    ['recenttime' => $recenttime, 'userid' => $USER->id]
+);
 
 $tasklist->coursemoduleidbacs = $contest->coursemodule->id;
 $tasklist->usercapabilitiesbacs = $contest->usercapabilitiesbacs;

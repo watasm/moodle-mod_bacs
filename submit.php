@@ -55,7 +55,11 @@ foreach ($contest->tasks as $task) {
 
 $now = time();
 $recenttime = $now - 5 * 60;
-$recentsubmits = $DB->count_records_select('bacs_submits', "submit_time > $recenttime AND user_id = $USER->id");
+$recentsubmits = $DB->count_records_select(
+    'bacs_submits', 
+    'submit_time > :recenttime AND user_id = :userid', 
+    ['recenttime' => $recenttime, 'userid' => $USER->id]
+);
 
 $showsubmitsspamwarning = ($recentsubmits > 40);
 $showsubmitsspampenalty = ($recentsubmits > 50);

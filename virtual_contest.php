@@ -43,16 +43,23 @@ $contest->register_query_param('confirmstart', 0, PARAM_INT);
 
 // ...count user submits.
 $conditions = [
-    "contest_id = " . $contest->bacs->id,
-    "user_id = $USER->id",
-    "result_id != " . VERDICT_REJECTED,
+    "contest_id = :contestid",
+    "user_id = :userid",
+    "result_id != :resultid",
 ];
+$params = [
+    'contestid' => $contest->bacs->id,
+    'userid'    => $USER->id,
+    'resultid'  => VERDICT_REJECTED,
+];
+
 if ($contest->groupsenabledbacs) {
-    $conditions[] = "group_id = $contest->currentgroupidbacs";
+    $conditions[] = "group_id = :groupid";
+    $params['groupid'] = $contest->currentgroupidbacs;
 }
 $select = implode(" AND ", $conditions);
 
-$userhasnosubmitshere = ($DB->count_records_select('bacs_submits', $select) == 0);
+$userhasnosubmitshere = ($DB->count_records_select('bacs_submits', $select, $params) == 0);
 
 // ...check confirmed start.
 if ($contest->queryparamsbacs->confirmstart == 1) {

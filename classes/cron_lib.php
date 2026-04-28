@@ -225,12 +225,13 @@ class cron_lib {
         foreach ($checkingresults as $checkingresult) {
             global $DB;
 
-            $syncid = $checkingresult->id;
-            $submitid = $syncidtosubmitid[$syncid];
-
             if (is_null($checkingresult)) {
                 continue;
             }
+
+            $syncid = $checkingresult->id;
+            $submitid = $syncidtosubmitid[$syncid];
+
             if (!property_exists($checkingresult, 'buildResult')) {
                 continue;
             }

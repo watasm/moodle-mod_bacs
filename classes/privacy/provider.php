@@ -387,8 +387,16 @@ class provider implements
         global $DB;
 
         $context = $userlist->get_context();
+        
         $cm = $DB->get_record('course_modules', ['id' => $context->instanceid]);
+        if (!$cm) {
+            return; 
+        }
+        
         $bacs = $DB->get_record('bacs', ['id' => $cm->instance]);
+        if (!$bacs) {
+            return;
+        }
 
         foreach ($userlist->get_userids() as $userid) {
             bacs_delete_submits($bacs->id, $userid);
