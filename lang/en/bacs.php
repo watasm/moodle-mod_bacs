@@ -375,3 +375,5 @@ $string['timing'] = 'Timing';
 $string['showmaxpoints'] = 'Show maximum points';
 $string['showmaxpoints_help'] = 'If enabled, students will see the maximum possible score next to their current result (e.g., "80/100").';
 $string['splitfullname'] = 'Split Full Name';
+$string['firstname'] = 'First name';
+$string['lastname'] = 'Last name';

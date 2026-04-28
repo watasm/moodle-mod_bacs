@@ -114,6 +114,8 @@ $strings_for_js = [
     'hideupsolving'    => get_string('hideupsolving', 'mod_bacs'),
     'verdict_ok'       => get_string('verdict_ok', 'mod_bacs'),
     'verdict_not_ok'   => get_string('verdict_not_ok', 'mod_bacs'),
+    'firstname'        => get_string('firstname', 'mod_bacs'),
+    'lastname'         => get_string('lastname', 'mod_bacs'),
 ];
 $standings->localizedstringsjsonbacs = json_encode($strings_for_js);
 
