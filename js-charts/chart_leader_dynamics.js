@@ -24,9 +24,12 @@ window.initializeLeaderDynamicsChart = () => {
   const zoomEndInput = document.getElementById('leader-zoom-end');
   const zoomApplyBtn = document.getElementById('leader-zoom-apply');
 
+  const currentLocale = document.documentElement.lang || 'en-US';
+  const loc = (key, fallback) => (window.BACS_LOCALIZED_STRINGS && window.BACS_LOCALIZED_STRINGS[key]) ? window.BACS_LOCALIZED_STRINGS[key] : fallback;
+
   const layout = BacsUtils.createChartLayout(
-    canvasId, prefix, "bi-rocket-takeoff", "Гонка еще не началась",
-    "График динамики лидеров появится здесь автоматически, как только участники начнут отправлять решения."
+    canvasId, prefix, "bi-rocket-takeoff", loc('race_empty_title', 'The race hasn\'t started yet'),
+    loc('race_empty_desc', 'Leader dynamics chart will appear here automatically as soon as participants start submitting solutions.')
   );
   if (!layout) {
  return;
@@ -59,13 +62,13 @@ window.initializeLeaderDynamicsChart = () => {
  return `${Math.max(0, Math.round(val))}%`;
 }
     if (currentMode === 'events') {
- return `Event #${Math.max(0, Math.round(val))}`;
+ return `${loc('event', 'Event')} #${Math.max(0, Math.round(val))}`;
 }
     if (val < 0) {
  val = 0;
 }
     const d = new Date(contestData.starttime * 1000 + val);
-    return `${d.toLocaleDateString(undefined, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})}`;
+    return `${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})}`;
   };
 
   canvasEl.removeEventListener('mousedown', canvasEl._bacsMouseDown);
@@ -229,12 +232,12 @@ globalMaxSubmitTime = 0;
 
     if (mode === "normalized") {
       chartMaxXVisual = 100;
-      xAxisTitle = "Progress to Contest Max Score (%)";
+      xAxisTitle = loc('progress_to_max', 'Progress to Contest Max Score (%)');
       curveOffset = 1.5;
       minZoomRange = 5;
     } else if (mode === "events") {
       chartMaxXVisual = rankSnapshots.length - 1;
-      xAxisTitle = "Successful Submissions (Sequence)";
+      xAxisTitle = loc('successful_submissions_seq', 'Successful Submissions (Sequence)');
       curveOffset = 0.4;
       minZoomRange = 5;
     } else {
@@ -244,7 +247,7 @@ globalMaxSubmitTime = 0;
       } else {
         chartMaxXVisual = Math.max(durationMs, finalRealTimeMs) * 1.05;
       }
-      xAxisTitle = "Time from start";
+      xAxisTitle = loc('timefromstart', 'Time from start');
       curveOffset = Math.max(60000, chartMaxXVisual * 0.005);
       minZoomRange = 60000;
     }
@@ -256,7 +259,7 @@ globalMaxSubmitTime = 0;
 
     const datasets = [];
     const datasetsInfo = [];
-    layout.legendContainer.innerHTML = `<h6 class="text-muted mb-3" style="font-size:0.85rem; font-weight:600; text-transform:uppercase;">Top Participants</h6>`;
+    layout.legendContainer.innerHTML = `<h6 class="text-muted mb-3" style="font-size:0.85rem; font-weight:600; text-transform:uppercase;">${loc('topparticipants', 'Top Participants')}</h6>`;
 
     if (mode === "normalized") {
       const normalizedSnapshots = [];
@@ -432,23 +435,23 @@ globalMaxSubmitTime = 0;
         let dateStr = "";
         if (c.raw.realTime !== undefined) {
           const d = new Date(contestData.starttime * 1000 + c.raw.realTime);
-          dateStr = ` (${d.toLocaleDateString(undefined, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})})`;
+          dateStr = ` (${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})})`;
         }
 
         if (mode === "normalized") {
- return `Rank: #${c.parsed.y} at ${c.parsed.x.toFixed(0)}% (Time: +${timeStr}${dateStr})`;
+ return `${loc('rank', 'Rank:')} #${c.parsed.y} at ${c.parsed.x.toFixed(0)}% (Time: +${timeStr}${dateStr})`;
 }
         if (mode === "events") {
- return `Rank: #${c.parsed.y} (Event #${Math.round(c.parsed.x)}) • +${timeStr}${dateStr}`;
+ return `${loc('rank', 'Rank:')} #${c.parsed.y} (${loc('event', 'Event')} #${Math.round(c.parsed.x)}) • +${timeStr}${dateStr}`;
 }
-        return `Rank: #${c.parsed.y}  •  +${timeStr}${dateStr}`;
+        return `${loc('rank', 'Rank:')} #${c.parsed.y}  •  +${timeStr}${dateStr}`;
       }
     });
 
     return {
       type: "line",
       data: {datasets},
-      plugins: [BacsUtils.getLineClickPlugin(clickHandler), BacsUtils.getTimelinePlugin(durationMs)],
+      plugins: [BacsUtils.getLineClickPlugin(clickHandler), BacsUtils.getTimelinePlugin(durationMs, loc('start', 'Start'), loc('end', 'End'))],
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -474,7 +477,7 @@ globalMaxSubmitTime = 0;
                 if (value >= 0) {
                   const elapsed = BacsUtils.formatTime(value / 1000);
                   const d = new Date(contestData.starttime * 1000 + value);
-                  const dateStr = `${d.toLocaleDateString(undefined, {day: 'numeric', month: 'short', year: 'numeric'})}, ${d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})}`;
+                  const dateStr = `${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short', year: 'numeric'})}, ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})}`;
                   return [`+ ${elapsed}`, dateStr];
                 }
                 return "";

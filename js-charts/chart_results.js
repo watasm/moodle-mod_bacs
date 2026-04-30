@@ -1,4 +1,3 @@
-/* global BacsUtils, Chart */
 window._bacsUserColors = window._bacsUserColors || {};
 window._bacsNextColorIdx = window._bacsNextColorIdx || 0;
 
@@ -22,9 +21,12 @@ window.renderResultsGraph = () => {
   const zoomEndInput = document.getElementById('results-zoom-end');
   const zoomApplyBtn = document.getElementById('results-zoom-apply');
 
+  const currentLocale = document.documentElement.lang || 'en-US';
+  const loc = (key, fallback) => (window.BACS_LOCALIZED_STRINGS && window.BACS_LOCALIZED_STRINGS[key]) ? window.BACS_LOCALIZED_STRINGS[key] : fallback;
+
   const layout = BacsUtils.createChartLayout(
-    canvasId, prefix, 'bi-graph-up', 'График результатов пока пуст',
-    'Здесь появится индивидуальная динамика набора баллов. Отправьте решение, чтобы дать старт графику!'
+    canvasId, prefix, 'bi-graph-up', loc('results_empty_title', 'Results graph is empty'),
+    loc('results_empty_desc', 'Individual score dynamics will appear here. Submit a solution to start the graph!')
   );
   if (!layout) {
  return;
@@ -59,7 +61,7 @@ window.renderResultsGraph = () => {
  val = 0;
 }
     const d = new Date(contestData.starttime * 1000 + val);
-    return `${d.toLocaleDateString(undefined, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})}`;
+    return `${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})}`;
   };
 
   canvasEl.removeEventListener('mousedown', canvasEl._bacsMouseDown);
@@ -252,7 +254,7 @@ taskFullMap = {};
     const datasets = [];
     const sortedUsers = Object.values(userData).sort((a, b) => b.totalScore - a.totalScore);
     layout.legendContainer.innerHTML = `<h6 class="text-muted mb-3" style="font-size:0.85rem; 
-      font-weight:600; text-transform:uppercase;">Participants</h6>`;
+      font-weight:600; text-transform:uppercase;">${loc('participants', 'Participants')}</h6>`;
 
     const clickHandler = (chart, dsIndex) => {
       BacsUtils.toggleDatasetFocus(chart, dsIndex, `custom-${prefix}-legend`, (p) => !p.isDummy && (p.delta > 0 || p.isLast) ? 5 : 0);
@@ -332,7 +334,7 @@ y = element.y - 12;
         if (!c || !c.raw || c.raw.isDummy) {
  return '';
 }
-        let label = `Score: ${c.parsed.y}`;
+        let label = `${loc('score', 'Score:')} ${c.parsed.y}`;
         if (c.raw.delta > 0) {
  label += ` (+${c.raw.delta})`;
 }
@@ -341,7 +343,7 @@ y = element.y - 12;
         let dateStr = "";
         if (c.raw.realTime !== undefined) {
           const d = new Date(contestData.starttime * 1000 + c.raw.realTime);
-          dateStr = ` (${d.toLocaleDateString(undefined, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})})`;
+          dateStr = ` (${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})})`;
         }
 
         label += `  •  +${timeStr}${dateStr}`;
@@ -361,10 +363,11 @@ y = element.y - 12;
     window.resultsChartInstance = new Chart(document.getElementById(canvasId).getContext('2d'), {
       type: 'line',
       data: {datasets: datasets},
-      plugins: [activeLabelsPlugin, BacsUtils.getLineClickPlugin(clickHandler), BacsUtils.getTimelinePlugin(durationMs)],
+      plugins: [activeLabelsPlugin, BacsUtils.getLineClickPlugin(clickHandler), BacsUtils.getTimelinePlugin(durationMs, loc('start', 'Start'), loc('end', 'End'))],
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        clip: false,
         layout: {padding: {top: 30, right: 20, left: 10, bottom: 20}},
         scales: {
           x: {
@@ -379,7 +382,7 @@ y = element.y - 12;
                 if (value >= 0) {
                   const elapsed = BacsUtils.formatTime(value / 1000);
                   const d = new Date(contestData.starttime * 1000 + value);
-                  const dateStr = `${d.toLocaleDateString(undefined, {day: 'numeric', month: 'short', year: 'numeric'})}, ${d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})}`;
+                  const dateStr = `${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short', year: 'numeric'})}, ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})}`;
                   return [`+ ${elapsed}`, dateStr];
                 }
                 return "";

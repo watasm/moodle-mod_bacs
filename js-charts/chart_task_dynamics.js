@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 /* global BacsUtils, Chart */
 
 window.BacsUtils = window.BacsUtils || {};
@@ -26,8 +25,8 @@ window.renderTaskDynamicsGraph = () => {
   const zoomApplyBtn = document.getElementById('task-zoom-apply');
 
   if (!select || !studentSelect || !canvas || !placeholder) {
- return;
-}
+    return;
+  }
 
   if (canvas.parentElement) {
     canvas.parentElement.style.minHeight = '600px';
@@ -38,6 +37,15 @@ window.renderTaskDynamicsGraph = () => {
   const contestData = window.BACS_PAGE_DATA.contest;
   const students = window.BACS_PAGE_DATA.students || [];
   const tasks = window.BACS_PAGE_DATA.tasks || [];
+
+  const currentLocale = document.documentElement.lang || 'en-US';
+
+  const loc = (key, fallback) => {
+    if (window.BACS_LOCALIZED_STRINGS && window.BACS_LOCALIZED_STRINGS[key]) {
+        return window.BACS_LOCALIZED_STRINGS[key];
+    }
+    return fallback;
+  };
 
   if (select.options.length <= 1 && tasks.length > 0) {
     tasks.forEach((t) => {
@@ -71,11 +79,11 @@ window.renderTaskDynamicsGraph = () => {
   }
 
   if (detailsContainer) {
- detailsContainer.style.display = 'none';
-}
+    detailsContainer.style.display = 'none';
+  }
   if (statsContainer) {
- statsContainer.innerHTML = '';
-}
+    statsContainer.innerHTML = '';
+  }
 
   const VERDICT_ACCEPTED = 13;
 
@@ -106,8 +114,8 @@ window.renderTaskDynamicsGraph = () => {
 
   const existingEmpty = document.getElementById('task-dynamics-empty-state');
   if (existingEmpty) {
- existingEmpty.style.display = 'none';
-}
+    existingEmpty.style.display = 'none';
+  }
 
   if (relevantSubmissions.length === 0) {
     canvas.classList.add('d-none');
@@ -115,21 +123,21 @@ window.renderTaskDynamicsGraph = () => {
 
     const isAllTasks = taskId === -1;
     const isAllStudents = studentId === -1;
-    let title = 'Нет данных',
-desc = 'По заданным фильтрам посылок не найдено.';
+    let title = loc('nodata', 'No data');
+    let desc = loc('nodatadesc', 'No submissions found for the selected filters.');
 
     if (isAllTasks && isAllStudents) {
-      title = 'В контесте пока нет посылок';
-      desc = 'График появится, как только участники начнут сдавать решения.';
+      title = loc('notasksyet', 'No submissions in the contest yet');
+      desc = loc('notasksyetdesc', 'The chart will appear as soon as participants start submitting solutions.');
     } else if (!isAllTasks && isAllStudents) {
-      title = 'Задача пока не решалась';
-      desc = `По задаче <b>«${taskMap[taskId] || taskId}»</b> еще никто не отправлял решений.`;
+      title = loc('tasknotsolvedyet', 'Task not solved yet');
+      desc = loc('tasknotsolvedyetdesc', 'Nobody has submitted solutions for task {task} yet.').replace('{task}', `<b>«${taskMap[taskId] || taskId}»</b>`);
     } else if (isAllTasks && !isAllStudents) {
-      title = 'Участник еще не отправлял решения';
-      desc = `Участник <b>${studentMap[studentId] || ''}</b> пока ничего не отправлял.`;
+      title = loc('usernotsubmittedyet', 'Participant hasn\'t submitted yet');
+      desc = loc('usernotsubmittedyetdesc', 'Participant {user} hasn\'t submitted anything yet.').replace('{user}', `<b>${studentMap[studentId] || ''}</b>`);
     } else {
-      title = 'Нет посылок';
-      desc = `Участник <b>${studentMap[studentId] || ''}</b> не отправлял решения по задаче <b>«${taskMap[taskId] || ''}»</b>.`;
+      title = loc('nosubmits', 'No submissions');
+      desc = loc('nosubmitsdesc', 'Participant {user} hasn\'t submitted solutions for task {task}.').replace('{user}', `<b>${studentMap[studentId] || ''}</b>`).replace('{task}', `<b>«${taskMap[taskId] || ''}»</b>`);
     }
 
     BacsUtils.createEmptyState('task-dynamics-empty-state', placeholder.parentNode, placeholder.nextSibling, 'bi-inbox', title, desc).style.display = 'flex';
@@ -143,7 +151,19 @@ desc = 'По заданным фильтрам посылок не найден�
   const acceptedSubmits = relevantSubmissions.filter((s) => s.result_id == VERDICT_ACCEPTED).length;
   const successRate = totalSubmits > 0 ? ((acceptedSubmits / totalSubmits) * 100).toFixed(1) : 0;
 
-  BacsUtils.renderStatsBadges(statsContainer, totalSubmits, acceptedSubmits, successRate);
+  statsContainer.innerHTML = `
+      <div class="d-inline-flex flex-wrap justify-content-center gap-2" style="font-family: 'Inter', sans-serif;">
+          <div class="border rounded px-3 py-1 bg-light text-dark fw-bold shadow-sm" style="font-size: 0.9rem;">
+              ${loc('statstotal', 'TOTAL')}: <span class="text-dark">${totalSubmits}</span>
+          </div>
+          <div class="border rounded px-3 py-1 fw-bold shadow-sm" style="background: #ecfdf5; border-color: #a7f3d0 !important; font-size: 0.9rem; color: #065f46;">
+              ${loc('statsok', 'OK')}: <span style="color: #047857;">${acceptedSubmits}</span>
+          </div>
+          <div class="border rounded px-3 py-1 fw-bold shadow-sm" style="background: #eff6ff; border-color: #bfdbfe !important; font-size: 0.9rem; color: #1d4ed8;">
+              ${loc('statssuccess', 'SUCCESS RATE')}: <span style="color: #2563eb;">${successRate}%</span>
+          </div>
+      </div>
+  `;
 
   relevantSubmissions.sort((a, b) => a.submit_time - b.submit_time);
   const minTimeSec = relevantSubmissions[0].submit_time;
@@ -157,31 +177,20 @@ desc = 'По заданным фильтрам посылок не найден�
   if (forcedStep > 0) {
     stepSeconds = forcedStep;
   } else {
-    if (span === 0) {
- stepSeconds = 3600;
-} else if (span <= 4 * 3600) {
- stepSeconds = 15 * 60;
-} else if (span <= 24 * 3600) {
- stepSeconds = 3600;
-} else if (span <= 3 * 86400) {
- stepSeconds = 4 * 3600;
-} else if (span <= 7 * 86400) {
- stepSeconds = 12 * 3600;
-} else if (span <= 30 * 86400) {
- stepSeconds = 86400;
-} else if (span <= 90 * 86400) {
- stepSeconds = 3 * 86400;
-} else {
- stepSeconds = 7 * 86400;
-}
+    if (span === 0) stepSeconds = 3600;
+    else if (span <= 4 * 3600) stepSeconds = 15 * 60;
+    else if (span <= 24 * 3600) stepSeconds = 3600;
+    else if (span <= 3 * 86400) stepSeconds = 4 * 3600;
+    else if (span <= 7 * 86400) stepSeconds = 12 * 3600;
+    else if (span <= 30 * 86400) stepSeconds = 86400;
+    else if (span <= 90 * 86400) stepSeconds = 3 * 86400;
+    else stepSeconds = 7 * 86400;
   }
 
   const subsByInterval = new Map();
   relevantSubmissions.forEach((sub) => {
     const idx = Math.floor(sub.submit_time / stepSeconds);
-    if (!subsByInterval.has(idx)) {
- subsByInterval.set(idx, []);
-}
+    if (!subsByInterval.has(idx)) subsByInterval.set(idx, []);
     subsByInterval.get(idx).push(sub);
   });
 
@@ -219,15 +228,10 @@ desc = 'По заданным фильтрам посылок не найден�
           const skipDur = gapEnd - gapStart;
 
           let slots = 1;
-          if (skipDur < 86400) {
- slots = 1;
-} else if (skipDur < 3 * 86400) {
- slots = 2;
-} else if (skipDur < 7 * 86400) {
- slots = 3;
-} else {
- slots = 4;
-}
+          if (skipDur < 86400) slots = 1;
+          else if (skipDur < 3 * 86400) slots = 2;
+          else if (skipDur < 7 * 86400) slots = 3;
+          else slots = 4;
 
           const gapId = 'gap_' + gapStart;
           for (let s = 0; s < slots; s++) {
@@ -261,9 +265,7 @@ desc = 'По заданным фильтрам посылок не найден�
       b.isEmpty = b.subs.length === 0;
       if (!b.isEmpty && !b.isGap) {
           const firstBloods = b.subs.filter(s => s.isFirstBlood);
-          if (firstBloods.length > 0) {
- b.firstBloods = firstBloods;
-}
+          if (firstBloods.length > 0) b.firstBloods = firstBloods;
       }
   });
 
@@ -273,9 +275,7 @@ desc = 'По заданным фильтрам посылок не найден�
   for (let i = 0; i < finalBuckets.length; i++) {
       const b = finalBuckets[i];
       if (!b.isEmpty && !b.isGap) {
-          if (!currentSession) {
- currentSession = {startIdx: i, endIdx: i};
-}
+          if (!currentSession) currentSession = {startIdx: i, endIdx: i};
           currentSession.endIdx = i;
       } else {
           if (currentSession && i + 1 < finalBuckets.length && !finalBuckets[i + 1].isEmpty && !b.isGap) {
@@ -288,9 +288,7 @@ desc = 'По заданным фильтрам посылок не найден�
           }
       }
   }
-  if (currentSession) {
- activeSessions.push(currentSession);
-}
+  if (currentSession) activeSessions.push(currentSession);
 
   const validSessions = [];
   const MIN_SUBS_FOR_SESSION = 8;
@@ -306,9 +304,8 @@ desc = 'По заданным фильтрам посылок не найден�
 
       for (let i = session.startIdx; i <= session.endIdx; i++) {
           const b = finalBuckets[i];
-          if (b.isGap) {
- continue;
-}
+          if (b.isGap) continue;
+          
           b.subs.forEach(s => {
               allSubs.push(s);
               users.add(s.user_id);
@@ -347,14 +344,10 @@ desc = 'По заданным фильтрам посылок не найден�
   const bucketColors = [];
 
   finalBuckets.forEach((b) => {
-    let okCount = 0,
-failCount = 0;
+    let okCount = 0, failCount = 0;
     b.subs.forEach((s) => {
-      if (s.result_id == VERDICT_ACCEPTED) {
- okCount++;
-} else {
- failCount++;
-}
+      if (s.result_id == VERDICT_ACCEPTED) okCount++;
+      else failCount++;
     });
 
     okData.push(okCount);
@@ -365,7 +358,8 @@ failCount = 0;
       bucketColors.push('transparent');
     } else {
       const dStart = new Date(b.startSec * 1000);
-      let dateStr = `${dStart.getDate()} ${dStart.toLocaleDateString(undefined, {month: 'short'}).replace('.', '')}`;
+      // ИСПОЛЬЗУЕМ currentLocale
+      let dateStr = `${dStart.getDate()} ${dStart.toLocaleDateString(currentLocale, {month: 'short'}).replace('.', '')}`;
 
       if (stepSeconds < 86400) {
          dateStr += `, ${dStart.getHours().toString().padStart(2, '0')}:${dStart.getMinutes().toString().padStart(2, '0')}`;
@@ -398,7 +392,7 @@ failCount = 0;
 
   const formatDragTime = (ms) => {
     const d = new Date(ms);
-    return `${d.toLocaleDateString(undefined, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})}`;
+    return `${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})}`;
   };
 
   if (canvas._bacsMouseDown) {
@@ -408,17 +402,12 @@ failCount = 0;
       window.removeEventListener('mouseup', window._bacsTaskDynMouseUp);
   }
 
-  canvas._bacsMouseDown = (e) => {
- isDragging = true; startX = e.offsetX;
-};
+  canvas._bacsMouseDown = (e) => { isDragging = true; startX = e.offsetX; };
 
   canvas._bacsMouseMove = (e) => {
     const chart = window.taskDynamicsChartInstance;
-    if (!chart) {
- return;
-}
+    if (!chart) return;
 
-    // 1. Логика зума при драге
     if (isDragging) {
         const currentX = e.offsetX;
         if (Math.abs(currentX - startX) > 20) {
@@ -467,7 +456,6 @@ failCount = 0;
     for (let s of validSessions) {
         const inBg = s._hitbox && (x >= s._hitbox.x && x <= s._hitbox.x + s._hitbox.w && y >= top && y <= bottom);
         const inLabel = s._labelBox && (x >= s._labelBox.x && x <= s._labelBox.x + s._labelBox.w && y >= s._labelBox.y && y <= s._labelBox.y + s._labelBox.h);
-
         if (inBg || inLabel) {
             hoveredSession = s;
             break;
@@ -479,52 +467,45 @@ failCount = 0;
 
         const fmt = (ms) => {
             const d = new Date(ms);
-            return `${d.toLocaleDateString(undefined, {month: 'short', day: 'numeric'})} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+            return `${d.toLocaleDateString(currentLocale, {month: 'short', day: 'numeric'})} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
         };
         const tStart = fmt(finalBuckets[hoveredSession.startIdx].startSec * 1000);
         const tEnd = fmt(finalBuckets[hoveredSession.endIdx].endSec * 1000);
 
-        let html = `<div style="font-weight: 700; margin-bottom: 6px; color: #111827; font-size: 14px;"><i class="bi bi-people-fill text-primary me-1"></i> Class Session</div>`;
+        let html = `<div style="font-weight: 700; margin-bottom: 6px; color: #111827; font-size: 14px;"><i class="bi bi-people-fill text-primary me-1"></i> ${loc('classsession', 'Class Session')}</div>`;
         html += `<div style="color: #6b7280; font-size: 11px; margin-bottom: 10px; font-family: monospace;">${tStart} — ${tEnd}</div>`;
 
         let okPercent = (hoveredSession.successRate * 100).toFixed(0);
         let rateColor = '#d97706';
-        if (hoveredSession.successRate >= 0.7) {
- rateColor = '#059669';
-} else if (hoveredSession.successRate < 0.4) {
- rateColor = '#dc2626';
-}
+        if (hoveredSession.successRate >= 0.7) rateColor = '#059669';
+        else if (hoveredSession.successRate < 0.4) rateColor = '#dc2626';
 
-        html += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Users active:</span> <span style="font-weight:600;">${hoveredSession.uniqueUsers}</span></div>`;
-        html += `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span>Total Submits:</span> <div><span style="font-weight:600;">${hoveredSession.totalSubs}</span> <span style="color: ${rateColor}; font-size: 11px; margin-left:4px;">(${okPercent}% OK)</span></div></div>`;
+        html += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>${loc('usersactive', 'Users active:')}</span> <span style="font-weight:600;">${hoveredSession.uniqueUsers}</span></div>`;
+        html += `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span>${loc('totalsubmits', 'Total Submits:')}</span> <div><span style="font-weight:600;">${hoveredSession.totalSubs}</span> <span style="color: ${rateColor}; font-size: 11px; margin-left:4px;">(${okPercent}% OK)</span></div></div>`;
 
         if (hoveredSession.hasSpammer) {
-            html += `<div style="color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; padding: 4px 8px; font-size: 11px; margin-bottom: 10px; text-align:center;"><i class="bi bi-exclamation-triangle-fill me-1"></i> Spammer anomaly detected</div>`;
+            html += `<div style="color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; padding: 4px 8px; font-size: 11px; margin-bottom: 10px; text-align:center;"><i class="bi bi-exclamation-triangle-fill me-1"></i> ${loc('spammeranomaly', 'Spammer anomaly detected')}</div>`;
         }
 
         html += `<div style="font-size: 12px; border-top: 1px solid #f3f4f6; padding-top: 8px; margin-top: 8px;">`;
-        html += `<div style="font-weight: 600; margin-bottom: 6px; color:#4b5563; font-size: 11px; text-transform: uppercase;">Top Tasks</div>`;
+        html += `<div style="font-weight: 600; margin-bottom: 6px; color:#4b5563; font-size: 11px; text-transform: uppercase;">${loc('toptasks', 'Top Tasks')}</div>`;
 
         hoveredSession.topTasks.forEach(task => {
             let taskName = taskMap[task[0]] || `Task ${task[0]}`;
-            if (taskName.length > 22) {
- taskName = taskName.substring(0, 20) + '...';
-}
+            if (taskName.length > 22) taskName = taskName.substring(0, 20) + '...';
             html += `<div style="display:flex; justify-content:space-between; margin-bottom: 3px; color: #374151;">
                 <span title="${taskMap[task[0]]}">${taskName}</span>
                 <span style="font-weight:600; background: #f3f4f6; padding: 0 4px; border-radius: 3px;">${task[1]}</span>
             </div>`;
         });
         html += `</div>`;
-        html += `<div style="margin-top: 10px; font-size: 11px; color: #3b82f6; text-align: center; font-weight: 500;">Click to view all submissions</div>`;
+        html += `<div style="margin-top: 10px; font-size: 11px; color: #3b82f6; text-align: center; font-weight: 500;">${loc('clicktoviewsubs', 'Click to view all submissions')}</div>`;
 
         sessionTooltip.innerHTML = html;
 
         let ttX = e.clientX - canvas.getBoundingClientRect().left + 15;
         let ttY = e.clientY - canvas.getBoundingClientRect().top + 15;
-        if (ttX + 240 > canvas.getBoundingClientRect().width) {
- ttX = x - 255;
-}
+        if (ttX + 240 > canvas.getBoundingClientRect().width) ttX = x - 255;
 
         sessionTooltip.style.left = ttX + 'px';
         sessionTooltip.style.top = ttY + 'px';
@@ -536,14 +517,8 @@ failCount = 0;
     }
   };
 
-  window._bacsTaskDynMouseUp = () => {
- isDragging = false; dragTooltip.style.opacity = '0';
-};
-  canvas._bacsMouseOut = () => {
- if (sessionTooltip) {
- sessionTooltip.style.display = 'none';
-}
-};
+  window._bacsTaskDynMouseUp = () => { isDragging = false; dragTooltip.style.opacity = '0'; };
+  canvas._bacsMouseOut = () => { if (sessionTooltip) sessionTooltip.style.display = 'none'; };
 
   canvas.addEventListener('mousedown', canvas._bacsMouseDown);
   canvas.addEventListener('mousemove', canvas._bacsMouseMove);
@@ -551,22 +526,14 @@ failCount = 0;
   window.addEventListener('mouseup', window._bacsTaskDynMouseUp);
 
   const updateManualZoomInputs = ({chart}) => {
-    if (!zoomStartInput || !zoomEndInput || finalBuckets.length === 0) {
- return;
-}
+    if (!zoomStartInput || !zoomEndInput || finalBuckets.length === 0) return;
     const minIdx = Math.max(0, Math.round(chart.scales.x.min));
     const maxIdx = Math.min(finalBuckets.length - 1, Math.round(chart.scales.x.max));
 
-    if (finalBuckets[minIdx]) {
- zoomStartInput.value = window.BacsUtils.toDateTimeLocal(finalBuckets[minIdx].startSec * 1000);
-}
-    if (finalBuckets[maxIdx]) {
- zoomEndInput.value = window.BacsUtils.toDateTimeLocal(finalBuckets[maxIdx].endSec * 1000);
-}
+    if (finalBuckets[minIdx]) zoomStartInput.value = window.BacsUtils.toDateTimeLocal(finalBuckets[minIdx].startSec * 1000);
+    if (finalBuckets[maxIdx]) zoomEndInput.value = window.BacsUtils.toDateTimeLocal(finalBuckets[maxIdx].endSec * 1000);
 
-    if (resetZoomBtn) {
- resetZoomBtn.classList.remove('d-none');
-}
+    if (resetZoomBtn) resetZoomBtn.classList.remove('d-none');
   };
 
   if (zoomStartInput && zoomEndInput && finalBuckets.length > 0) {
@@ -580,12 +547,12 @@ failCount = 0;
     title: function(context) {
       if (context[0]) {
         const b = finalBuckets[context[0].dataIndex];
-        const minStr = BacsUtils.formatFullDate(b.startSec);
-        const maxStr = BacsUtils.formatFullDate(b.endSec);
+        const minStr = new Date(b.startSec * 1000).toLocaleString(currentLocale, {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
+        const maxStr = new Date(b.endSec * 1000).toLocaleString(currentLocale, {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
 
         const rangeStr = b.startSec === b.endSec ? minStr : `${minStr} —\n${maxStr}`;
         const timeFromStartStr = BacsUtils.formatTime(b.startSec - contestData.starttime);
-        return [`📅 Period:`, `${rangeStr}`, ``, `⏱️ Elapsed from start: + ${timeFromStartStr}`];
+        return [`📅 ${loc('period', 'Period:')}`, `${rangeStr}`, ``, `⏱️ ${loc('elapsedfromstart', 'Elapsed from start: +')} ${timeFromStartStr}`];
       }
       return '';
     },
@@ -596,9 +563,9 @@ failCount = 0;
     afterBody: function(context) {
         const b = finalBuckets[context[0].dataIndex];
         if (b && !b.isGap && b.firstBloods && b.firstBloods.length > 0) {
-            let lines = ['\n🏆 First Accepted:'];
+            let lines = [`\n🏆 ${loc('firstaccepted', 'First Accepted:')}`];
             b.firstBloods.forEach(sub => {
-                lines.push(`  • ${taskMap[sub.task_id] || 'Task ' + sub.task_id}`);
+                lines.push(`  • ${taskMap[sub.task_id] || loc('task', 'Task') + ' ' + sub.task_id}`);
             });
             return lines;
         }
@@ -610,9 +577,7 @@ failCount = 0;
   tooltipConfig.intersect = true;
 
   tooltipConfig.filter = function(tooltipItem) {
-    if (finalBuckets[tooltipItem.dataIndex].isGap) {
- return false;
-}
+    if (finalBuckets[tooltipItem.dataIndex].isGap) return false;
     return true;
   };
 
@@ -623,9 +588,7 @@ failCount = 0;
           const {top, bottom, left, right} = chart.chartArea;
 
           let boundaryIdx = finalBuckets.findIndex(b => b.startSec >= contestData.endtime);
-          if (boundaryIdx === -1) {
-              boundaryIdx = finalBuckets.findIndex(b => b.endSec >= contestData.endtime);
-          }
+          if (boundaryIdx === -1) boundaryIdx = finalBuckets.findIndex(b => b.endSec >= contestData.endtime);
 
           if (boundaryIdx !== -1) {
               const meta = chart.getDatasetMeta(0);
@@ -649,7 +612,7 @@ failCount = 0;
                   ctx.font = "600 10px 'Inter', sans-serif";
                   ctx.textAlign = 'left';
                   ctx.textBaseline = 'bottom';
-                  ctx.fillText('End of Contest', upsolvingPixel + 4, top + 12);
+                  ctx.fillText(loc('endofcontest', 'End of Contest'), upsolvingPixel + 4, top + 12);
                   ctx.restore();
               }
           }
@@ -666,9 +629,7 @@ failCount = 0;
       chart.data.labels.forEach((_, i) => {
         if (finalBuckets[i] && finalBuckets[i].isGap) {
           const gid = finalBuckets[i].gapId;
-          if (!gapGroups[gid]) {
- gapGroups[gid] = [];
-}
+          if (!gapGroups[gid]) gapGroups[gid] = [];
           gapGroups[gid].push(i);
         }
       });
@@ -677,9 +638,7 @@ failCount = 0;
       Object.values(gapGroups).forEach(indices => {
         const firstIdx = indices[0];
         const lastIdx = indices[indices.length - 1];
-        if (!meta.data[firstIdx] || !meta.data[lastIdx]) {
- return;
-}
+        if (!meta.data[firstIdx] || !meta.data[lastIdx]) return;
 
         const firstBar = meta.data[firstIdx];
         const lastBar = meta.data[lastIdx];
@@ -708,20 +667,16 @@ failCount = 0;
         const d = Math.floor(skipDur / 86400);
         const h = Math.floor((skipDur % 86400) / 3600);
         let durStr = "";
-        if (d > 0) {
- durStr += `${d}d `;
-}
-        if (h > 0 || d === 0) {
- durStr += `${h}h`;
-}
+        if (d > 0) durStr += `${d} ${loc('days_short', 'd')} `;
+        if (h > 0 || d === 0) durStr += `${h} ${loc('hours_short', 'h')}`;
 
         const fmt = (sec) => {
             const dt = new Date(sec * 1000);
-            return `${dt.getDate()} ${dt.toLocaleString(undefined, {month: 'short'}).replace('.', '')}`;
+            return `${dt.getDate()} ${dt.toLocaleString(currentLocale, {month: 'short'}).replace('.', '')}`;
         };
 
         const textL1 = `${fmt(b.startSec)} — ${fmt(b.endSec)}`;
-        const textL2 = `(${durStr})`;
+        const textL2 = `(${durStr.trim()})`;
         const textFull = `${textL1} ${textL2}`;
 
         ctx.translate(left + width / 2, top + height / 2);
@@ -795,20 +750,15 @@ failCount = 0;
           validSessions.forEach(s => {
               const barStart = meta.data[s.startIdx];
               const barEnd = meta.data[s.endIdx];
-              if (!barStart || !barEnd) {
- return;
-}
+              if (!barStart || !barEnd) return;
 
               const startX = barStart.x - barStart.width / 2;
               const endX = barEnd.x + barEnd.width / 2;
               const width = endX - startX;
 
               let bgColor = 'rgba(252, 211, 77, 0.15)';
-              if (s.successRate >= 0.7) {
- bgColor = 'rgba(16, 185, 129, 0.12)';
-} else if (s.successRate < 0.4) {
- bgColor = 'rgba(239, 68, 68, 0.12)';
-}
+              if (s.successRate >= 0.7) bgColor = 'rgba(16, 185, 129, 0.12)';
+              else if (s.successRate < 0.4) bgColor = 'rgba(239, 68, 68, 0.12)';
 
               ctx.fillStyle = bgColor;
               ctx.beginPath();
@@ -834,19 +784,13 @@ failCount = 0;
               if (b.firstBloods && b.firstBloods.length > 0) {
                   const bar0 = meta0.data[i];
                   const bar1 = meta1.data[i];
-                  if (!bar0 && !bar1) {
- return;
-}
+                  if (!bar0 && !bar1) return;
 
                   const x = bar0 ? bar0.x : bar1.x;
-                  if (x < left || x > right) {
- return;
-}
+                  if (x < left || x > right) return;
 
                   let y = Math.min(bar0 ? bar0.y : Infinity, bar1 ? bar1.y : Infinity);
-                  if (y === Infinity) {
- y = chart.chartArea.bottom;
-}
+                  if (y === Infinity) y = chart.chartArea.bottom;
 
                   ctx.fillStyle = '#eab308';
                   ctx.font = "11px Arial";
@@ -864,9 +808,7 @@ failCount = 0;
           validSessions.forEach(s => {
               const barStart = meta0.data[s.startIdx];
               const barEnd = meta0.data[s.endIdx];
-              if (!barStart || !barEnd) {
- return;
-}
+              if (!barStart || !barEnd) return;
 
               const startX = barStart.x - barStart.width / 2;
               const endX = barEnd.x + barEnd.width / 2;
@@ -877,35 +819,23 @@ failCount = 0;
               for (let i = s.startIdx; i <= s.endIdx; i++) {
                   const b0 = meta0.data[i];
                   const b1 = meta1.data[i];
-                  if (b0 && b0.y < localPeakY) {
- localPeakY = b0.y;
-}
-                  if (b1 && b1.y < localPeakY) {
- localPeakY = b1.y;
-}
+                  if (b0 && b0.y < localPeakY) localPeakY = b0.y;
+                  if (b1 && b1.y < localPeakY) localPeakY = b1.y;
               }
 
-              const text = `${s.totalSubs} subs / ${s.uniqueUsers} usr`;
+              const text = `${s.totalSubs} ${loc('subs', 'subs')} / ${s.uniqueUsers} ${loc('usr', 'usr')}`;
               ctx.font = "600 10px 'Inter', sans-serif";
               const textWidth = ctx.measureText(text).width;
               let boxW = textWidth + 16;
-              if (s.hasSpammer) {
- boxW += 16;
-}
+              if (s.hasSpammer) boxW += 16;
               const boxH = 20;
 
               let labelY = localPeakY - 14;
-              if (labelY < top + 12) {
- labelY = top + 12;
-}
+              if (labelY < top + 12) labelY = top + 12;
 
               let labelX = midX;
-              if (labelX - boxW / 2 < left) {
- labelX = left + boxW / 2 + 2;
-}
-              if (labelX + boxW / 2 > right) {
- labelX = right - boxW / 2 - 2;
-}
+              if (labelX - boxW / 2 < left) labelX = left + boxW / 2 + 2;
+              if (labelX + boxW / 2 > right) labelX = right - boxW / 2 - 2;
 
               let bgSolid = '#fffbeb';
               let textColor = '#b45309';
@@ -955,7 +885,7 @@ failCount = 0;
       labels: labels,
       datasets: [
         {
-          label: contestData.localizedStrings.verdict_ok || 'Accepted',
+          label: loc('verdict_ok', 'Accepted'),
           data: okData,
           backgroundColor: '#10b981',
           borderColor: '#059669',
@@ -965,7 +895,7 @@ failCount = 0;
           barPercentage: 1.0,
         },
         {
-          label: contestData.localizedStrings.verdict_not_ok || 'Failed',
+          label: loc('verdict_not_ok', 'Failed'),
           data: notOkData,
           backgroundColor: '#f43f5e',
           borderColor: '#e11d48',
@@ -988,9 +918,7 @@ failCount = 0;
           grid: {
               color: function(context) {
                   const chart = context.chart;
-                  if (!chart) {
- return 'transparent';
-}
+                  if (!chart) return 'transparent';
                   const visibleSpan = chart.scales.x.max - chart.scales.x.min;
                   return visibleSpan < 50 ? 'rgba(0, 0, 0, 0.03)' : 'transparent';
               },
@@ -1009,7 +937,7 @@ failCount = 0;
           border: {display: false},
           title: {
             display: true,
-            text: contestData.localizedStrings.submits || 'Submissions',
+            text: loc('submits', 'Submissions'),
             color: TEXT_COLOR,
             font: {weight: '500'},
           },
@@ -1039,32 +967,30 @@ failCount = 0;
       },
       onClick: (e) => {
         const chart = window.taskDynamicsChartInstance;
-        if (!chart) {
- return;
-}
+        if (!chart) return;
 
         const populateTable = (subsList, titleHtml) => {
             subsList.sort((a, b) => b.submit_time - a.submit_time);
 
-            if (detailsTitle) {
- detailsTitle.innerHTML = titleHtml;
-}
+            if (detailsTitle) detailsTitle.innerHTML = titleHtml;
             if (detailsTableBody) {
                 detailsTableBody.innerHTML = subsList.map((sub) => {
                     const studentName = studentMap[sub.user_id] || `User ${sub.user_id}`;
                     const taskName = taskMap[sub.task_id] || sub.task_id;
                     const isOk = sub.result_id == VERDICT_ACCEPTED;
                     const timeFromStartStr = BacsUtils.formatTime(sub.submit_time - contestData.starttime);
-                    const realDateStr = BacsUtils.formatFullDate(sub.submit_time);
+                    
+                    const dt = new Date(sub.submit_time * 1000);
+                    const realDateStr = `${dt.toLocaleString(currentLocale, {month: 'short', day: 'numeric'})}, ${dt.getHours().toString().padStart(2, '0')}:${dt.getMinutes().toString().padStart(2, '0')}`;
 
-                    const starIcon = sub.isFirstBlood ? `<i class="bi bi-star-fill text-warning me-1" title="First Accepted in contest!"></i>` : '';
+                    const starIcon = sub.isFirstBlood ? `<i class="bi bi-star-fill text-warning me-1" title="${loc('firstaccepted', 'First Accepted in contest!')}"></i>` : '';
 
                     const statusBadge = isOk
-                      ? `<span style="background: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">OK</span>`
-                      : `<span style="background: #ffe4e6; color: #e11d48; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">FAIL</span>`;
+                      ? `<span style="background: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">${loc('verdict_ok', 'OK')}</span>`
+                      : `<span style="background: #ffe4e6; color: #e11d48; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">${loc('verdict_not_ok', 'FAIL')}</span>`;
                     const prog = BacsUtils.getContestProgress(sub.submit_time, contestData.starttime, contestData.endtime);
                     const barHtml = prog.isUpsolving
-                      ? `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">[Upsolving]</div>`
+                      ? `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">[${loc('upsolving_label', 'Upsolving')}]</div>`
                       : `<div style="width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px; margin-top: 6px; overflow: hidden;"><div style="width: ${prog.percent}%; height: 100%; background: ${prog.color};"></div></div><div style="font-size: 0.7rem; color: ${prog.color}; text-align: right; line-height: 1;">${prog.percent.toFixed(0)}%</div>`;
 
                     return `<tr><td class="align-middle" style="width: 180px;"><div class="fw-bold" style="font-size: 0.85rem; color: #111827;">${realDateStr}</div><div style="font-family: monospace; font-size: 0.8rem; color: #6b7280; margin-top: 2px;">+ ${timeFromStartStr}</div>${barHtml}</td><td class="align-middle fw-500">${studentName}</td><td class="align-middle">${starIcon}${taskName}</td><td class="align-middle">${statusBadge}</td><td class="align-middle fw-bold">${sub.points !== null ? sub.points : '-'}</td></tr>`;
@@ -1081,7 +1007,7 @@ failCount = 0;
             const index = activeElements[0].index;
             const b = finalBuckets[index];
             if (b && !b.isGap && b.subs.length > 0) {
-                populateTable(b.subs, `<i class="bi bi-list-check me-2 text-primary"></i> Submissions details <span class="badge bg-secondary ms-2">${b.subs.length} total</span>`);
+                populateTable(b.subs, `<i class="bi bi-list-check me-2 text-primary"></i> ${loc('submissionsdetails', 'Submissions details')} <span class="badge bg-secondary ms-2">${b.subs.length} ${loc('total', 'total')}</span>`);
                 return;
             }
         }
@@ -1099,23 +1025,17 @@ failCount = 0;
         }
 
         if (clickedSession) {
-            populateTable(clickedSession.allSubs, `<i class="bi bi-people-fill me-2 text-primary"></i> Class Session Details <span class="badge bg-secondary ms-2">${clickedSession.totalSubs} total</span>`);
+            populateTable(clickedSession.allSubs, `<i class="bi bi-people-fill me-2 text-primary"></i> ${loc('classsessiondetails', 'Class Session Details')} <span class="badge bg-secondary ms-2">${clickedSession.totalSubs} ${loc('total', 'total')}</span>`);
         } else {
-            if (detailsContainer) {
- detailsContainer.style.display = 'none';
-}
+            if (detailsContainer) detailsContainer.style.display = 'none';
         }
       },
     },
   });
 
   const addSafeListener = (element, event, handler) => {
-    if (!element) {
- return;
-}
-    if (!element._bacsListeners) {
- element._bacsListeners = {};
-}
+    if (!element) return;
+    if (!element._bacsListeners) element._bacsListeners = {};
     if (!element._bacsListeners[event]) {
         element.addEventListener(event, handler);
         element._bacsListeners[event] = true;
@@ -1126,55 +1046,38 @@ failCount = 0;
     zoomApplyBtn.removeEventListener('click', zoomApplyBtn._bacsClick);
     zoomApplyBtn._bacsClick = () => {
       const chart = window.taskDynamicsChartInstance;
-      if (!chart) {
- return;
-}
+      if (!chart) return;
       const t1 = new Date(zoomStartInput.value).getTime() / 1000;
       const t2 = new Date(zoomEndInput.value).getTime() / 1000;
-      if (isNaN(t1) || isNaN(t2)) {
- return;
-}
+      if (isNaN(t1) || isNaN(t2)) return;
 
       const startSec = Math.min(t1, t2);
       const endSec = Math.max(t1, t2);
 
-      let idx1 = 0,
-idx2 = finalBuckets.length - 1;
+      let idx1 = 0, idx2 = finalBuckets.length - 1;
       for (let i = 0; i < finalBuckets.length; i++) {
-          if (finalBuckets[i].endSec >= startSec) {
- idx1 = i; break;
-}
+          if (finalBuckets[i].endSec >= startSec) { idx1 = i; break; }
       }
       for (let i = finalBuckets.length - 1; i >= 0; i--) {
-          if (finalBuckets[i].startSec <= endSec) {
- idx2 = i; break;
-}
+          if (finalBuckets[i].startSec <= endSec) { idx2 = i; break; }
       }
 
       chart.zoomScale('x', {min: idx1, max: idx2}, 'default');
-      if (resetZoomBtn) {
- resetZoomBtn.classList.remove('d-none');
-}
+      if (resetZoomBtn) resetZoomBtn.classList.remove('d-none');
     };
     zoomApplyBtn.addEventListener('click', zoomApplyBtn._bacsClick);
   }
 
   addSafeListener(resetZoomBtn, 'click', function() {
-    if (window.taskDynamicsChartInstance) {
- window.taskDynamicsChartInstance.resetZoom();
-}
+    if (window.taskDynamicsChartInstance) window.taskDynamicsChartInstance.resetZoom();
     this.classList.add('d-none');
   });
 
   addSafeListener(hideUpsolvingCheckbox, 'change', () => {
-    if (typeof window.renderTaskDynamicsGraph === 'function') {
- window.renderTaskDynamicsGraph();
-}
+    if (typeof window.renderTaskDynamicsGraph === 'function') window.renderTaskDynamicsGraph();
   });
 
   addSafeListener(intervalSelect, 'change', () => {
-    if (typeof window.renderTaskDynamicsGraph === 'function') {
- window.renderTaskDynamicsGraph();
-}
+    if (typeof window.renderTaskDynamicsGraph === 'function') window.renderTaskDynamicsGraph();
   });
 };

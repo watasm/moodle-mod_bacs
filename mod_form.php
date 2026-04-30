@@ -51,7 +51,7 @@ class mod_bacs_mod_form extends moodleform_mod
         $cmid_for_analysis = $id ? $id : optional_param('course', 0, PARAM_INT);
 
         $stringman = get_string_manager();
-        $strings = $stringman->load_component_strings('bacs', 'ru');
+        $strings = $stringman->load_component_strings('bacs', current_language());
         $PAGE->requires->strings_for_js(array_keys($strings), 'bacs');
         
         $mammothurl = new moodle_url('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js');
@@ -60,6 +60,12 @@ class mod_bacs_mod_form extends moodleform_mod
         
         $PAGE->requires->css('/mod/bacs/thirdparty/Flatpickr/flatpickr.min.css');
         $PAGE->requires->js('/mod/bacs/thirdparty/Flatpickr/flatpickr.min.js', true);
+        
+        if (current_language() === 'ru') {
+            $PAGE->requires->js('/mod/bacs/thirdparty/Flatpickr/ru.js', true);
+            $PAGE->requires->js_init_code("flatpickr.localize(flatpickr.l10ns.ru);");
+        }
+        
         $PAGE->requires->css('/mod/bacs/mod_form.css');
         $PAGE->requires->js('/mod/bacs/mod_form.js', true);
         
@@ -142,9 +148,9 @@ class mod_bacs_mod_form extends moodleform_mod
         <div class="fitem">
             <div class="fitemtitle"><label>' . get_string('contestmode', 'bacs') . '</label></div>
             <div class="felement mode-selection-container">
-                <div class="mode-card" data-value="0"><div class="mode-icon"><i class="bi bi-list-ol"></i></div><div class="mode-content"><div class="mode-title">IOI Mode</div><div class="mode-desc">Points per test, partial scoring.</div></div><div class="mode-check"></div></div>
-                <div class="mode-card" data-value="1"><div class="mode-icon"><i class="bi bi-clock-history"></i></div><div class="mode-content"><div class="mode-title">ICPC (ACM)</div><div class="mode-desc">Binary scoring, penalty time.</div></div><div class="mode-check"></div></div>
-                <div class="mode-card" data-value="2"><div class="mode-icon"><i class="bi bi-gear-wide-connected"></i></div><div class="mode-content"><div class="mode-title">General</div><div class="mode-desc">Custom rules configuration.</div></div><div class="mode-check"></div></div>
+                <div class="mode-card" data-value="0"><div class="mode-icon"><i class="bi bi-list-ol"></i></div><div class="mode-content"><div class="mode-title">IOI Mode</div><div class="mode-desc">' . get_string('mode_ioi_desc', 'bacs') . '</div></div><div class="mode-check"></div></div>
+                <div class="mode-card" data-value="1"><div class="mode-icon"><i class="bi bi-clock-history"></i></div><div class="mode-content"><div class="mode-title">ICPC (ACM)</div><div class="mode-desc">' . get_string('mode_icpc_desc', 'bacs') . '</div></div><div class="mode-check"></div></div>
+                <div class="mode-card" data-value="2"><div class="mode-icon"><i class="bi bi-gear-wide-connected"></i></div><div class="mode-content"><div class="mode-title">' . get_string('mode_general', 'bacs') . '</div><div class="mode-desc">' . get_string('mode_general_desc', 'bacs') . '</div></div><div class="mode-check"></div></div>
             </div>
         </div>';
         $mform->addElement('html', $mode_cards_html);
@@ -160,14 +166,14 @@ class mod_bacs_mod_form extends moodleform_mod
                 <div class="felement w-100">
                     <div class="d-flex flex-column flex-md-row gap-3">
                         <div class="flex-grow-1">
-                            <label class="text-muted small fw-bold text-uppercase mb-1"><i class="bi bi-play-circle me-1"></i> Начало</label>
+                            <label class="text-muted small fw-bold text-uppercase mb-1"><i class="bi bi-play-circle me-1"></i> ' . get_string('flatpickr_start', 'bacs') . '</label>
                             <div class="input-group shadow-sm">
                                 <span class="input-group-text bg-white text-primary border-end-0"><i class="bi bi-calendar3"></i></span>
                                 <input type="text" id="modern_starttime" class="form-control border-start-0 px-2 fw-medium" placeholder="YYYY-MM-DD HH:MM">
                             </div>
                         </div>
                         <div class="flex-grow-1">
-                            <label class="text-muted small fw-bold text-uppercase mb-1"><i class="bi bi-stop-circle me-1"></i> Конец</label>
+                            <label class="text-muted small fw-bold text-uppercase mb-1"><i class="bi bi-stop-circle me-1"></i> ' . get_string('flatpickr_end', 'bacs') . '</label>
                             <div class="input-group shadow-sm">
                                 <span class="input-group-text bg-white text-danger border-end-0"><i class="bi bi-calendar-x"></i></span>
                                 <input type="text" id="modern_endtime" class="form-control border-start-0 px-2 fw-medium" placeholder="YYYY-MM-DD HH:MM">
@@ -175,7 +181,7 @@ class mod_bacs_mod_form extends moodleform_mod
                         </div>
                     </div>
                     <div class="form-text text-muted mt-2" style="font-size: 0.8rem;">
-                        <i class="bi bi-info-circle text-primary"></i> Вы можете выбрать дату в календаре или ввести её вручную с клавиатуры. Формат: <b>ГГГГ-ММ-ДД ЧЧ:ММ</b>
+                        <i class="bi bi-info-circle text-primary"></i> ' . get_string('flatpickr_help', 'bacs') . '
                     </div>
                 </div>
             </div>';
@@ -269,7 +275,7 @@ class mod_bacs_mod_form extends moodleform_mod
             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                 <span class="font-weight-bold text-dark fs-5">' . get_string('contesttasks', 'bacs') . '</span>
                 <button type="button" id="open-task-manager-btn" class="btn btn-outline-primary btn-sm fw-medium shadow-sm">
-                    <i class="bi bi-arrows-fullscreen me-1"></i> Расширенный редактор
+                    <i class="bi bi-arrows-fullscreen me-1"></i> ' . get_string('advancededitor', 'bacs') . '
                 </button>
             </div>
             
@@ -569,9 +575,9 @@ class mod_bacs_mod_form extends moodleform_mod
                 <div class="manager-content">
                     <div class="manager-header">
                         <div class="d-flex align-items-center gap-3">
-                            <h2 style="margin:0;">Task Manager</h2>
+                            <h2 style="margin:0;">' . get_string('taskmanager', 'bacs') . '</h2>
                             <button type="button" id="toggle-statement-btn" class="btn btn-sm btn-outline-secondary">
-                                👁 Hide Statement
+                                ' . get_string('hidestatement_btn', 'bacs') . '
                             </button>
                         </div>
                         <button type="button" class="close-manager-btn">&times;</button>
@@ -579,28 +585,28 @@ class mod_bacs_mod_form extends moodleform_mod
                     <div class="manager-grid">
                         <div class="manager-col col-statement" data-col="statement">
                             <div class="col-header">
-                                <div class="d-flex align-items-center gap-2"><span class="col-drag-handle">⋮⋮</span><span>Statement</span></div>
-                                <a id="statement-external-link" href="#" target="_blank" class="btn btn-sm btn-link hidden">Open ↗</a>
+                                <div class="d-flex align-items-center gap-2"><span class="col-drag-handle">⋮⋮</span><span>' . get_string('statement', 'bacs') . '</span></div>
+                                <a id="statement-external-link" href="#" target="_blank" class="btn btn-sm btn-link hidden">' . get_string('open_link', 'bacs') . '</a>
                             </div>
                             <div class="statement-container">
-                                <div id="statement-placeholder" class="statement-placeholder"><p>Select a task to view statement</p></div>
+                                <div id="statement-placeholder" class="statement-placeholder"><p>' . get_string('nostatement', 'bacs') . '</p></div>
                                 <iframe id="statement-frame" class="statement-frame hidden" src=""></iframe>
                                 <img id="statement-image" class="statement-image hidden" src="">
                             </div>
                         </div>
                         <div class="manager-col col-source" data-col="source">
                             <div class="col-header">
-                                <div class="d-flex align-items-center gap-2"><span class="col-drag-handle">⋮⋮</span><span>Available Tasks</span></div>
+                                <div class="d-flex align-items-center gap-2"><span class="col-drag-handle">⋮⋮</span><span>' . get_string('availabletasks', 'bacs') . '</span></div>
                             </div>
                             <div class="col-filters">
-                                <input type="text" id="manager-search" class="modern-input-sm" placeholder="Search...">
+                                <input type="text" id="manager-search" class="modern-input-sm" placeholder="' . get_string('search', 'bacs') . '...">
                                 <select id="manager-collection" class="modern-select-sm"></select>
                             </div>
                             <div id="manager-source-list" class="manager-list custom-scroll"></div>
                         </div>
                         <div class="manager-col col-target" data-col="target">
                             <div class="col-header">
-                                <div class="d-flex align-items-center gap-2"><span class="col-drag-handle">⋮⋮</span><span>Selected Tasks <span id="selected-count-badge" class="badge">0</span></span></div>
+                                <div class="d-flex align-items-center gap-2"><span class="col-drag-handle">⋮⋮</span><span>' . get_string('selectedtasks', 'bacs') . ' <span id="selected-count-badge" class="badge">0</span></span></div>
                             </div>
                             <div id="manager-target-list" class="manager-list custom-scroll"></div>
                         </div>
@@ -620,7 +626,7 @@ class mod_bacs_mod_form extends moodleform_mod
                     <p id="modal-task-name" class="text-primary fw-bold mb-3" style="font-size: 1rem;"></p>
 
                     <div class="mb-3 d-flex align-items-center justify-content-between bg-light p-2 rounded border">
-                        <label class="mb-0 fw-bold text-dark ms-2">Баллы за полное решение (Accepted):</label>
+                        <label class="mb-0 fw-bold text-dark ms-2">' . get_string('pointsforfullsolution_label', 'bacs') . '</label>
                         <input type="number" id="modal-full-points" class="form-control text-center me-2 border-primary" style="width: 100px; font-weight: bold;" value="0" min="0">
                     </div>
 
@@ -634,48 +640,48 @@ class mod_bacs_mod_form extends moodleform_mod
                             </div>
                             <div class="separator"></div>
                             <div class="range-inputs">
-                                <label>Tests:</label>
+                                <label>' . get_string('tests_label', 'bacs') . '</label>
                                 <input type="number" id="range-start" class="modern-input-xs" value="1" min="1">
                                 <span>-</span>
                                 <input type="number" id="range-end" class="modern-input-xs" value="" min="1">
                                 <label class="ml-2">=</label>
                                 <input type="number" id="range-val" class="modern-input-xs highlight-input" placeholder="Val">
-                                <button type="button" id="btn-range-apply" class="btn btn-sm btn-secondary">Set</button>
+                                <button type="button" id="btn-range-apply" class="btn btn-sm btn-secondary">' . get_string('set_btn', 'bacs') . '</button>
                             </div>
                         </div>
                         <div class="w-100 my-2 border-top"></div>
                         <div class="toolbar-row secondary-tools d-flex justify-content-between align-items-center">
                             <div class="normalize-group d-flex align-items-center gap-2">
-                                <label style="font-size: 0.85rem; font-weight: 600;">Normalize to:</label>
+                                <label style="font-size: 0.85rem; font-weight: 600;">' . get_string('normalizeto', 'bacs') . '</label>
                                 <div class="input-group input-group-sm" style="width: 140px;">
                                     <input type="number" id="norm-target" class="form-control" value="100" min="1">
-                                    <button type="button" id="btn-normalize" class="btn btn-info text-white ms-1">Scale</button>
+                                    <button type="button" id="btn-normalize" class="btn btn-info text-white ms-1">' . get_string('scale_btn', 'bacs') . '</button>
                                 </div>
                                 <div class="form-check ms-2 mb-0 d-flex align-items-center">
                                     <input class="form-check-input" type="checkbox" id="norm-include-pretests" style="margin-top: 0;">
-                                    <label class="form-check-label ms-1" for="norm-include-pretests" style="font-size: 0.8rem; line-height: 1.2;">Include pretests</label>
+                                    <label class="form-check-label ms-1" for="norm-include-pretests" style="font-size: 0.8rem; line-height: 1.2;">' . get_string('includepretests', 'bacs') . '</label>
                                 </div>
                             </div>
-                            <button type="button" id="btn-clear-grid" class="btn btn-sm btn-outline-danger">Clear All</button>
+                            <button type="button" id="btn-clear-grid" class="btn btn-sm btn-outline-danger">' . get_string('clearall', 'bacs') . '</button>
                         </div>
                     </div>
 
                     <div id="visual-points-container" class="points-grid-wrapper custom-scroll">
                         <div id="visual-points-grid" class="points-grid"></div>
                         <div id="visual-unknown-count" class="hidden text-center py-4">
-                            <p class="text-muted">Test count is undefined.</p>
-                            <button type="button" id="btn-gen-10" class="btn btn-sm btn-outline-primary">Create 10</button>
-                            <button type="button" id="btn-gen-20" class="btn btn-sm btn-outline-primary">Create 20</button>
+                            <p class="text-muted">' . get_string('testcountundefined', 'bacs') . '</p>
+                            <button type="button" id="btn-gen-10" class="btn btn-sm btn-outline-primary">' . get_string('create10', 'bacs') . '</button>
+                            <button type="button" id="btn-gen-20" class="btn btn-sm btn-outline-primary">' . get_string('create20', 'bacs') . '</button>
                         </div>
                     </div>
 
                     <div class="raw-footer-area">
                         <div class="raw-section">
-                            <label for="modal-points-input" style="font-size: 0.8rem; font-weight: bold;">Raw Data (Comma separated):</label>
+                            <label for="modal-points-input" style="font-size: 0.8rem; font-weight: bold;">' . get_string('rawdatacomma', 'bacs') . '</label>
                             <textarea id="modal-points-input" class="modern-textarea code-font" rows="2"></textarea>
                         </div>
                         <div class="modal-footer-row mt-2">
-                            <div class="total-score">Total: <strong id="points-total-sum" class="text-success">0</strong></div>
+                            <div class="total-score">' . get_string('total_label', 'bacs') . ' <strong id="points-total-sum" class="text-success">0</strong></div>
                             <button type="button" id="save-points-btn" class="btn btn-success fw-bold px-4">' . get_string('save', 'core') . '</button>
                         </div>
                     </div>

@@ -1,4 +1,3 @@
-/* global BacsUtils */
 window.BacsUtils = {
   COLORS: [
     "#2196F3", "#F44336", "#4CAF50", "#FFC107", "#9C27B0",
@@ -8,6 +7,7 @@ window.BacsUtils = {
   ],
 
   formatTime: (totalSeconds) => {
+    const locD = (window.BACS_LOCALIZED_STRINGS && window.BACS_LOCALIZED_STRINGS['days_short']) ? window.BACS_LOCALIZED_STRINGS['days_short'] : 'd';
     totalSeconds = Math.max(0, Math.floor(totalSeconds));
     const days = Math.floor(totalSeconds / 86400);
     totalSeconds %= 86400;
@@ -21,7 +21,7 @@ window.BacsUtils = {
     const sStr = seconds < 10 ? "0" + seconds : seconds;
 
     if (days > 0) {
- return `${days}d ${hStr}:${mStr}`;
+ return `${days} ${locD} ${hStr}:${mStr}`;
 }
     if (hours > 0) {
  return `${hStr}:${mStr}:${sStr}`;
@@ -30,9 +30,10 @@ window.BacsUtils = {
   },
 
   formatFullDate: (timestampSec) => {
+    const currentLocale = document.documentElement.lang || 'en-US';
     const d = new Date(timestampSec * 1000);
-    return d.toLocaleDateString("en-US", {year: "numeric", month: "short", day: "2-digit"}) + ", " +
-           d.toLocaleTimeString("en-US", {hour: "2-digit", minute: "2-digit", hour12: false});
+    return d.toLocaleDateString(currentLocale, {year: "numeric", month: "short", day: "2-digit"}) + ", " +
+           d.toLocaleTimeString(currentLocale, {hour: "2-digit", minute: "2-digit", hour12: false});
   },
 
   getContestProgress: (timestampSec, startTime, endTime) => {
@@ -190,7 +191,7 @@ window.BacsUtils = {
     `;
   },
 
-  getTimelinePlugin: (durationMs) => {
+  getTimelinePlugin: (durationMs, startText = 'Start', endText = 'End') => {
     return {
       id: 'contestTimeline',
       beforeDraw: (chart) => {
@@ -222,9 +223,9 @@ window.BacsUtils = {
           }
         };
 
-        drawLine(0, 'rgba(16, 185, 129, 0.8)', 'Start', 'left');
+        drawLine(0, 'rgba(16, 185, 129, 0.8)', startText, 'left');
         if (durationMs > 0) {
-          drawLine(durationMs, 'rgba(239, 68, 68, 0.8)', 'End', 'right');
+          drawLine(durationMs, 'rgba(239, 68, 68, 0.8)', endText, 'right');
         }
       }
     };

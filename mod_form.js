@@ -155,6 +155,9 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
+  const DATA = window.BACS_FORM_DATA;
+  const loc = (key, fallback) => (DATA.strings && DATA.strings[key]) ? DATA.strings[key] : fallback;
+
   function getRatingBadgeClass(rVal) {
     if (rVal > 1500) {
       return 'bg-danger text-white border-danger';
@@ -165,7 +168,6 @@ document.addEventListener('DOMContentLoaded', function() {
     return 'bg-warning text-dark border-warning';
   }
 
-  const DATA = window.BACS_FORM_DATA;
   const allTasks = DATA.tasks || [];
   let selectedIds = (DATA.selectedTaskIds || []).map(String);
   let pointsMap = DATA.savedTestPoints || {};
@@ -282,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
         isMissing = true;
         task = {
           task_id: id,
-          name: `[TASK NOT FOUND, ID = ${id}]`,
+          name: loc('tasknotfoundid', '[TASK NOT FOUND, ID = {id}]').replace('{id}', id),
           author: 'unknown',
           statement_format: 'ERR',
           count_tests: 0,
@@ -299,12 +301,12 @@ document.addEventListener('DOMContentLoaded', function() {
       const totalSum = fullPoints + sumOfTests;
 
       let statusClass = 'task-status-incomplete';
-      let statusIcon = '<i class="bi bi-info-circle text-primary" title="Внимание: Есть тесты с 0 баллов"></i>';
+      let statusIcon = '<i class="bi bi-info-circle text-primary" title="' + loc('warningzeropoints', 'Warning: Contains tests with 0 points') + '"></i>';
 
       if (isMissing) {
         statusClass = 'bg-danger bg-opacity-10 border-danger';
         statusIcon =
-          '<i class="bi bi-exclamation-triangle-fill text-danger ms-2" title="ЗАДАЧА УДАЛЕНА ИЗ БАЗЫ! Удалите её из контеста."></i>';
+          '<i class="bi bi-exclamation-triangle-fill text-danger ms-2" title="' + loc('taskdeletedfromdb', 'TASK DELETED FROM DB! Remove it from the contest.') + '"></i>';
       } else {
         const pretestsCount = parseInt(task.count_pretests) || 0;
         const mainTests = testPointsArr.slice(pretestsCount);
@@ -313,11 +315,11 @@ document.addEventListener('DOMContentLoaded', function() {
           const hasZeroInMain = mainTests.includes(0);
           if (!hasZeroInMain) {
             statusClass = 'task-status-complete';
-            statusIcon = '<i class="bi bi-check2-circle text-success" title="Все основные тесты настроены"></i>';
+            statusIcon = '<i class="bi bi-check2-circle text-success" title="' + loc('allmaintestsconfigured', 'All main tests configured') + '"></i>';
           }
         } else if (testPointsArr.length > 0 && pretestsCount >= testPointsArr.length) {
           statusClass = 'task-status-complete';
-          statusIcon = '<i class="bi bi-check2-circle text-success" title="Только претесты"></i>';
+          statusIcon = '<i class="bi bi-check2-circle text-success" title="' + loc('onlypretests', 'Pretests only') + '"></i>';
         }
       }
 
@@ -326,12 +328,12 @@ document.addEventListener('DOMContentLoaded', function() {
         let rVal = Math.round(parseFloat(task.elo_rating));
         let badgeColor = getRatingBadgeClass(rVal);
         const starColor = badgeColor.includes('text-dark') ? 'text-dark' : 'text-white';
-        ratingBadge = `<span class="badge ${badgeColor} shadow-sm ms-2" title="Рейтинг задачи: ${rVal}"><i class="bi bi-star-fill ${starColor} me-1"></i>${rVal}</span>`;
+        ratingBadge = `<span class="badge ${badgeColor} shadow-sm ms-2" title="${loc('taskrating', 'Task rating: {rating}').replace('{rating}', rVal)}"><i class="bi bi-star-fill ${starColor} me-1"></i>${rVal}</span>`;
       }
 
       const settingsBtn = isMissing
-        ? `<button type="button" class="btn btn-sm btn-light border text-muted opacity-50" disabled title="Невозможно настроить удаленную задачу"><i class="bi bi-gear-fill"></i></button>`
-        : `<button type="button" class="btn btn-sm btn-light border btn-classic-settings text-secondary" title="Настроить баллы"><i class="bi bi-gear-fill"></i></button>`;
+        ? `<button type="button" class="btn btn-sm btn-light border text-muted opacity-50" disabled title="${loc('cannotconfigdeletedtask', 'Cannot configure deleted task')}"><i class="bi bi-gear-fill"></i></button>`
+        : `<button type="button" class="btn btn-sm btn-light border btn-classic-settings text-secondary" title="${loc('configpoints', 'Configure points')}"><i class="bi bi-gear-fill"></i></button>`;
 
       const row = document.createElement('div');
       row.className = `list-group-item d-flex justify-content-between align-items-center px-3 py-2 bg-white ${statusClass}`;
@@ -340,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       row.innerHTML = `
             <div class="d-flex align-items-center flex-grow-1" style="min-width: 0;">
-                <div class="text-muted me-3 drag-handle" style="cursor: grab; font-size: 1.2rem;" title="Drag to reorder">⋮⋮</div>
+                <div class="text-muted me-3 drag-handle" style="cursor: grab; font-size: 1.2rem;" title="${loc('dragreorder', 'Drag to reorder')}">⋮⋮</div>
                 <div class="fw-bold ${isMissing ? 'text-danger' : 'text-dark'} me-3 fs-5" style="width: 25px; flex-shrink: 0;">${letter}.</div>
                 <div class="d-flex flex-column text-truncate pe-3">
                     <span class="${isMissing ? 'text-danger fw-bold' : 'text-dark fw-medium'} text-truncate d-flex align-items-center" title="${escapeHtml(task.name)}">
@@ -354,13 +356,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             <div class="task-actions-wrapper ms-auto">
                 <div class="text-end d-none d-md-block ${isMissing ? 'text-danger' : 'text-muted'}" style="font-size: 0.8rem; line-height: 1.3;">
-                    <div>${task.count_tests || 0} tests • ${task.count_pretests || 0} pre</div>
-                    <div><strong class="${isMissing ? 'text-danger' : 'text-dark'}">Σ: ${totalSum}</strong> (Full: ${fullPoints})</div>
+                    <div>${task.count_tests || 0} ${loc('tests_count', 'tests')} • ${task.count_pretests || 0} ${loc('pre_count', 'pre')}</div>
+                    <div><strong class="${isMissing ? 'text-danger' : 'text-dark'}">Σ: ${totalSum}</strong> (${loc('full_points', 'Full:')} ${fullPoints})</div>
                 </div>
                 
                 <div class="btn-group shadow-sm">
                     ${settingsBtn}
-                    <button type="button" class="btn btn-sm btn-light border btn-classic-remove text-danger" title="Удалить из контеста"><i class="bi bi-trash3-fill"></i></button>
+                    <button type="button" class="btn btn-sm btn-light border btn-classic-remove text-danger" title="${loc('removefromcontest', 'Remove from contest')}"><i class="bi bi-trash3-fill"></i></button>
                 </div>
             </div>
         `;
@@ -406,14 +408,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const isHidden = localStorage.getItem('bacs_stmt_hidden') === 'true';
     if (isHidden) {
       colStatement.classList.add('col-hidden');
-      btnToggleStmt.innerHTML = '👁‍🗨 Show Statement';
+      btnToggleStmt.innerHTML = loc('showstatement_btn', '👁‍🗨 Show Statement');
     }
 
     btnToggleStmt.addEventListener('click', () => {
       colStatement.classList.toggle('col-hidden');
       const hiddenNow = colStatement.classList.contains('col-hidden');
       localStorage.setItem('bacs_stmt_hidden', hiddenNow);
-      btnToggleStmt.innerHTML = hiddenNow ? '👁‍🗨 Show Statement' : '👁 Hide Statement';
+      btnToggleStmt.innerHTML = hiddenNow ? loc('showstatement_btn', '👁‍🗨 Show Statement') : loc('hidestatement_btn', '👁 Hide Statement');
     });
   }
 
@@ -503,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (managerCollection && managerCollection.options.length === 0) {
     let optAll = document.createElement('option');
     optAll.value = 'all';
-    optAll.textContent = 'Все коллекции (All)';
+    optAll.textContent = loc('allcollections', 'Все коллекции (All)');
     managerCollection.appendChild(optAll);
     if (DATA.collections) {
       DATA.collections.forEach((c) => {
@@ -563,14 +565,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="mt-id">#${task.task_id}</span>
                 </div>
                 <div class="mt-meta">
-                    <span class="mt-meta-item" title="Time Limit">${icons.time} ${formatTime(task.time_limit_millis)}</span>
-                    <span class="mt-meta-item" title="Memory Limit">${icons.memory} ${formatMemory(task.memory_limit_bytes)}</span>
-                    <span class="mt-meta-item" title="Tests / Pretests">${icons.tests} ${task.count_tests || '0'} / ${task.count_pretests || '0'} pre</span>
+                    <span class="mt-meta-item" title="${loc('timelimit', 'Time Limit')}">${icons.time} ${formatTime(task.time_limit_millis)}</span>
+                    <span class="mt-meta-item" title="${loc('memorylimit', 'Memory Limit')}">${icons.memory} ${formatMemory(task.memory_limit_bytes)}</span>
+                    <span class="mt-meta-item" title="${loc('testspretests', 'Tests / Pretests')}">${icons.tests} ${task.count_tests || '0'} / ${task.count_pretests || '0'} ${loc('pre_count', 'pre')}</span>
                 </div>
             </div>
             <div class="mt-foot">
                 <span class="mt-badge">${task.statement_format || 'PDF'}</span>
-                <button type="button" class="btn-action-add">+ Add</button>
+                <button type="button" class="btn-action-add">${loc('add_btn', '+ Add')}</button>
             </div>`;
 
       el.addEventListener('click', () => loadStatement(task, el));
@@ -597,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (!task) {
         isMissing = true;
-        task = {task_id: id, name: `[TASK NOT FOUND, ID=${id}]`, statement_format: 'ERR', count_tests: 0};
+        task = {task_id: id, name: loc('tasknotfoundid', '[TASK NOT FOUND, ID = {id}]').replace('{id}', id), statement_format: 'ERR', count_tests: 0};
       }
 
       const el = document.createElement('div');
@@ -605,12 +607,12 @@ document.addEventListener('DOMContentLoaded', function() {
       el.dataset.id = id;
 
       const settingsBtn = isMissing
-        ? `<button type="button" class="btn-action-settings opacity-50" disabled>${icons.settings}</button>`
-        : `<button type="button" class="btn-action-settings" title="Points Settings">${icons.settings}</button>`;
+        ? `<button type="button" class="btn-action-settings opacity-50" disabled title="${loc('cannotconfigdeletedtask', 'Cannot configure deleted task')}">${icons.settings}</button>`
+        : `<button type="button" class="btn-action-settings" title="${loc('pointssettings', 'Points Settings')}">${icons.settings}</button>`;
 
       const timeAndMemory = !isMissing ? `
-            <span class="mt-meta-item" title="Time Limit">${icons.time} ${formatTime(task.time_limit_millis)}</span>
-            <span class="mt-meta-item" title="Memory Limit">${icons.memory} ${formatMemory(task.memory_limit_bytes)}</span>
+            <span class="mt-meta-item" title="${loc('timelimit', 'Time Limit')}">${icons.time} ${formatTime(task.time_limit_millis)}</span>
+            <span class="mt-meta-item" title="${loc('memorylimit', 'Memory Limit')}">${icons.memory} ${formatMemory(task.memory_limit_bytes)}</span>
       ` : '';
 
       let ratingHtml = '';
@@ -629,11 +631,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span class="mt-title ${isMissing ? 'text-danger fw-bold' : ''}" title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</span>
                         ${ratingHtml}
                     </div>
-                    <button type="button" class="btn-action-remove" title="Remove Task">${icons.remove}</button>
+                    <button type="button" class="btn-action-remove" title="${loc('removetask', 'Remove Task')}">${icons.remove}</button>
                 </div>
                 <div class="mt-meta">
                     ${timeAndMemory}
-                    <span class="mt-meta-item ${isMissing ? 'text-danger' : ''}" title="Tests / Pretests">${icons.tests} ${task.count_tests || '0'} / ${task.count_pretests || '0'} pre</span>
+                    <span class="mt-meta-item ${isMissing ? 'text-danger' : ''}" title="${loc('testspretests', 'Tests / Pretests')}">${icons.tests} ${task.count_tests || '0'} / ${task.count_pretests || '0'} ${loc('pre_count', 'pre')}</span>
                 </div>
             </div>
             <div class="mt-foot">
@@ -697,7 +699,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!task.statement_url) {
       if (placeholder) {
         placeholder.style.display = 'block';
-        placeholder.innerHTML = `<p>No statement available</p>`;
+        placeholder.innerHTML = `<p>${loc('nostatement', 'No statement available')}</p>`;
       }
       return;
     }
@@ -776,9 +778,9 @@ document.addEventListener('DOMContentLoaded', function() {
       div.className = 'point-item';
 
       const inputClass = isPretest ? 'grid-input pretest-input' : 'grid-input';
-      const labelText = isPretest ? `<span class="text-warning">Pre ${i + 1}</span>` : `${i + 1}`;
+      const labelText = isPretest ? `<span class="text-warning">${loc('pretest', 'Pre')} ${i + 1}</span>` : `${i + 1}`;
 
-      div.innerHTML = `<label>${labelText}</label><input type="text" class="${inputClass}" data-index="${i}" value="${val}" title="${isPretest ? 'Pretest' : 'Main Test'}">`;
+      div.innerHTML = `<label>${labelText}</label><input type="text" class="${inputClass}" data-index="${i}" value="${val}" title="${isPretest ? loc('pretest', 'Pretest') : loc('maintest', 'Main Test')}">`;
       visualGrid.appendChild(div);
     }
     visualGrid.querySelectorAll('.grid-input').forEach((inp) => {

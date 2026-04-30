@@ -2,9 +2,9 @@
     
     <div class="mb-3 d-flex flex-wrap justify-content-center align-items-center" style="gap: 12px;">
         <div class="d-flex align-items-center bg-light p-1 rounded border shadow-sm">
-            <label for="task-dynamics-select" class="me-2 ms-2 fw-bold text-muted text-nowrap" style="font-size: 0.85rem;">Task:</label>
+            <label for="task-dynamics-select" class="me-2 ms-2 fw-bold text-muted text-nowrap" style="font-size: 0.85rem;">{{#str}} task, mod_bacs {{/str}}:</label>
             <select id="task-dynamics-select" class="form-select form-select-sm border-0" style="min-width: 150px; background: transparent;">
-                <option value="-1">All Tasks</option>
+                <option value="-1">{{#str}} alltasks, mod_bacs {{/str}}</option>
                 {{#tasks_for_template}}
                     <option value="{{task_id}}">{{task_order}}. {{name}}</option>
                 {{/tasks_for_template}}
@@ -12,23 +12,23 @@
         </div>
         
         <div class="d-flex align-items-center bg-light p-1 rounded border shadow-sm">
-            <label for="student-dynamics-select" class="me-2 ms-2 fw-bold text-muted text-nowrap" style="font-size: 0.85rem;">Participant:</label>
+            <label for="student-dynamics-select" class="me-2 ms-2 fw-bold text-muted text-nowrap" style="font-size: 0.85rem;">{{#str}} participant, mod_bacs {{/str}}:</label>
             <select id="student-dynamics-select" class="form-select form-select-sm border-0" style="min-width: 180px; max-width: 300px; background: transparent;">
-                <option value="-1">All Participants</option>
+                <option value="-1">{{#str}} allparticipants, mod_bacs {{/str}}</option>
             </select>
         </div>
 
         <div class="d-flex align-items-center bg-light p-1 rounded border shadow-sm">
-            <label for="task-dynamics-step-select" class="me-2 ms-2 fw-bold text-muted text-nowrap" style="font-size: 0.85rem;">Interval:</label>
+            <label for="task-dynamics-step-select" class="me-2 ms-2 fw-bold text-muted text-nowrap" style="font-size: 0.85rem;">{{#str}} interval, mod_bacs {{/str}}:</label>
             <select id="task-dynamics-step-select" class="form-select form-select-sm border-0" style="min-width: 100px; background: transparent;">
-                <option value="0" selected>Auto</option>
-                <option value="900">15 min</option>
-                <option value="3600">1 hour</option>
-                <option value="14400">4 hours</option>
-                <option value="43200">12 hours</option>
-                <option value="86400">1 day</option>
-                <option value="259200">3 days</option>
-                <option value="604800">1 week</option>
+                <option value="0" selected>{{#str}} auto, mod_bacs {{/str}}</option>
+                <option value="900">15 {{#str}} min_short, mod_bacs {{/str}}</option>
+                <option value="3600">1 {{#str}} hour_short, mod_bacs {{/str}}</option>
+                <option value="14400">4 {{#str}} hours_short, mod_bacs {{/str}}</option>
+                <option value="43200">12 {{#str}} hours_short, mod_bacs {{/str}}</option>
+                <option value="86400">1 {{#str}} day_short, mod_bacs {{/str}}</option>
+                <option value="259200">3 {{#str}} days_short, mod_bacs {{/str}}</option>
+                <option value="604800">1 {{#str}} week_short, mod_bacs {{/str}}</option>
             </select>
         </div>
     </div>
@@ -36,7 +36,7 @@
     <div class="mb-3 d-flex align-items-center">
         <div>
             <button id="task-dynamics-reset-zoom" class="btn btn-sm btn-outline-danger d-none shadow-sm">
-                <i class="bi bi-zoom-out"></i> Reset Zoom
+                <i class="bi bi-zoom-out"></i> {{#str}} resetzoom, mod_bacs {{/str}}
             </button>
         </div>
         <div class="d-flex flex-wrap justify-content-end align-items-center ms-auto" style="gap: 12px; min-height: 38px;">
@@ -46,11 +46,11 @@
             </div>
 
             <div class="d-flex align-items-center bg-light p-1 rounded border shadow-sm" id="task-dynamics-manual-zoom">
-                <span class="text-muted ms-2 me-2" style="font-size: 0.85rem;"><i class="bi bi-calendar-range"></i> View:</span>
+                <span class="text-muted ms-2 me-2" style="font-size: 0.85rem;"><i class="bi bi-calendar-range"></i> {{#str}} view, mod_bacs {{/str}}:</span>
                 <input type="datetime-local" id="task-zoom-start" class="form-control form-control-sm border-0" style="max-width: 175px; background: transparent;">
                 <span class="text-muted mx-1">—</span>
                 <input type="datetime-local" id="task-zoom-end" class="form-control form-control-sm border-0" style="max-width: 175px; background: transparent;">
-                <button id="task-zoom-apply" class="btn btn-sm btn-primary ms-2 px-3 rounded-pill">Go</button>
+                <button id="task-zoom-apply" class="btn btn-sm btn-primary ms-2 px-3 rounded-pill">{{#str}} apply, mod_bacs {{/str}}</button>
             </div>
         </div>
     </div>
@@ -71,11 +71,11 @@
             <table class="table table-sm table-hover" id="task-details-table">
                 <thead class="table-light">
                     <tr>
-                        <th>Time</th>
-                        <th>User</th>
-                        <th>Task</th>
-                        <th>Verdict</th>
-                        <th>Points</th>
+                        <th>{{#str}} time, mod_bacs {{/str}}</th>
+                        <th>{{#str}} participant, mod_bacs {{/str}}</th>
+                        <th>{{#str}} task, mod_bacs {{/str}}</th>
+                        <th>{{#str}} verdict, mod_bacs {{/str}}</th>
+                        <th>{{#str}} points, mod_bacs {{/str}}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -83,3 +83,7 @@
         </div>
     </div>
 </div>
+
+<script>
+    window.BACS_LOCALIZED_STRINGS = {{{localized_strings_json}}};
+</script>
