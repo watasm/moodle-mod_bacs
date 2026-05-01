@@ -329,15 +329,10 @@ globalMaxSubmitTime = 0;
           }
         }
 
-        const lastPointAdded = smoothData[smoothData.length - 1];
-        if (lastPointAdded.x < maxEventIndex) {
-          smoothData.push({x: maxEventIndex, y: lastRank, realTime: rankSnapshots[maxEventIndex].time, isDummy: true});
-        }
-
         for (let i = smoothData.length - 1; i >= 0; i--) {
           if (!smoothData[i].isDummy) {
- smoothData[i].isLast = true; break;
-}
+             smoothData[i].isLast = true; break;
+          }
         }
 
         if (smoothData.length > 0) {
@@ -349,10 +344,6 @@ globalMaxSubmitTime = 0;
         let filteredData = rankSnapshots.map((snap) => ({
           x: snap.time, y: snap.ranks[user.id] || (students.length + 1), realTime: snap.time
         }));
-
-        if (filteredData.length > 0) {
-          filteredData.push({x: chartMaxXVisual, y: filteredData[filteredData.length - 1].y, realTime: chartMaxXVisual, isDummy: true});
-        }
 
         let smoothData = [];
         if (filteredData.length > 0) {
@@ -366,16 +357,14 @@ globalMaxSubmitTime = 0;
               }
               smoothData.push({...pt});
               currentY = pt.y;
-            } else if (i === filteredData.length - 1) {
-              smoothData.push({...pt});
             }
           }
         }
 
         for (let i = smoothData.length - 1; i >= 0; i--) {
           if (!smoothData[i].isDummy) {
- smoothData[i].isLast = true; break;
-}
+             smoothData[i].isLast = true; break;
+          }
         }
 
         if (smoothData.length > 0) {
