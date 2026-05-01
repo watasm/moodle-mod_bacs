@@ -484,23 +484,29 @@ class Standings {
     this.tasks = tasks;
     this.submits = submits;
     this.course_module_id = course_module_id;
-    this.moodle_user_id = moodle_user_id;
+    this.moodle_user_id = moodle_user_id || 'guest';
     this.contest_starttime = contest_starttime;
     this.contest_endtime = contest_endtime;
-    this.mode = mode;
-    this.hide_upsolving = hide_upsolving;
-    this.hide_inactive = hide_inactive;
     this.has_capability_view_any = has_capability_view_any;
     this.localized_strings = localized_strings;
 
-    this.split_fullname = split_fullname || false;
+    const loadPref = (key, defaultVal) => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('bacs_ui_settings_' + this.moodle_user_id) || '{}');
+        return stored.hasOwnProperty(key) ? stored[key] : defaultVal;
+      } catch (e) { return defaultVal; }
+    };
 
-    // set up default params
-    this.show_first_accepted_flag = true;
-    this.show_incident_flags = false;
-    this.show_testing_flag = true;
-    this.show_submits_upto_best = false;
-    this.show_last_improvement_column = false;
+    this.mode = loadPref('mode', mode);
+    this.hide_upsolving = loadPref('hide_upsolving', hide_upsolving || false);
+    this.hide_inactive = loadPref('hide_inactive', hide_inactive || false);
+    this.split_fullname = loadPref('split_fullname', split_fullname || false);
+    
+    this.show_first_accepted_flag = loadPref('show_first_accepted_flag', true);
+    this.show_incident_flags = loadPref('show_incident_flags', false);
+    this.show_testing_flag = loadPref('show_testing_flag', true);
+    this.show_submits_upto_best = loadPref('show_submits_upto_best', false);
+    this.show_last_improvement_column = loadPref('show_last_improvement_column', false);
 
     // prepare indexes
     this.student_by_id = Object.fromEntries(students.map((student) => [student.user_id, student]));
@@ -567,71 +573,105 @@ class Standings {
       }
     });
 
+    this.sync_ui_elements();
     this.build();
+  }
+
+  save_pref(key, value) {
+    try {
+      const lsKey = 'bacs_ui_settings_' + this.moodle_user_id;
+      let stored = JSON.parse(localStorage.getItem(lsKey) || '{}');
+      stored[key] = value;
+      localStorage.setItem(lsKey, JSON.stringify(stored));
+    } catch (e) {} 
+  }
+
+  sync_ui_elements() {
+    const setCheck = (id, val) => { const el = document.getElementById(id); if (el) el.checked = val; };
+    setCheck('hide_inactive_checkbox', this.hide_inactive);
+    setCheck('show_first_accepted_flag', this.show_first_accepted_flag);
+    setCheck('show_testing_flag', this.show_testing_flag);
+    setCheck('show_submits_upto_best', this.show_submits_upto_best);
+    setCheck('show_last_improvement_column', this.show_last_improvement_column);
+    setCheck('show_incident_flags', this.show_incident_flags);
+    setCheck('split_fullname_checkbox', this.split_fullname); 
+
+    const modeSel = document.getElementById('standings_mode_select');
+    if (modeSel) modeSel.value = this.mode;
+
+    const upBtn = document.getElementById('upsolving_button');
+    if (upBtn) {
+        upBtn.innerHTML = this.hide_upsolving 
+            ? '<i class="bi bi-clock-history"></i> ' + this.get_string('showupsolving', 'Show upsolving') 
+            : '<i class="bi bi-clock-history"></i> ' + this.get_string('hideupsolving', 'Hide upsolving');
+    }
   }
 
   get_string(str, fallback = '') {
     const localized_result = this.localized_strings[str];
-
-    if (!localized_result) {
-      return fallback || `[[${str}]]`;
-    }
-
+    if (!localized_result) return fallback || `[[${str}]]`;
     return localized_result;
   }
 
   toggle_upsolving() {
     this.hide_upsolving = !this.hide_upsolving;
+    this.save_pref('hide_upsolving', this.hide_upsolving);
     this.build();
     return this.hide_upsolving;
   }
 
   toggle_inactive() {
     this.hide_inactive = !this.hide_inactive;
-    localStorage.setItem('standings_hide_inactive', this.hide_inactive);
+    this.save_pref('hide_inactive', this.hide_inactive);
     this.build();
     return this.hide_inactive;
   }
 
   toggle_split_fullname() {
     this.split_fullname = !this.split_fullname;
-    localStorage.setItem('standings_split_fullname', this.split_fullname);
+    this.save_pref('split_fullname', this.split_fullname);
     this.build();
     return this.split_fullname;
   }
 
   toggle_show_first_accepted_flag() {
     this.show_first_accepted_flag = !this.show_first_accepted_flag;
+    this.save_pref('show_first_accepted_flag', this.show_first_accepted_flag);
     this.build();
     return this.show_first_accepted_flag;
   }
 
   toggle_show_incident_flags() {
     this.show_incident_flags = !this.show_incident_flags;
+    this.save_pref('show_incident_flags', this.show_incident_flags);
     this.build();
     return this.show_incident_flags;
   }
 
   toggle_show_testing_flag() {
     this.show_testing_flag = !this.show_testing_flag;
+    this.save_pref('show_testing_flag', this.show_testing_flag);
     this.build();
     return this.show_testing_flag;
   }
 
   toggle_show_submits_upto_best() {
     this.show_submits_upto_best = !this.show_submits_upto_best;
+    this.save_pref('show_submits_upto_best', this.show_submits_upto_best);
     this.build();
     return this.show_submits_upto_best;
   }
 
   toggle_show_last_improvement_column() {
     this.show_last_improvement_column = !this.show_last_improvement_column;
+    this.save_pref('show_last_improvement_column', this.show_last_improvement_column);
     this.build();
     return this.show_last_improvement_column;
   }
 
   set_mode(mode) {
     this.mode = Number(mode);
+    this.save_pref('mode', this.mode);
     this.build();
   }
 
@@ -639,9 +679,7 @@ class Standings {
     var renderer = new StandingsRenderer(this);
 
     // build each line
-    this.students.forEach((student) => {
-      student.build_results();
-    });
+    this.students.forEach((student) => { student.build_results(); });
 
     // sort students
     this.students.sort(renderer.students_strict_comparator);
@@ -670,17 +708,10 @@ class Standings {
     }
 
     // prepare html
-    this.students.forEach((student) => {
-      student.html = renderer.render_student(student);
-    });
+    this.students.forEach((student) => { student.html = renderer.render_student(student); });
 
     // prepare stats
-    this.task_stats = this.tasks.map((task) => ({
-      task,
-      solved: 0,
-      tried: 0,
-    }));
-
+    this.task_stats = this.tasks.map((task) => ({ task, solved: 0, tried: 0 }));
     this.tasks.forEach((task, i) => {
       this.students.forEach((student) => {
         if (student.results[i].accepted) this.task_stats[i].solved += 1;
@@ -695,20 +726,10 @@ class Standings {
     this.html += `<thead>${renderer.render_header()}</thead>`;
 
     this.html += '<tbody>';
-    // rows
-    this.students.forEach((student) => {
-      this.html += student.html;
-    });
-    this.html += '</tbody>';
+    this.students.forEach((student) => { this.html += student.html; });
+    this.html += '</tbody><tfoot><tr><td></td>';
 
-    // stats
-    this.html += '<tfoot>';
-
-    this.html += '<tr>' + '<td></td>';
-
-    if (this.split_fullname) {
-      this.html += '<td></td>';
-    }
+    if (this.split_fullname) this.html += '<td></td>';
 
     this.html +=
       '<td>' +
@@ -723,7 +744,7 @@ class Standings {
 
     this.task_stats.forEach((task_stat) => {
       this.html += `
-                    <td class="cell text-center align-middle">
+        <td class="cell text-center align-middle">
                         <font color="green" title="${task_stat.task.letter}. ${task_stat.task.name}">
                             ${task_stat.solved}
                         </font>
@@ -735,9 +756,9 @@ class Standings {
                 `;
     });
 
-    this.html += '<td></td>' + '</tr>' + '</tfoot>';
-
-    // show
-    document.getElementById('standings_table').innerHTML = this.html;
+    this.html += '<td></td></tr></tfoot>';
+    
+    const tableEl = document.getElementById('standings_table');
+    if (tableEl) tableEl.innerHTML = this.html;
   }
 }

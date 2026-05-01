@@ -42,16 +42,6 @@
 
 {{! Original script for standings.js initialization. }}
 <script type='text/javascript'>
-    var saved_value_hide_inactive = JSON.parse(localStorage.getItem('standings_hide_inactive'));
-    var saved_value_split_fullname = JSON.parse(localStorage.getItem('standings_split_fullname')); // НОВОЕ
-
-    if (document.getElementById('hide_inactive_checkbox')) {
-        document.getElementById('hide_inactive_checkbox').checked = saved_value_hide_inactive;
-    }
-    if (document.getElementById('split_fullname_checkbox')) {
-        document.getElementById('split_fullname_checkbox').checked = saved_value_split_fullname; // НОВОЕ
-    }
-
     var standings = new Standings(
         {{{students_json}}}, 
         {{{tasks_json}}}, 
@@ -62,11 +52,10 @@
         {{endtime}},
         {{mode}},
         false,
-        saved_value_hide_inactive, 
+        false,
         {{#user_capability_viewany}} true {{/user_capability_viewany}}  {{^user_capability_viewany}} false {{/user_capability_viewany}},
         {{{localized_strings_json}}},
-        {{{incidents_json}}},
-        saved_value_split_fullname 
+        {{{incidents_json}}}
     );
 </script>
 

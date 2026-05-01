@@ -131,7 +131,33 @@ class mod_bacs_mod_form extends moodleform_mod
                 'search' => get_string('search', 'bacs'),
                 'add' => get_string('add', 'bacs'),
                 'remove' => get_string('delete', 'bacs'),
-                'tasks' => get_string('tasks', 'bacs')
+                'tasks' => get_string('tasks', 'bacs'),
+                'tasknotfoundid' => get_string('tasknotfoundid', 'bacs'),
+                'warningzeropoints' => get_string('warningzeropoints', 'bacs'),
+                'taskdeletedfromdb' => get_string('taskdeletedfromdb', 'bacs'),
+                'allmaintestsconfigured' => get_string('allmaintestsconfigured', 'bacs'),
+                'onlypretests' => get_string('onlypretests', 'bacs'),
+                'taskrating' => get_string('taskrating', 'bacs'),
+                'cannotconfigdeletedtask' => get_string('cannotconfigdeletedtask', 'bacs'),
+                'configpoints' => get_string('configpoints', 'bacs'),
+                'removefromcontest' => get_string('removefromcontest', 'bacs'),
+                'tests_count' => get_string('tests_count', 'bacs'),
+                'pre_count' => get_string('pre_count', 'bacs'),
+                'full_points' => get_string('full_points', 'bacs'),
+                'dragreorder' => get_string('dragreorder', 'bacs'),
+                'showstatement_btn' => get_string('showstatement_btn', 'bacs'),
+                'hidestatement_btn' => get_string('hidestatement_btn', 'bacs'),
+                'allcollections' => get_string('allcollections', 'bacs'),
+                'timelimit' => get_string('timelimit', 'bacs'),
+                'memorylimit' => get_string('memorylimit', 'bacs'),
+                'testspretests' => get_string('testspretests', 'bacs'),
+                'add_btn' => get_string('add_btn', 'bacs'),
+                'removetask' => get_string('removetask', 'bacs'),
+                'pointssettings' => get_string('pointssettings', 'bacs'),
+                'nostatement' => get_string('nostatement', 'bacs'),
+                'pretest' => get_string('pretest', 'bacs'),
+                'maintest' => get_string('maintest', 'bacs'),
+                'value_short' => get_string('value_short', 'bacs')
             ]
         ];
 
@@ -336,18 +362,18 @@ class mod_bacs_mod_form extends moodleform_mod
     private function get_collection_container($containerid) {
         $display = ($containerid === 'collection_container_all') ? 'block' : 'none';
         
-        $rating_th = $this->has_rating_table ? "<th class='py-2 text-center' style='width: 80px;'>" . get_string('bacsrating:rating', 'bacs') . "</th>" : "";
+        $rating_th = $this->has_rating_table ? "<th class='py-2 text-center' style='width: 70px;'>" . get_string('bacsrating:rating', 'bacs') . "</th>" : "";
 
-        return "<div id='{$containerid}' class='classic-tasks-container border rounded shadow-sm' style='width: 100%; max-height: 400px; overflow-y: auto; display: {$display}; margin-top: 15px;'>
-                <table class='table table-hover table-sm mb-0 bg-white align-middle' style='white-space: nowrap;'>
+        return "<div id='{$containerid}' class='classic-tasks-container border rounded shadow-sm' style='width: 100%; max-height: 400px; overflow-y: auto; display: {$display}; margin-top: 15px; overflow-x: hidden;'>
+                <table class='table table-hover table-sm mb-0 bg-white align-middle' style='white-space: nowrap; table-layout: fixed; width: 100%;'>
                 <thead class='table-light text-muted small text-uppercase'><tr>
-                    <th class='ps-3 py-2' style='width: 80px;'>ID</th>
-                    <th class='py-2'>" . get_string('taskname', 'bacs') . "</th>
-                    <th class='py-2 text-center' style='width: 90px;'>Tests(Pre)</th>
-                    <th class='py-2' style='width: 60px;'>Fmt</th>
+                    <th class='ps-3 py-2' style='width: 65px;'>ID</th>
+                    <th class='py-2' style='width: auto; overflow: hidden; text-overflow: ellipsis;'>" . get_string('taskname', 'bacs') . "</th>
+                    <th class='py-2 text-center' style='width: 105px;'>" . get_string('tests_pre_header', 'bacs') . "</th>
+                    <th class='py-2 text-center' style='width: 60px;'>Fmt</th>
                     {$rating_th}
-                    <th class='py-2'>" . get_string('author', 'bacs') . "</th>
-                    <th class='pe-3 py-2 text-end' style='width: 100px;'></th>
+                    <th class='py-2' style='width: 90px; overflow: hidden; text-overflow: ellipsis;'>" . get_string('author', 'bacs') . "</th>
+                    <th class='pe-2 py-2 text-end' style='width: 110px;'></th>
                     </tr></thead>
                 <tbody>";
     }
@@ -391,7 +417,7 @@ class mod_bacs_mod_form extends moodleform_mod
                 "<td><span class='badge {$fmt_badge} bg-opacity-75' style='font-size: 0.7em;'>{$format}</span></td>" .
                 $rating_td .
                 "<td class='text-muted small text-truncate' style='max-width: 150px;'>{$task->author}</td>" .
-                "<td class='pe-3 text-end'><button type='button' class='btn btn-sm btn-light text-primary border shadow-sm px-3' onclick='window.addTaskClassic({$task->task_id})'>
+                "<td class='pe-2 text-end'><button type='button' class='btn btn-sm btn-light text-primary border shadow-sm px-2 py-1' style='font-size: 0.8rem;' onclick='window.addTaskClassic({$task->task_id})'>
                     <i class=\"bi bi-plus-lg\"></i> " . get_string('add', 'bacs') . "</button></td>" .
                 "</tr>";
     }
@@ -631,38 +657,43 @@ class mod_bacs_mod_form extends moodleform_mod
                     </div>
 
                     <div class="toolbar-box">
-                        <div class="toolbar-row main-tools">
+                        <div class="toolbar-row main-tools d-flex flex-wrap align-items-center" style="gap: 10px;">
                             <div class="btn-group">
                                 <button type="button" class="btn btn-sm btn-light border btn-preset" data-val="0">0</button>
                                 <button type="button" class="btn btn-sm btn-light border btn-preset" data-val="1">1</button>
                                 <button type="button" class="btn btn-sm btn-light border btn-preset" data-val="10">10</button>
                                 <button type="button" class="btn btn-sm btn-light border btn-preset" data-val="100">100</button>
                             </div>
-                            <div class="separator"></div>
-                            <div class="range-inputs">
-                                <label>' . get_string('tests_label', 'bacs') . '</label>
-                                <input type="number" id="range-start" class="modern-input-xs" value="1" min="1">
-                                <span>-</span>
-                                <input type="number" id="range-end" class="modern-input-xs" value="" min="1">
-                                <label class="ml-2">=</label>
-                                <input type="number" id="range-val" class="modern-input-xs highlight-input" placeholder="Val">
-                                <button type="button" id="btn-range-apply" class="btn btn-sm btn-secondary">' . get_string('set_btn', 'bacs') . '</button>
+                            <div class="separator d-none d-md-block"></div>
+                            
+                            <div class="range-inputs d-flex align-items-center flex-wrap" style="gap: 6px;">
+                                <label class="fw-bold" style="font-size: 0.85rem;">' . get_string('tests_label', 'bacs') . '</label>
+                                <input type="number" id="range-start" class="form-control form-control-sm text-center px-1" value="1" min="1" style="width: 50px;">
+                                <span class="text-muted fw-bold">-</span>
+                                <input type="number" id="range-end" class="form-control form-control-sm text-center px-1" value="" min="1" style="width: 50px;">
+                                <span class="text-muted fw-bold">=</span>
+                                <input type="number" id="range-val" class="form-control form-control-sm border-primary text-center px-1" placeholder="' . get_string('value_short', 'bacs') . '" style="width: 60px; background: #f0fdfa;">
+                                <button type="button" id="btn-range-apply" class="btn btn-sm btn-secondary ms-1">' . get_string('set_btn', 'bacs') . '</button>
                             </div>
                         </div>
+                        
                         <div class="w-100 my-2 border-top"></div>
-                        <div class="toolbar-row secondary-tools d-flex justify-content-between align-items-center">
-                            <div class="normalize-group d-flex align-items-center gap-2">
-                                <label style="font-size: 0.85rem; font-weight: 600;">' . get_string('normalizeto', 'bacs') . '</label>
-                                <div class="input-group input-group-sm" style="width: 140px;">
-                                    <input type="number" id="norm-target" class="form-control" value="100" min="1">
-                                    <button type="button" id="btn-normalize" class="btn btn-info text-white ms-1">' . get_string('scale_btn', 'bacs') . '</button>
-                                </div>
-                                <div class="form-check ms-2 mb-0 d-flex align-items-center">
-                                    <input class="form-check-input" type="checkbox" id="norm-include-pretests" style="margin-top: 0;">
-                                    <label class="form-check-label ms-1" for="norm-include-pretests" style="font-size: 0.8rem; line-height: 1.2;">' . get_string('includepretests', 'bacs') . '</label>
-                                </div>
+                        
+                        <div class="toolbar-row secondary-tools d-flex flex-wrap align-items-center mt-2" style="gap: 15px;">
+                            <div class="d-flex align-items-center" style="gap: 8px;">
+                                <label class="mb-0" style="font-size: 0.85rem; font-weight: 600; white-space: nowrap;">' . get_string('normalizeto', 'bacs') . '</label>
+                                <input type="number" id="norm-target" class="form-control form-control-sm text-center" value="100" min="1" style="width: 65px;">
+                                <button type="button" id="btn-normalize" class="btn btn-sm btn-info text-white" style="white-space: nowrap;">' . get_string('scale_btn', 'bacs') . '</button>
                             </div>
-                            <button type="button" id="btn-clear-grid" class="btn btn-sm btn-outline-danger">' . get_string('clearall', 'bacs') . '</button>
+                            
+                            <div class="form-check mb-0 d-flex align-items-center">
+                                <input class="form-check-input mt-0" type="checkbox" id="norm-include-pretests">
+                                <label class="form-check-label ms-2" for="norm-include-pretests" style="font-size: 0.85rem; white-space: nowrap;">' . get_string('includepretests', 'bacs') . '</label>
+                            </div>
+
+                            <div class="ms-auto">
+                                <button type="button" id="btn-clear-grid" class="btn btn-sm btn-outline-danger" style="white-space: nowrap;">' . get_string('clearall', 'bacs') . '</button>
+                            </div>
                         </div>
                     </div>
 

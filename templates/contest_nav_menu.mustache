@@ -251,8 +251,7 @@
 <script type='text/javascript'>
 	function ace_theme_selector_change() {
 		var selector = document.getElementById('ace_theme_selector');
-		localStorage.setItem('ace_saved_theme', selector.value);
-
+		localStorage.setItem('ace_theme_' + '{{target_user_id}}', selector.value);
 		window.location.href = '{{{ace_editor_redirect_url}}}'.replace('{acetheme}', selector.value);
 	}
 </script>
@@ -316,11 +315,11 @@
 
 {{^ace_editor_theme_present}}
     <script type='text/javascript'>
-        if (localStorage.getItem('ace_saved_theme') === null) {
+        const userThemeKey = 'ace_theme_' + '{{target_user_id}}';
+        if (localStorage.getItem(userThemeKey) === null) {
             document.getElementById('ace_theme_selector').value = 'textmate'; // default
         } else {
-            document.getElementById('ace_theme_selector').value = 
-                localStorage.getItem('ace_saved_theme');
+            document.getElementById('ace_theme_selector').value = localStorage.getItem(userThemeKey);
         }
     </script>
 {{/ace_editor_theme_present}}
