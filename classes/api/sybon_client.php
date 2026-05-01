@@ -31,10 +31,10 @@ class sybon_client {
     private $apikey;
 
     /** @var string Sybon checking API URL */
-    private $checkingurl = "https://checking.sybon.org";
+    private $checkingurl = "https://checking.sybon.ru";
 
     /** @var string Sybon archive API URL */
-    private $archiveurl = "https://archive.sybon.org";
+    private $archiveurl = "https://archive.sybon.ru";
 
     /**
      * Construct instance of Sybon API client
