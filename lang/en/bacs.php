@@ -490,3 +490,5 @@ $string['go_to_submission'] = 'Go to submission';
 $string['task_statement_title'] = 'Task statement {$a}';
 $string['no_tasks_available'] = 'There are no tasks available in this contest yet.';
 $string['no_permission_statements'] = 'You do not have permission to view task statements.';
+$string['solutionsentwait'] = 'Solution sent! Waiting for result...';
+$string['networkerror'] = 'Network error while sending!';

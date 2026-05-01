@@ -492,3 +492,5 @@ $string['go_to_submission'] = 'Перейти к сдаче';
 $string['task_statement_title'] = 'Условие задачи {$a}';
 $string['no_tasks_available'] = 'В этом контесте пока нет доступных задач.';
 $string['no_permission_statements'] = 'У вас нет прав для просмотра условий задач.';
+$string['solutionsentwait'] = 'Решение отправлено! Ожидание результата...';
+$string['networkerror'] = 'Сетевая ошибка при отправке!';
