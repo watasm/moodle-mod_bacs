@@ -495,3 +495,5 @@ $string['no_tasks_available'] = 'В этом контесте пока нет д
 $string['no_permission_statements'] = 'У вас нет прав для просмотра условий задач.';
 $string['solutionsentwait'] = 'Решение отправлено! Ожидание результата...';
 $string['networkerror'] = 'Сетевая ошибка при отправке!';
+$string['sybondomain'] = 'Домен Sybon API';
+$string['configsybondomain'] = 'Базовый домен для серверов Sybon (например: sybon.ru или sybon.org)';

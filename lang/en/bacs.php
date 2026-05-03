@@ -493,3 +493,5 @@ $string['no_tasks_available'] = 'There are no tasks available in this contest ye
 $string['no_permission_statements'] = 'You do not have permission to view task statements.';
 $string['solutionsentwait'] = 'Solution sent! Waiting for result...';
 $string['networkerror'] = 'Network error while sending!';
+$string['sybondomain'] = 'Sybon API Domain';
+$string['configsybondomain'] = 'Base domain for Sybon servers (e.g. sybon.ru or sybon.org)';

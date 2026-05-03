@@ -70,14 +70,22 @@ foreach ($contest->tasks as $task) {
     $final_url = $task->statement_url;
 
     if (!empty($urls_assoc)) {
-        $filtered_urls = filter_multilingual_data_statements($urls_assoc, $preferedlanguages, 'url');
-        if(count($preferedlanguages) >= 1) {
-            $final_url = find_value_by_lang_statements($filtered_urls, $preferedlanguages[0], 'url') 
-                      ?? find_value_by_lang_statements($filtered_urls, 'C', 'url') 
-                      ?? find_value_by_lang_statements($filtered_urls, 'RU', 'url') 
-                      ?? $filtered_urls[0]['url'];
-        } else {
-            $final_url = $filtered_urls[0]['url'] ?? $urls_assoc[array_key_first($urls_assoc)];
+        
+        $all_urls = [];
+        foreach ($urls_assoc as $l => $u) {
+            $all_urls[] = ['lang' => strtoupper($l), 'url' => $u];
+        }
+
+        $final_url = find_value_by_lang_statements($all_urls, $currentlang, 'url');
+        
+        if (!$final_url && count($preferedlanguages) >= 1) {
+            $final_url = find_value_by_lang_statements($all_urls, $preferedlanguages[0], 'url');
+        }
+        
+        if (!$final_url) {
+            $final_url = find_value_by_lang_statements($all_urls, 'C', 'url') 
+                      ?? find_value_by_lang_statements($all_urls, 'RU', 'url') 
+                      ?? $all_urls[0]['url'];
         }
 
         foreach ($urls_assoc as $lang => $url) {

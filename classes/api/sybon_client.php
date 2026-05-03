@@ -31,10 +31,10 @@ class sybon_client {
     private $apikey;
 
     /** @var string Sybon checking API URL */
-    private $checkingurl = "https://checking.sybon.ru";
+    private $checkingurl;
 
     /** @var string Sybon archive API URL */
-    private $archiveurl = "https://archive.sybon.ru";
+    private $archiveurl;
 
     /**
      * Construct instance of Sybon API client
@@ -43,6 +43,17 @@ class sybon_client {
      */
     public function __construct($apikey) {
         $this->apikey = $apikey;
+        
+        $domain = get_config('mod_bacs', 'sybondomain');
+        
+        if (empty($domain)) {
+            $domain = 'sybon.ru';
+        }
+        
+        $domain = preg_replace('#^https?://#', '', rtrim($domain, '/'));
+        
+        $this->checkingurl = "https://checking." . $domain;
+        $this->archiveurl = "https://archive." . $domain;
     }
 
     /**

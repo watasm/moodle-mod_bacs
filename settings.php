@@ -40,8 +40,22 @@ if ($ADMIN->fulltree) {
         \mod_bacs\cron_lib::cron_tasks();
     });
 
-    $settings->add(
-        $sybonapikey);
+    $settings->add($sybonapikey);
+
+    $sybondomain = new admin_setting_configtext(
+        'mod_bacs/sybondomain',
+        get_string('sybondomain', 'mod_bacs'),
+        get_string('configsybondomain', 'mod_bacs'),
+        "sybon.ru",
+        PARAM_RAW
+    );
+
+    $sybondomain->set_updatedcallback(function () {
+        \mod_bacs\cron_lib::cron_langs();
+        \mod_bacs\cron_lib::cron_tasks();
+    });
+
+    $settings->add($sybondomain);
 
     $settings->add(
         new admin_setting_configtext(
