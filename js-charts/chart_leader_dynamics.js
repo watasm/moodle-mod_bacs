@@ -41,6 +41,9 @@ window.initializeLeaderDynamicsChart = () => {
   const contestData = window.BACS_PAGE_DATA.contest;
   const durationMs = (contestData.endtime - contestData.starttime) * 1000;
 
+  const studentStarts = {};
+  students.forEach(s => studentStarts[s.id] = s.starttime || contestData.starttime);
+
   let currentMode = "realtime";
 
   const canvasEl = document.getElementById(canvasId);
@@ -155,12 +158,15 @@ window.initializeLeaderDynamicsChart = () => {
 
       if (newPoints > oldTaskScore) {
         userScores[sub.task_id] = newPoints;
-        const timeElapsedMs = Math.max(0, (sub.submit_time - contestData.starttime) * 1000);
+        const uStart = studentStarts[sub.user_id] || contestData.starttime;
+        const timeElapsedMs = Math.max(0, (sub.submit_time - uStart) * 1000);
         const event = {time: timeElapsedMs, userId: sub.user_id, delta: newPoints - oldTaskScore};
         allEvents.push(event);
         eventsByUser[sub.user_id].push(event);
       }
     });
+
+    allEvents.sort((a, b) => a.time - b.time);
 
     let maxContestScore = 0,
 globalMaxSubmitTime = 0;
@@ -386,6 +392,7 @@ globalMaxSubmitTime = 0;
 
       datasets.push({
         label: info.user.name,
+        userId: info.user.id,
         data: info.smoothData,
         baseColor: baseHex,
         borderColor: colorNormal,
@@ -423,8 +430,17 @@ globalMaxSubmitTime = 0;
 
         let dateStr = "";
         if (c.raw.realTime !== undefined) {
-          const d = new Date(contestData.starttime * 1000 + c.raw.realTime);
-          dateStr = ` (${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})})`;
+          const uId = c.dataset.userId;
+          const uStart = studentStarts[uId] || contestData.starttime;
+          const isVirtual = uStart > contestData.starttime;
+
+          if (isVirtual) {
+            const d = new Date(uStart * 1000 + c.raw.realTime);
+            dateStr = ` (${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})}) [${loc('virtual', 'Virtual')}]`;
+          } else {
+            const d = new Date(contestData.starttime * 1000 + c.raw.realTime);
+            dateStr = ` (${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})})`;
+          }
         }
 
         if (mode === "normalized") {

@@ -171,6 +171,7 @@ $strings_for_js = [
     'event'                   => get_string('event', 'mod_bacs'),
     'start'                   => get_string('start', 'mod_bacs'),
     'end'                     => get_string('end', 'mod_bacs'),
+    'virtual'                 => get_string('virtual', 'mod_bacs'),
 ];
 $standings->localizedstringsjsonbacs = json_encode($strings_for_js);
 

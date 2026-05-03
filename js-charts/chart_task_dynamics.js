@@ -33,7 +33,7 @@ window.renderTaskDynamicsGraph = () => {
     canvas.parentElement.style.position = 'relative';
   }
 
-  const submissions = window.BACS_PAGE_DATA.submissions || [];
+  const submissions = (window.BACS_PAGE_DATA.submissions || []).map(sub => ({...sub}));
   const contestData = window.BACS_PAGE_DATA.contest;
   const students = window.BACS_PAGE_DATA.students || [];
   const tasks = window.BACS_PAGE_DATA.tasks || [];
@@ -46,6 +46,18 @@ window.renderTaskDynamicsGraph = () => {
     }
     return fallback;
   };
+
+  const studentStarts = {};
+  students.forEach(s => studentStarts[s.id] = s.starttime || contestData.starttime);
+
+  submissions.forEach(sub => {
+    if (sub._normalized) return;
+    sub.real_submit_time = sub.submit_time;
+    const uStart = studentStarts[sub.user_id] || contestData.starttime;
+    sub.isVirtual = uStart > contestData.starttime;
+    sub.submit_time = contestData.starttime + Math.max(0, sub.real_submit_time - uStart);
+    sub._normalized = true;
+  });
 
   if (select.options.length <= 1 && tasks.length > 0) {
     tasks.forEach((t) => {
@@ -358,7 +370,6 @@ window.renderTaskDynamicsGraph = () => {
       bucketColors.push('transparent');
     } else {
       const dStart = new Date(b.startSec * 1000);
-      // ИСПОЛЬЗУЕМ currentLocale
       let dateStr = `${dStart.getDate()} ${dStart.toLocaleDateString(currentLocale, {month: 'short'}).replace('.', '')}`;
 
       if (stepSeconds < 86400) {
@@ -456,6 +467,7 @@ window.renderTaskDynamicsGraph = () => {
     for (let s of validSessions) {
         const inBg = s._hitbox && (x >= s._hitbox.x && x <= s._hitbox.x + s._hitbox.w && y >= top && y <= bottom);
         const inLabel = s._labelBox && (x >= s._labelBox.x && x <= s._labelBox.x + s._labelBox.w && y >= s._labelBox.y && y <= s._labelBox.y + s._labelBox.h);
+
         if (inBg || inLabel) {
             hoveredSession = s;
             break;
@@ -980,20 +992,22 @@ window.renderTaskDynamicsGraph = () => {
                     const isOk = sub.result_id == VERDICT_ACCEPTED;
                     const timeFromStartStr = BacsUtils.formatTime(sub.submit_time - contestData.starttime);
                     
-                    const dt = new Date(sub.submit_time * 1000);
-                    const realDateStr = `${dt.toLocaleString(currentLocale, {month: 'short', day: 'numeric'})}, ${dt.getHours().toString().padStart(2, '0')}:${dt.getMinutes().toString().padStart(2, '0')}`;
+                    const dt = new Date(sub.real_submit_time * 1000);
+                    const realDateStr = `${dt.toLocaleDateString(currentLocale, {month: 'short', day: 'numeric'})}, ${dt.getHours().toString().padStart(2, '0')}:${dt.getMinutes().toString().padStart(2, '0')}`;
+                    const vBadge = sub.isVirtual ? ` <span class="badge bg-secondary ms-1" style="font-size: 0.65rem;">${loc('virtual', 'Virtual')}</span>` : '';
+                    const finalDateStr = realDateStr + vBadge;
 
                     const starIcon = sub.isFirstBlood ? `<i class="bi bi-star-fill text-warning me-1" title="${loc('firstaccepted', 'First Accepted in contest!')}"></i>` : '';
 
                     const statusBadge = isOk
                       ? `<span style="background: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">${loc('verdict_ok', 'OK')}</span>`
-                      : `<span style="background: #ffe4e6; color: #e11d48; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">${loc('verdict_not_ok', 'FAIL')}</span>`;
+                      : `<span style="background: #ffe4e6; color: #e11d48; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">${loc('fail', 'FAIL')}</span>`;
                     const prog = BacsUtils.getContestProgress(sub.submit_time, contestData.starttime, contestData.endtime);
                     const barHtml = prog.isUpsolving
                       ? `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">[${loc('upsolving_label', 'Upsolving')}]</div>`
                       : `<div style="width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px; margin-top: 6px; overflow: hidden;"><div style="width: ${prog.percent}%; height: 100%; background: ${prog.color};"></div></div><div style="font-size: 0.7rem; color: ${prog.color}; text-align: right; line-height: 1;">${prog.percent.toFixed(0)}%</div>`;
 
-                    return `<tr><td class="align-middle" style="width: 180px;"><div class="fw-bold" style="font-size: 0.85rem; color: #111827;">${realDateStr}</div><div style="font-family: monospace; font-size: 0.8rem; color: #6b7280; margin-top: 2px;">+ ${timeFromStartStr}</div>${barHtml}</td><td class="align-middle fw-500">${studentName}</td><td class="align-middle">${starIcon}${taskName}</td><td class="align-middle">${statusBadge}</td><td class="align-middle fw-bold">${sub.points !== null ? sub.points : '-'}</td></tr>`;
+                    return `<tr><td class="align-middle" style="width: 180px;"><div class="fw-bold" style="font-size: 0.85rem; color: #111827;">${finalDateStr}</div><div style="font-family: monospace; font-size: 0.8rem; color: #6b7280; margin-top: 2px;">+ ${timeFromStartStr}</div>${barHtml}</td><td class="align-middle fw-500">${studentName}</td><td class="align-middle">${starIcon}${taskName}</td><td class="align-middle">${statusBadge}</td><td class="align-middle fw-bold">${sub.points !== null ? sub.points : '-'}</td></tr>`;
                 }).join('');
             }
             if (detailsContainer) {

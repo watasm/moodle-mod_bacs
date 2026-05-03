@@ -328,6 +328,7 @@ $string['usegroupsettings'] = 'Use special settings for this group';
 $string['userdynamics'] = 'User dynamics';
 $string['username'] = 'User name';
 $string['verdict'] = 'Verdict';
+$string['virtual'] = 'Virtual';
 $string['virtualparticipants'] = 'Virtual participants';
 $string['virtualparticipantslist'] = 'Virtual participants list';
 $string['virtualparticipantslistisempty'] = 'Virtual participants list is empty.';

@@ -37,6 +37,9 @@ window.renderResultsGraph = () => {
   const contestData = window.BACS_PAGE_DATA.contest;
   const durationMs = (contestData.endtime - contestData.starttime) * 1000;
 
+  const studentStarts = {};
+  students.forEach(s => studentStarts[s.id] = s.starttime || contestData.starttime);
+
   const canvasEl = document.getElementById(canvasId);
   let dragTooltip = document.getElementById(`${prefix}-drag-tooltip`);
   if (!dragTooltip) {
@@ -186,7 +189,8 @@ taskFullMap = {};
         user.taskScores[sub.task_id] = points;
         user.totalScore += delta;
 
-        const realTimeElapsed = Math.max(0, (sub.submit_time - contestData.starttime) * 1000);
+        const uStart = studentStarts[userId] || contestData.starttime;
+        const realTimeElapsed = Math.max(0, (sub.submit_time - uStart) * 1000);
         if (realTimeElapsed > maxRealSubmitTimeMs) {
  maxRealSubmitTimeMs = realTimeElapsed;
 }
@@ -272,6 +276,7 @@ taskFullMap = {};
 
         datasets.push({
           label: user.name,
+          userId: user.id,
           data: user.data,
           baseColor: baseHex,
           borderColor: colorNormal,
@@ -342,8 +347,17 @@ y = element.y - 12;
         let timeStr = BacsUtils.formatTime(c.raw.realTime / 1000);
         let dateStr = "";
         if (c.raw.realTime !== undefined) {
-          const d = new Date(contestData.starttime * 1000 + c.raw.realTime);
-          dateStr = ` (${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})})`;
+          const uId = c.dataset.userId;
+          const uStart = studentStarts[uId] || contestData.starttime;
+          const isVirtual = uStart > contestData.starttime;
+          
+          if (isVirtual) {
+            const d = new Date(uStart * 1000 + c.raw.realTime);
+            dateStr = ` (${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})}) [${loc('virtual', 'Virtual')}]`;
+          } else {
+            const d = new Date(contestData.starttime * 1000 + c.raw.realTime);
+            dateStr = ` (${d.toLocaleDateString(currentLocale, {day: 'numeric', month: 'short'})} ${d.toLocaleTimeString(currentLocale, {hour: '2-digit', minute: '2-digit'})})`;
+          }
         }
 
         label += `  •  +${timeStr}${dateStr}`;
@@ -394,6 +408,7 @@ y = element.y - 12;
           },
           y: {
             beginAtZero: true,
+            grace: '5%',
             border: {display: false},
             title: {display: true, text: contestData.localizedStrings.points || 'Score', color: TEXT_COLOR, font: {weight: '500'}},
             ticks: {color: TEXT_COLOR, padding: 10},
