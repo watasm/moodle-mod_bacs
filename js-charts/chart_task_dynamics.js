@@ -19,6 +19,8 @@ window.renderTaskDynamicsGraph = () => {
   const detailsTitle = document.getElementById('task-details-title');
   const resetZoomBtn = document.getElementById('task-dynamics-reset-zoom');
   const hideUpsolvingCheckbox = document.getElementById('task-dynamics-hide-upsolving');
+  
+  const disableCompressionCheckbox = document.getElementById('task-dynamics-disable-compression');
 
   const zoomStartInput = document.getElementById('task-zoom-start');
   const zoomEndInput = document.getElementById('task-zoom-end');
@@ -199,6 +201,8 @@ window.renderTaskDynamicsGraph = () => {
     else stepSeconds = 7 * 86400;
   }
 
+  const useCompression = !(disableCompressionCheckbox && disableCompressionCheckbox.checked);
+
   const subsByInterval = new Map();
   relevantSubmissions.forEach((sub) => {
     const idx = Math.floor(sub.submit_time / stepSeconds);
@@ -225,37 +229,50 @@ window.renderTaskDynamicsGraph = () => {
       const diff = nextIdx - currIdx - 1;
 
       if (diff > 0) {
-        if (diff < 2) {
-          for (let j = 1; j <= diff; j++) {
-            finalBuckets.push({
-              isGap: false,
-              startSec: (currIdx + j) * stepSeconds,
-              endSec: (currIdx + j + 1) * stepSeconds,
-              subs: []
-            });
-          }
+        if (useCompression) {
+            if (diff < 2) {
+              for (let j = 1; j <= diff; j++) {
+                finalBuckets.push({
+                  isGap: false,
+                  startSec: (currIdx + j) * stepSeconds,
+                  endSec: (currIdx + j + 1) * stepSeconds,
+                  subs: []
+                });
+              }
+            } else {
+              const gapStart = (currIdx + 1) * stepSeconds;
+              const gapEnd = nextIdx * stepSeconds;
+              const skipDur = gapEnd - gapStart;
+
+              let slots = 1;
+              if (skipDur < 86400) slots = 1;
+              else if (skipDur < 3 * 86400) slots = 2;
+              else if (skipDur < 7 * 86400) slots = 3;
+              else slots = 4;
+
+              const gapId = 'gap_' + gapStart;
+              for (let s = 0; s < slots; s++) {
+                finalBuckets.push({
+                  isGap: true,
+                  gapId: gapId,
+                  startSec: gapStart,
+                  endSec: gapEnd,
+                  skipDur: skipDur,
+                  subs: []
+                });
+              }
+            }
         } else {
-          const gapStart = (currIdx + 1) * stepSeconds;
-          const gapEnd = nextIdx * stepSeconds;
-          const skipDur = gapEnd - gapStart;
-
-          let slots = 1;
-          if (skipDur < 86400) slots = 1;
-          else if (skipDur < 3 * 86400) slots = 2;
-          else if (skipDur < 7 * 86400) slots = 3;
-          else slots = 4;
-
-          const gapId = 'gap_' + gapStart;
-          for (let s = 0; s < slots; s++) {
-            finalBuckets.push({
-              isGap: true,
-              gapId: gapId,
-              startSec: gapStart,
-              endSec: gapEnd,
-              skipDur: skipDur,
-              subs: []
-            });
-          }
+            const safeDiff = Math.min(diff, 5000); 
+            
+            for (let j = 1; j <= safeDiff; j++) {
+                finalBuckets.push({
+                    isGap: false,
+                    startSec: (currIdx + j) * stepSeconds,
+                    endSec: (currIdx + j + 1) * stepSeconds,
+                    subs: []
+                });
+            }
         }
       }
     }
@@ -263,14 +280,27 @@ window.renderTaskDynamicsGraph = () => {
 
   const lastBucketEnd = finalBuckets.length > 0 ? finalBuckets[finalBuckets.length - 1].endSec : 0;
   if (lastBucketEnd < contestData.endtime && (!hideUpsolvingCheckbox || !hideUpsolvingCheckbox.checked)) {
-      finalBuckets.push({
-          isGap: true,
-          gapId: 'gap_trailing',
-          startSec: lastBucketEnd,
-          endSec: contestData.endtime,
-          skipDur: contestData.endtime - lastBucketEnd,
-          subs: []
-      });
+      if (useCompression) {
+          finalBuckets.push({
+              isGap: true,
+              gapId: 'gap_trailing',
+              startSec: lastBucketEnd,
+              endSec: contestData.endtime,
+              skipDur: contestData.endtime - lastBucketEnd,
+              subs: []
+          });
+      } else {
+          const trailDiff = Math.floor((contestData.endtime - lastBucketEnd) / stepSeconds);
+          const safeTrail = Math.min(trailDiff, 5000);
+          for (let j = 0; j <= safeTrail; j++) {
+             finalBuckets.push({
+                isGap: false,
+                startSec: lastBucketEnd + (j * stepSeconds),
+                endSec: lastBucketEnd + ((j + 1) * stepSeconds),
+                subs: []
+             }); 
+          }
+      }
   }
 
   finalBuckets.forEach(b => {
@@ -1085,6 +1115,11 @@ window.renderTaskDynamicsGraph = () => {
   addSafeListener(resetZoomBtn, 'click', function() {
     if (window.taskDynamicsChartInstance) window.taskDynamicsChartInstance.resetZoom();
     this.classList.add('d-none');
+  });
+
+  // НОВЫЙ СЛУШАТЕЛЬ ДЛЯ ЧЕКБОКСА ОТКЛЮЧЕНИЯ СЖАТИЯ
+  addSafeListener(document.getElementById('task-dynamics-disable-compression'), 'change', () => {
+    if (typeof window.renderTaskDynamicsGraph === 'function') window.renderTaskDynamicsGraph();
   });
 
   addSafeListener(hideUpsolvingCheckbox, 'change', () => {

@@ -497,3 +497,5 @@ $string['solutionsentwait'] = 'Решение отправлено! Ожидан
 $string['networkerror'] = 'Сетевая ошибка при отправке!';
 $string['sybondomain'] = 'Домен Sybon API';
 $string['configsybondomain'] = 'Базовый домен для серверов Sybon (например: sybon.ru или sybon.org)';
+$string['participants'] = 'Участники';
+$string['disablecompression'] = 'Без сжатия времени';

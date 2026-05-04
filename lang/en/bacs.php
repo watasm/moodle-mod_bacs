@@ -495,3 +495,5 @@ $string['solutionsentwait'] = 'Solution sent! Waiting for result...';
 $string['networkerror'] = 'Network error while sending!';
 $string['sybondomain'] = 'Sybon API Domain';
 $string['configsybondomain'] = 'Base domain for Sybon servers (e.g. sybon.ru or sybon.org)';
+$string['participants'] = 'Participants';
+$string['disablecompression'] = 'Real-time scale';
