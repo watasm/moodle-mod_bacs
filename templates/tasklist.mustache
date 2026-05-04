@@ -334,6 +334,43 @@
 </script>
 {{/ws_url}}
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetTaskId = urlParams.get('task_id');
+    
+    if (targetTaskId) {
+        setTimeout(() => {
+            const targetRow = document.getElementById('task_row_' + targetTaskId);
+            if (targetRow) {
+                const toggleCell = targetRow.querySelector('.cursor-pointer');
+                if (toggleCell) toggleCell.click();
+                
+                setTimeout(() => {
+                    targetRow.scrollIntoView({behavior: "smooth", block: "center"});
+                    
+                    Array.from(targetRow.children).forEach(td => {
+                        td.style.transition = "background-color 0.2s";
+                        td.style.setProperty("background-color", "rgba(0, 123, 255, 0.08)", "important");
+                    });
+                    
+                    setTimeout(() => { 
+                        Array.from(targetRow.children).forEach(td => {
+                            td.style.removeProperty("background-color");
+                        });
+                    }, 600);
+                }, 400);
+            }
+        }, 100);
+
+        urlParams.delete('task_id');
+        let newUrl = window.location.pathname;
+        if (urlParams.toString()) newUrl += '?' + urlParams.toString();
+        window.history.replaceState(null, '', newUrl);
+    }
+});
+</script>
+
 <style>
     @keyframes spin { 100% { transform: rotate(360deg); } }
     .spin { display: inline-block; animation: spin 2s linear infinite; }

@@ -121,8 +121,17 @@ document.addEventListener("DOMContentLoaded", function() {
             cellA = cellA.replace(/\[.*\]/g, '').trim();
             cellB = cellB.replace(/\[.*\]/g, '').trim();
 
-            let numA = parseFloat(cellA);
-            let numB = parseFloat(cellB);
+            const parseScore = (v) => {
+                if (v.includes(':')) return v.split(':').reduce((acc, val) => (60 * acc) + +val, 0);
+                if (v.includes('/')) {
+                    let [solved, failed] = v.split('/').map(n => parseFloat(n) || 0);
+                    return solved - (failed / 10000);
+                }
+                return parseFloat(v);
+            };
+            let numA = parseScore(cellA);
+            let numB = parseScore(cellB);
+
 
             if (!isNaN(numA) && !isNaN(numB)) {
                 return (numA - numB) * sortDirection;
