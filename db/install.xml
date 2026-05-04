@@ -64,7 +64,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="bacs_tasks_to_contests" COMMENT="This table stores tasks list for each contest, thier order and points settings">
+    <TABLE NAME="bacs_tasks_to_contests" COMMENT="This table stores tasks list for each contest, their order and points settings">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
         <FIELD NAME="task_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Task ID"/>

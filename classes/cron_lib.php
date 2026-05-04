@@ -397,7 +397,7 @@ class cron_lib {
             return;
         }
 
-        // Try to proccess all selected submits.
+        // Try to process all selected submits.
         try {
             self::cron_getresults_for_submits($changedcontests, $runningsubmits);
         } catch (Exception $e) {
@@ -473,7 +473,7 @@ class cron_lib {
 
             $collections = $sybonclient->get_collections();
 
-            $insertedtskids = [];
+            $insertedtaskids = [];
             foreach ($collections as $collectioninfo) {
                 $collectionrecord = new stdClass();
                 $collectionrecord->name = $collectioninfo->name;
@@ -487,11 +487,11 @@ class cron_lib {
                 $collectionproblems = $collection->problems;
 
                 foreach ($collectionproblems as $item) {
-                    if (array_key_exists($item->id, $insertedtskids)) {
+                    if (array_key_exists($item->id, $insertedtaskids)) {
                         continue;
                     }
 
-                    $insertedtskids[$item->id] = true;
+                    $insertedtaskids[$item->id] = true;
 
                     $record = new stdClass();
                     $record->task_id = $item->id;

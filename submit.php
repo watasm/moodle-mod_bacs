@@ -101,7 +101,7 @@ if ($cansubmit && $contest->queryparamsbacs->key == $submitkey) {
         bacs_redirect_via_js("tasks.php?id=" . $contest->coursemodule->id);
     }
 } else {
-    print "Error occured on submitting / Произошла ошибка при отправке";
+    print "Error occurred on submitting / Произошла ошибка при отправке";
 }
 
 die();
