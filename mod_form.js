@@ -89,18 +89,62 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       };
 
-      let fpStart = flatpickr(startInput, {
+      const handleMonthYearChange = function(selectedDates, dateStr, instance) {
+        if (selectedDates.length > 0) {
+          const d = new Date(selectedDates[0]);
+          const targetYear = instance.currentYear;
+          const targetMonth = instance.currentMonth;
+          const targetDay = d.getDate();
+          const maxDays = new Date(targetYear, targetMonth + 1, 0).getDate();
+          
+          d.setFullYear(targetYear);
+          d.setMonth(targetMonth, 1);
+          d.setDate(Math.min(targetDay, maxDays));
+          
+          instance.setDate(d, true);
+        }
+      };
+
+       let fpStart = flatpickr(startInput, {
         enableTime: true,
         dateFormat: 'Y-m-d H:i',
         time_24hr: true,
         allowInput: true,
         defaultDate: getMoodleDate('starttime'),
+        onReady: function(selectedDates, dateStr, instance) {
+          instance.calendarContainer.querySelectorAll('.flatpickr-hour, .flatpickr-minute').forEach(function(inp) {
+            inp.addEventListener('keyup', function() {
+              setTimeout(function() {
+                const h = instance.calendarContainer.querySelector('.flatpickr-hour');
+                const m = instance.calendarContainer.querySelector('.flatpickr-minute');
+                const d = instance.selectedDates[0] ? new Date(instance.selectedDates[0]) : new Date();
+                if (h && h.value !== '') d.setHours(parseInt(h.value) || 0);
+                if (m && m.value !== '') d.setMinutes(parseInt(m.value) || 0);
+                updateSelects('starttime', d);
+                startInput.value = instance.formatDate(d, 'Y-m-d H:i');
+              }, 0);
+            });
+          });
+        },
         onChange: function(selectedDates) {
           if (selectedDates[0]) {
             updateSelects('starttime', selectedDates[0]);
+            const currentEndDate = fpEnd.selectedDates[0] || getMoodleDate('endtime');
+            if (currentEndDate < selectedDates[0]) {
+              const newEnd = new Date(selectedDates[0]);
+              newEnd.setHours(currentEndDate.getHours());
+              newEnd.setMinutes(currentEndDate.getMinutes());
+              fpEnd.setDate(newEnd, false);
+              updateSelects('endtime', newEnd);
+            }
             fpEnd.set('minDate', selectedDates[0]);
           }
         },
+        onMonthChange: handleMonthYearChange,
+        onYearChange: handleMonthYearChange,
+        onTimeChange: function(selectedDates) {
+          if (selectedDates[0]) updateSelects('starttime', selectedDates[0]);
+        }
       });
 
       let fpEnd = flatpickr(endInput, {
@@ -110,16 +154,45 @@ document.addEventListener('DOMContentLoaded', function() {
         allowInput: true,
         defaultDate: getMoodleDate('endtime'),
         minDate: getMoodleDate('starttime'),
+        onReady: function(selectedDates, dateStr, instance) {
+          instance.calendarContainer.querySelectorAll('.flatpickr-hour, .flatpickr-minute').forEach(function(inp) {
+            inp.addEventListener('keyup', function() {
+              setTimeout(function() {
+                const h = instance.calendarContainer.querySelector('.flatpickr-hour');
+                const m = instance.calendarContainer.querySelector('.flatpickr-minute');
+                const d = instance.selectedDates[0] ? new Date(instance.selectedDates[0]) : new Date();
+                if (h && h.value !== '') d.setHours(parseInt(h.value) || 0);
+                if (m && m.value !== '') d.setMinutes(parseInt(m.value) || 0);
+                updateSelects('endtime', d);
+                endInput.value = instance.formatDate(d, 'Y-m-d H:i');
+              }, 0);
+            });
+          });
+        },
         onChange: function(selectedDates) {
           if (selectedDates[0]) {
             updateSelects('endtime', selectedDates[0]);
           }
         },
+        onMonthChange: handleMonthYearChange,
+        onYearChange: handleMonthYearChange,
+        onTimeChange: function(selectedDates) {
+          if (selectedDates[0]) updateSelects('endtime', selectedDates[0]);
+        }
       });
 
       startInput.addEventListener('blur', function() {
         if (fpStart.selectedDates[0]) {
           updateSelects('starttime', fpStart.selectedDates[0]);
+          
+          const currentEndDate = fpEnd.selectedDates[0] || getMoodleDate('endtime');
+          if (currentEndDate < fpStart.selectedDates[0]) {
+            const newEnd = new Date(fpStart.selectedDates[0]);
+            newEnd.setHours(currentEndDate.getHours());
+            newEnd.setMinutes(currentEndDate.getMinutes());
+            fpEnd.setDate(newEnd, false);
+            updateSelects('endtime', newEnd);
+          }
           fpEnd.set('minDate', fpStart.selectedDates[0]);
         }
       });

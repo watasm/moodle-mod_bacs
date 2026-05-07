@@ -24,6 +24,7 @@ if (!hash_equals($submitkey, $key)) {
 try {
     $contest = new \mod_bacs\contest();
     $contest->queryparamsbacs = (object)['id' => $cmid];
+    $contest->pageisallowedforisolatedparticipantbacs = true; 
     $contest->initialize_page();
 
     $recenttime = time() - 5 * 60;
