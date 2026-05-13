@@ -61,8 +61,12 @@ $tasklist->usercapabilitiesbacs = $contest->usercapabilitiesbacs;
 $tasklist->showpointsbacs       = $contest->get_show_points();
 $tasklist->showmaxpointsbacs    = !empty($contest->bacs->show_max_points);
 
+$target_task_id = optional_param('task_id', 0, PARAM_INT);
+
 foreach ($contest->tasks as $task) {
     $tasklisttask = new stdClass();
+
+    $tasklisttask->is_target_task = ($task->task_id == $target_task_id);
 
     $tasklisttask->show_max_points_setting = !empty($contest->bacs->show_max_points);
 

@@ -43,7 +43,7 @@ const io = new Server(server, {
     }
 });
 
-const activeWatches = new Set();
+const userWatches = new Map();
 
 /**
  * Authenticate incoming socket connections using a JWT provided by the Moodle frontend.
@@ -58,7 +58,7 @@ io.use((socket, next) => {
         if (err) {
             return next(new Error('Authentication failed: Invalid token'));
         }
-        socket.userId = decoded.user_id;
+        socket.userId = Number(decoded.user_id);
         next();
     });
 });
@@ -71,10 +71,22 @@ io.on('connection', (socket) => {
      * Registers a list of submission IDs to be monitored for status changes.
      */
     socket.on('watch_submits', (submitIds) => {
-        if (Array.isArray(submitIds)) {
-            submitIds.forEach(id => activeWatches.add(id));
-            console.log(`[Socket] User ${socket.userId} monitoring IDs:`, submitIds);
+        if (!Array.isArray(submitIds)) return;
+
+        if (!userWatches.has(socket.userId)) {
+            userWatches.set(socket.userId, new Set());
         }
+        
+        const myWatches = userWatches.get(socket.userId);
+
+        submitIds.forEach(id => {
+            const numId = Number(id);
+            if (Number.isInteger(numId) && numId > 0 && myWatches.size < 10) {
+                myWatches.add(numId);
+            }
+        });
+        
+        console.log(`[Socket] User ${socket.userId} is now watching IDs: ${Array.from(myWatches).join(', ')}`);
     });
 });
 
@@ -83,9 +95,12 @@ io.on('connection', (socket) => {
  * Polls Moodle for updates on all active IDs and notifies relevant users.
  */
 setInterval(async() => {
-    if (activeWatches.size === 0) {
- return;
-}
+    const allIdsToWatch = [];
+    userWatches.forEach(watchesSet => allIdsToWatch.push(...watchesSet));
+    
+    if (allIdsToWatch.length === 0) return;
+    
+    console.log(`[Worker] Checking for updates on ${allIdsToWatch} watched IDs...`);
 
     try {
         const response = await fetch(CONFIG.moodleUrl, {
@@ -94,7 +109,7 @@ setInterval(async() => {
                 'Content-Type': 'application/json',
                 'X-Auth-Secret': CONFIG.secret
             },
-            body: JSON.stringify({submit_ids: Array.from(activeWatches)})
+            body: JSON.stringify({submit_ids: allIdsToWatch}) 
         });
 
         if (!response.ok) {
@@ -105,14 +120,21 @@ setInterval(async() => {
 
         if (data.status === 'ok' && data.updated_submits?.length > 0) {
             data.updated_submits.forEach(submit => {
-                // Emit the update only to the specific room belonging to the submit owner.
-                io.to(`user_room_${submit.user_id}`).emit('submit_update', submit);
+                const userId = Number(submit.user_id);
+                const submitId = Number(submit.submit_id);
 
-                activeWatches.delete(submit.submit_id);
-                console.log(`[Worker] Status updated and removed for ID: #${submit.submit_id}`);
+                // Emit the update only to the specific room belonging to the submit owner.
+                io.to(`user_room_${userId}`).emit('submit_update', submit);
+
+                const myWatches = userWatches.get(userId);
+                if (myWatches) {
+                    myWatches.delete(submitId);
+                    
+                    if (myWatches.size === 0) userWatches.delete(userId);
+                }
             });
         }
-    } catch (error) {
+    } catch (error) { 
         console.error('[Worker Error] Synchronization failed:', error.message);
     }
 }, CONFIG.interval);
