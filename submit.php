@@ -89,6 +89,11 @@ if ($cansubmit && $contest->queryparamsbacs->key == $submitkey) {
 
         $submitid = $DB->insert_record('bacs_submits', $record);
 
+        $task = new \mod_bacs\task\sybon_submits_processing();
+        $task->set_custom_data(['singleton' => 1]);
+        $task->set_next_run_time(time());
+        \core\task\manager::reschedule_or_queue_adhoc_task($task);
+
         if ($contest->bacs->detect_incidents == 1) {
             bacs_mark_submit_for_incidents_recalc($submitid);
         }
