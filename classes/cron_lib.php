@@ -892,6 +892,7 @@ class cron_lib {
 
             $incidentids = [];
             foreach ($incidents as $incident) $incidentids[] = $incident->id;
+            if(empty($incidentids))continue;
             [$insql, $inparams] = $DB->get_in_or_equal($incidentids);
             $incidentstosubmits = $DB->get_records_select('bacs_incidents_to_submits', "incident_id $insql", $inparams);
 
