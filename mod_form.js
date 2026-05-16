@@ -293,51 +293,89 @@ document.addEventListener('DOMContentLoaded', function() {
     updateHiddenInputs();
   }
 
-  window.collectionSelectorChange = function() {
-    const selector = getEl('collection_container_selector');
-    if (!selector) {
-      return;
-    }
-    document.querySelectorAll('.classic-tasks-container').forEach((c) => {
-      c.style.display = 'none';
-    });
-    const curr = getEl('collection_container_' + selector.value);
-    if (curr) {
-      curr.style.display = 'block';
-      apply_sort();
-    }
-  };
+  function renderClassicSourceTable() {
+    const tbody = getEl('dynamic_classic_tbody');
+    if (!tbody) return;
 
-  window.tableSearch = function() {
-    const phrase = getEl('search-text').value.toLowerCase();
-    const selector = getEl('collection_container_selector');
-    const currContainer = getEl('collection_container_' + selector.value);
-    if (!currContainer) {
-      return;
-    }
-    currContainer.querySelectorAll('tbody tr').forEach((row) => {
-      let visible = false;
-      Array.from(row.children).forEach((cell, i) => {
-        if (i !== row.children.length - 1 && cell.textContent.toLowerCase().includes(phrase)) {
-          visible = true;
-        }
-      });
-      row.style.display = visible ? '' : 'none';
+    const searchInput = getEl('search-text');
+    const phrase = searchInput ? searchInput.value.toLowerCase() : '';
+    const colSelect = getEl('collection_container_selector');
+    const selectedCol = colSelect ? colSelect.value : 'all';
+    const sortSelect = getEl('bacs_sort_selector');
+    const sortDir = sortSelect ? sortSelect.value.split('_')[1] : null;
+
+    let filtered = allTasks.filter((task) => {
+      if (selectedCol !== 'all' && String(task.collection_id) !== selectedCol) return false;
+      if (phrase) {
+        const matchSearch = String(task.name).toLowerCase().includes(phrase) || 
+                            String(task.task_id).includes(phrase) || 
+                            String(task.author).toLowerCase().includes(phrase);
+        if (!matchSearch) return false;
+      }
+      return true;
     });
-  };
+
+    if (sortDir) {
+      filtered.sort((a, b) => {
+        const ra = parseFloat(a.elo_rating) || 0;
+        const rb = parseFloat(b.elo_rating) || 0;
+        return sortDir === 'asc' ? ra - rb : rb - ra;
+      });
+    }
+
+    const frag = document.createDocumentFragment();
+    
+    filtered.forEach((task) => {
+      const tr = document.createElement('tr');
+      const rVal = task.elo_rating ? Math.round(parseFloat(task.elo_rating)) : 0;
+      
+      const name = escapeHtml(task.name);
+      const format = (task.statement_format || 'PDF').toUpperCase();
+      let fmt_badge = 'bg-light text-dark border border-secondary';
+      if (format === 'HTML') fmt_badge = 'bg-white text-dark border border-secondary';
+      
+      let rating_td = '';
+      if (DATA.hasRatingTable) {
+        if (task.elo_rating) {
+          const badgeClass = getRatingBadgeClass(rVal);
+          rating_td = `<td class='text-center'><span class='badge ${badgeClass} border shadow-sm' title='Rating: ${rVal}'><i class='bi bi-star-fill me-1'></i>${rVal}</span></td>`;
+        } else {
+          rating_td = "<td class='text-center text-muted small'>-</td>";
+        }
+      }
+      
+      const tests_info = `${task.count_tests || 0} <span class='text-muted'>(${task.count_pretests || 0})</span>`;
+      
+      tr.innerHTML = `
+        <td class='ps-3 text-muted small'>${task.task_id}</td>
+        <td class='text-truncate' style='max-width: 250px;'><a href='${task.statement_url}' target='_blank' class='text-decoration-none fw-medium text-dark hover-primary'>${name}</a></td>
+        <td class='text-center'><span class='small fw-medium'>${tests_info}</span></td>
+        <td><span class='badge ${fmt_badge} bg-opacity-75' style='font-size: 0.7em;'>${format}</span></td>
+        ${rating_td}
+        <td class='text-muted small text-truncate' style='max-width: 150px;'>${escapeHtml(task.author)}</td>
+        <td class='pe-2 text-end'><button type='button' class='btn btn-sm btn-light text-primary border shadow-sm px-2 py-1 btn-action-add-cl' style='font-size: 0.8rem;'><i class="bi bi-plus-lg"></i> ${loc('add', 'Add')}</button></td>
+      `;
+      
+      tr.querySelector('.btn-action-add-cl').addEventListener('click', () => {
+        addTask(task);
+      });
+      
+      frag.appendChild(tr);
+    });
+    
+    tbody.innerHTML = '';
+    tbody.appendChild(frag);
+  }
+
+  getEl('collection_container_selector')?.addEventListener('change', renderClassicSourceTable);
+  getEl('search-text')?.addEventListener('keyup', renderClassicSourceTable);
+  getEl('bacs_sort_selector')?.addEventListener('change', renderClassicSourceTable);
 
   window.cleanSearch = function() {
     const elem = getEl('search-text');
     if (elem) {
       elem.value = '';
-      window.tableSearch();
-    }
-  };
-
-  window.addTaskClassic = function(taskId) {
-    const task = allTasks.find((t) => String(t.task_id) === String(taskId));
-    if (task) {
-      addTask(task);
+      renderClassicSourceTable();
     }
   };
 
@@ -998,44 +1036,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   ptsModal.querySelector('.close-modal')?.addEventListener('click', () => ptsModal.classList.add('hidden'));
 
-  function apply_sort() {
-    var collSelect = document.getElementById('collection_container_selector');
-    if (!collSelect) {
-      return;
-    }
-
-    var container = document.getElementById('collection_container_' + collSelect.value);
-    if (!container) {
-      return;
-    }
-
-    var sortSelect = document.getElementById('bacs_sort_selector');
-    if (!sortSelect || !sortSelect.value) {
-      return;
-    }
-
-    var dir = sortSelect.value.split('_')[1];
-
-    var tbody = container.querySelector('table tbody');
-    if (!tbody) {
-      return;
-    }
-
-    var rows = Array.from(tbody.rows);
-    rows.sort(function(rowA, rowB) {
-      var a = parseFloat(rowA.dataset.rating) || 0;
-      var b = parseFloat(rowB.dataset.rating) || 0;
-      return dir === 'asc' ? a - b : b - a;
-    });
-    rows.forEach(function(row) {
-      tbody.appendChild(row);
-    });
-  }
 
   var sortSelector = document.getElementById('bacs_sort_selector');
-  if (sortSelector) {
-    sortSelector.addEventListener('change', apply_sort);
-  }
 
+  renderClassicSourceTable();
   renderAll();
 });

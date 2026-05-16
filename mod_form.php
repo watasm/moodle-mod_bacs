@@ -127,6 +127,7 @@ class mod_bacs_mod_form extends moodleform_mod
             'collections' => array_values($collections),
             'selectedTaskIds' => $initial_task_ids,
             'savedTestPoints' => $initial_test_points,
+            'hasRatingTable' => $this->has_rating_table,
             'strings' =>[
                 'search' => get_string('search', 'bacs'),
                 'add' => get_string('add', 'bacs'),
@@ -295,9 +296,7 @@ class mod_bacs_mod_form extends moodleform_mod
         }
         $difficulty_analysis_html .= '</div>';
 
-        // Собираем HTML
         $result = '
-            <!-- КНОПКА И ЗАГОЛОВОК -->
             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                 <span class="font-weight-bold text-dark fs-5">' . get_string('contesttasks', 'bacs') . '</span>
                 <button type="button" id="open-task-manager-btn" class="btn btn-outline-primary btn-sm fw-medium shadow-sm">
@@ -314,7 +313,7 @@ class mod_bacs_mod_form extends moodleform_mod
             
             '<div class="d-flex align-items-center bg-light p-2 border rounded mb-3 flex-wrap gap-2">
                 <span class="text-muted small fw-bold text-uppercase me-2 ms-2">' . get_string('alltasksfrom', 'bacs') . ':</span>
-                <select class="form-select form-select-sm w-auto border-0 bg-white shadow-sm flex-grow-1" id="collection_container_selector" onchange="window.collectionSelectorChange(); window.tableSearch();" style="max-width: 300px;">
+                <select class="form-select form-select-sm w-auto border-0 bg-white shadow-sm flex-grow-1" id="collection_container_selector" style="max-width: 300px;">
                     <option value="all">' . get_string('allcollections', 'bacs') . '</option>';
         
         foreach ($collectionsinfo as $collectioninfo) {
@@ -335,26 +334,25 @@ class mod_bacs_mod_form extends moodleform_mod
         $result .= '
                 <div class="input-group input-group-sm shadow-sm ms-auto" style="width: 250px;">
                     <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                    <input class="form-control border-start-0 border-end-0 px-0 search-tasks" type="search" placeholder="' . get_string('search', 'bacs') . '" id="search-text" onkeyup="window.tableSearch()">
+                    <input class="form-control border-start-0 border-end-0 px-0 search-tasks" type="search" placeholder="' . get_string('search', 'bacs') . '" id="search-text">
                     <button class="btn btn-white border border-start-0 text-muted hover-danger" type="button" onclick="window.cleanSearch()"><i class="bi bi-x-lg"></i></button>
                 </div>
             </div>';
 
-        foreach ($collectionsinfo as $collectioninfo) {
-            $result .= $this->get_collection_container("collection_container_" . $collectioninfo->collection_id);
-            foreach ($alltasks as $curtask) {
-                if ($curtask->collection_id == $collectioninfo->collection_id) {
-                    $result .= $this->get_tablein($curtask);
-                }
-            }
-            $result .= "</tbody></table></div>";
-        }
+        $rating_th = $this->has_rating_table ? "<th class='py-2 text-center' style='width: 70px;'>" . get_string('bacsrating:rating', 'bacs') . "</th>" : "";
 
-        $result .= $this->get_collection_container("collection_container_all");
-        foreach ($alltasks as $curtask) {
-            $result .= $this->get_tablein($curtask);
-        }
-        $result .= "</tbody></table></div>";
+        $result .= "<div id='classic_tasks_container_dynamic' class='classic-tasks-container border rounded shadow-sm' style='width: 100%; max-height: 400px; overflow-y: auto; display: block; margin-top: 15px; overflow-x: hidden;'>
+                <table class='table table-hover table-sm mb-0 bg-white align-middle' style='white-space: nowrap; table-layout: fixed; width: 100%;'>
+                <thead class='table-light text-muted small text-uppercase'><tr>
+                    <th class='ps-3 py-2' style='width: 65px;'>ID</th>
+                    <th class='py-2' style='width: auto; overflow: hidden; text-overflow: ellipsis;'>" . get_string('taskname', 'bacs') . "</th>
+                    <th class='py-2 text-center' style='width: 105px;'>" . get_string('tests_pre_header', 'bacs') . "</th>
+                    <th class='py-2 text-center' style='width: 60px;'>Fmt</th>
+                    {$rating_th}
+                    <th class='py-2' style='width: 90px; overflow: hidden; text-overflow: ellipsis;'>" . get_string('author', 'bacs') . "</th>
+                    <th class='pe-2 py-2 text-end' style='width: 110px;'></th>
+                    </tr></thead>
+                <tbody id='dynamic_classic_tbody'></tbody></table></div></div>";
 
         return $result;
     }
