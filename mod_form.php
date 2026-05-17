@@ -96,15 +96,17 @@ class mod_bacs_mod_form extends moodleform_mod
         $is_plugin_presented = $rating_plugin_info && $rating_plugin_info->is_installed_and_upgraded() && $rating_plugin_info->is_enabled();
         $this->has_rating_table = $is_plugin_presented && $DB->get_manager()->table_exists('bacs_rating_tasks');
 
-        $task_ratings =[];
         if ($this->has_rating_table) {
             $sql_tasks = "SELECT t.task_id, t.name, t.author, t.statement_format, 
                                  t.statement_url, t.test_points as default_points,
                                  t.count_tests, t.count_pretests, t.time_limit_millis, t.memory_limit_bytes,
-                                 tc.collection_id, COALESCE(rt.elo_rating, 1200) as elo_rating
+                                 tc.collection_id, 
+                                 rt.id as rt_id, rt.elo_rating, rt.submit_count, rt.contest_count, rt.seen_by_count, rt.solved,
+                                 ri.atstng_rating
                           FROM {bacs_tasks} t
                           LEFT JOIN {bacs_tasks_to_collections} tc ON t.task_id = tc.task_id
-                          LEFT JOIN {bacs_rating_tasks} rt ON t.task_id = rt.task_id";
+                          LEFT JOIN {bacs_rating_tasks} rt ON t.task_id = rt.task_id
+                          LEFT JOIN {bacs_rating_tasks_init_rating} ri ON t.task_id = ri.task_id";
 
             $raw_ratings = $DB->get_records('bacs_rating_tasks',[], '', 'task_id, elo_rating');
             foreach ($raw_ratings as $r) {
@@ -158,7 +160,16 @@ class mod_bacs_mod_form extends moodleform_mod
                 'nostatement' => get_string('nostatement', 'bacs'),
                 'pretest' => get_string('pretest', 'bacs'),
                 'maintest' => get_string('maintest', 'bacs'),
-                'value_short' => get_string('value_short', 'bacs')
+                'value_short' => get_string('value_short', 'bacs'),
+                'stat_submits' => get_string('stat_submits', 'bacs'),
+                'stat_contests' => get_string('stat_contests', 'bacs'),
+                'stat_seen' => get_string('stat_seen', 'bacs'),
+                'stat_solved' => get_string('stat_solved', 'bacs'),
+                'stat_rating' => get_string('stat_rating', 'bacs'),
+                'stat_atstng' => get_string('stat_atstng', 'bacs'),
+                'stat_min' => get_string('stat_min', 'bacs'),
+                'stat_max' => get_string('stat_max', 'bacs'),
+                'stat_confidence' => get_string('stat_confidence', 'bacs'),
             ]
         ];
 
@@ -339,7 +350,7 @@ class mod_bacs_mod_form extends moodleform_mod
                 </div>
             </div>';
 
-        $rating_th = $this->has_rating_table ? "<th class='py-2 text-center' style='width: 70px;'>" . get_string('bacsrating:rating', 'bacs') . "</th>" : "";
+        $rating_th = $this->has_rating_table ? "<th class='py-2 text-center' style='width: 105px;'>" . get_string('bacsrating:rating', 'bacs') . "</th>" : "";
 
         $result .= "<div id='classic_tasks_container_dynamic' class='classic-tasks-container border rounded shadow-sm' style='width: 100%; max-height: 400px; overflow-y: auto; display: block; margin-top: 15px; overflow-x: hidden;'>
                 <table class='table table-hover table-sm mb-0 bg-white align-middle' style='white-space: nowrap; table-layout: fixed; width: 100%;'>
@@ -360,7 +371,7 @@ class mod_bacs_mod_form extends moodleform_mod
     private function get_collection_container($containerid) {
         $display = ($containerid === 'collection_container_all') ? 'block' : 'none';
         
-        $rating_th = $this->has_rating_table ? "<th class='py-2 text-center' style='width: 70px;'>" . get_string('bacsrating:rating', 'bacs') . "</th>" : "";
+        $rating_th = $this->has_rating_table ? "<th class='py-2 text-center' style='width: 105px;'>" . get_string('bacsrating:rating', 'bacs') . "</th>" : "";
 
         return "<div id='{$containerid}' class='classic-tasks-container border rounded shadow-sm' style='width: 100%; max-height: 400px; overflow-y: auto; display: {$display}; margin-top: 15px; overflow-x: hidden;'>
                 <table class='table table-hover table-sm mb-0 bg-white align-middle' style='white-space: nowrap; table-layout: fixed; width: 100%;'>
@@ -396,11 +407,44 @@ class mod_bacs_mod_form extends moodleform_mod
 
         $rating_td = "";
         if ($this->has_rating_table) {
-            if (!empty($task->elo_rating)) {
+            $is_rating_set = !empty($task->elo_rating) && !(round($task->elo_rating) == 1200 && empty($task->submit_count));
+            
+            $badge_html = "";
+            if ($is_rating_set) {
                 $r_val = round($task->elo_rating);
                 $badge_class = $this->get_rating_badge_class($r_val);
-                $rating_td = "<td class='text-center'><span class='badge {$badge_class} border shadow-sm' title='Рейтинг задачи: {$r_val}'>
-                    <i class='bi bi-star-fill me-1'></i>{$r_val}</span></td>";
+                $badge_html = "<span class='badge {$badge_class} border shadow-sm' title='Рейтинг задачи: {$r_val}'>
+                    <i class='bi bi-star-fill me-1'></i>{$r_val}</span>";
+            }
+            
+            $has_data = !empty($task->rt_id) || isset($task->atstng_rating);
+            $info_html = "";
+            if ($has_data) {
+                $rows = [];
+                if (isset($task->submit_count)) $rows[] = "<div class='tooltip-row'><span>Submits:</span> <b>{$task->submit_count}</b></div>";
+                if (isset($task->contest_count)) $rows[] = "<div class='tooltip-row'><span>Contests:</span> <b>{$task->contest_count}</b></div>";
+                if (isset($task->seen_by_count)) $rows[] = "<div class='tooltip-row'><span>Seen by:</span> <b>{$task->seen_by_count}</b></div>";
+                if (isset($task->solved)) $rows[] = "<div class='tooltip-row'><span>Solved:</span> <b>{$task->solved}</b></div>";
+                if (isset($task->elo_rating)) $rows[] = "<div class='tooltip-row'><span>Rating:</span> <b>" . round($task->elo_rating, 1) . "</b></div>";
+                if (isset($task->atstng_rating)) $rows[] = "<div class='tooltip-row'><span>ATSTNG:</span> <b>" . round($task->atstng_rating, 1) . "</b></div>";
+                if (isset($task->rating_min)) $rows[] = "<div class='tooltip-row'><span>Min Rating:</span> <b>{$task->rating_min}</b></div>";
+                if (isset($task->rating_max)) $rows[] = "<div class='tooltip-row'><span>Max Rating:</span> <b>{$task->rating_max}</b></div>";
+                if (isset($task->confidence)) $rows[] = "<div class='tooltip-row'><span>Confidence:</span> <b>{$task->confidence}</b></div>";
+                
+                if (!empty($rows)) {
+                    $rows_html = implode('', $rows);
+                    $info_html = "
+                    <span class='bacs-custom-tooltip ms-1'>
+                        <i class='bi bi-info-circle-fill text-secondary' style='font-size: 0.85rem; cursor: help; opacity: 0.6;'></i>
+                        <div class='tooltip-panel'>
+                            {$rows_html}
+                        </div>
+                    </span>";
+                }
+            }
+
+            if ($badge_html || $info_html) {
+                $rating_td = "<td class='text-center'><div class='d-inline-flex align-items-center justify-content-center'>{$badge_html}{$info_html}</div></td>";
             } else {
                 $rating_td = "<td class='text-center text-muted small'>-</td>";
             }

@@ -1078,4 +1078,61 @@
     color: #e0a800 !important;
     font-weight: 700;
 }
+
+/* tooltip */ 
+#bacs-global-tooltip {
+    position: fixed;
+    z-index: 999999;
+    background: #1f2937;
+    color: #f9fafb;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translateX(-50%);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+#bacs-global-tooltip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+}
+
+#bacs-global-tooltip:not(.tooltip-top)::after {
+    bottom: 100%;
+    border-color: transparent transparent #1f2937 transparent;
+}
+
+#bacs-global-tooltip.tooltip-top::after {
+    top: 100%;
+    border-color: #1f2937 transparent transparent transparent;
+}
+
+.tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 4px;
+}
+
+.tooltip-row:last-child {
+    margin-bottom: 0;
+}
+
+.tooltip-row span {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.tooltip-row b {
+    color: #fff;
+    font-weight: 600;
+}
+
 /* stylelint-enable declaration-no-important */

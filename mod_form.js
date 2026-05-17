@@ -241,6 +241,56 @@ document.addEventListener('DOMContentLoaded', function() {
     return 'bg-warning text-dark border-warning';
   }
 
+
+  function getRatingBadgeHtml(task, isMissing = false, marginClass = 'ms-1') {
+    if (isMissing || !DATA.hasRatingTable) return '';
+
+    const hasData = task.rt_id != null || task.atstng_rating != null || task.submit_count != null || task.contest_count != null;
+    
+    let isRealRating = task.elo_rating != null;
+    if (isRealRating) {
+        const val = parseFloat(task.elo_rating);
+        if (!task.submit_count || parseInt(task.submit_count) === 0) {
+            isRealRating = false;
+        }
+    }
+
+    if (!isRealRating && !hasData) return '';
+
+    let triggerHtml = '';
+
+    if (isRealRating) {
+        let rVal = Math.round(parseFloat(task.elo_rating));
+        let badgeClass = getRatingBadgeClass(rVal);
+        let starColor = badgeClass.includes('text-dark') ? 'text-dark' : 'text-white';
+        triggerHtml = `<span class="badge ${badgeClass} shadow-sm bacs-rating-trigger" style="cursor: help;"><i class="bi bi-star-fill ${starColor} me-1"></i>${rVal}</span>`;
+    } else {
+        triggerHtml = `<i class="bi bi-info-circle-fill text-secondary bacs-rating-trigger" style="font-size: 0.95rem; cursor: help; opacity: 0.6;"></i>`;
+    }
+
+    if (!hasData) {
+        return `<span class="bacs-rating-badge-wrapper ${marginClass} d-inline-flex align-items-center">${triggerHtml}</span>`;
+    }
+
+    let rows = [];
+    if (task.submit_count != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_submits', 'Submits')}:</span> <b>${task.submit_count}</b></div>`);
+    if (task.contest_count != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_contests', 'Contests')}:</span> <b>${task.contest_count}</b></div>`);
+    if (task.seen_by_count != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_seen', 'Seen by')}:</span> <b>${task.seen_by_count}</b></div>`);
+    if (task.solved != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_solved', 'Solved')}:</span> <b>${task.solved}</b></div>`);
+    if (task.elo_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_rating', 'Rating')}:</span> <b>${parseFloat(task.elo_rating).toFixed(1)}</b></div>`);
+    if (task.atstng_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_atstng', 'ATSTNG')}:</span> <b>${parseFloat(task.atstng_rating).toFixed(1)}</b></div>`);
+    if (task.rating_min != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_min', 'Min Rating')}:</span> <b>${task.rating_min}</b></div>`);
+    if (task.rating_max != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_max', 'Max Rating')}:</span> <b>${task.rating_max}</b></div>`);
+    if (task.confidence != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_confidence', 'Confidence')}:</span> <b>${task.confidence}</b></div>`);
+
+    return `
+    <span class="bacs-rating-badge-wrapper ${marginClass} d-inline-flex align-items-center">
+        ${triggerHtml}
+        <div class="tooltip-data" style="display: none;">${rows.join('')}</div>
+    </span>`;
+  }
+
+
   const allTasks = DATA.tasks || [];
   let selectedIds = (DATA.selectedTaskIds || []).map(String);
   let pointsMap = DATA.savedTestPoints || {};
@@ -336,9 +386,9 @@ document.addEventListener('DOMContentLoaded', function() {
       
       let rating_td = '';
       if (DATA.hasRatingTable) {
-        if (task.elo_rating) {
-          const badgeClass = getRatingBadgeClass(rVal);
-          rating_td = `<td class='text-center'><span class='badge ${badgeClass} border shadow-sm' title='Rating: ${rVal}'><i class='bi bi-star-fill me-1'></i>${rVal}</span></td>`;
+        let badgeHtml = getRatingBadgeHtml(task, false, '');
+        if (badgeHtml) {
+          rating_td = `<td class='text-center'>${badgeHtml}</td>`;
         } else {
           rating_td = "<td class='text-center text-muted small'>-</td>";
         }
@@ -435,11 +485,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       let ratingBadge = '';
-      if (!isMissing && task.elo_rating !== null && task.elo_rating !== undefined) {
-        let rVal = Math.round(parseFloat(task.elo_rating));
-        let badgeColor = getRatingBadgeClass(rVal);
-        const starColor = badgeColor.includes('text-dark') ? 'text-dark' : 'text-white';
-        ratingBadge = `<span class="badge ${badgeColor} shadow-sm ms-2" title="${loc('taskrating', 'Task rating: {rating}').replace('{rating}', rVal)}"><i class="bi bi-star-fill ${starColor} me-1"></i>${rVal}</span>`;
+      if (!isMissing && DATA.hasRatingTable) {
+        ratingBadge = getRatingBadgeHtml(task, isMissing, 'ms-2');
       }
 
       const settingsBtn = isMissing
@@ -659,11 +706,8 @@ document.addEventListener('DOMContentLoaded', function() {
       el.className = 'm-task-card';
 
       let ratingHtml = '';
-      if (task.elo_rating !== null && task.elo_rating !== undefined) {
-        let rVal = Math.round(parseFloat(task.elo_rating));
-        let badgeClass = getRatingBadgeClass(rVal);
-        ratingHtml = `<span class="badge ${badgeClass} ms-1" style="font-size:0.7rem;">
-    <i class="bi bi-star-fill me-1"></i>${rVal}</span>`;
+      if (DATA.hasRatingTable) {
+        ratingHtml = getRatingBadgeHtml(task, false, 'ms-2');
       }
 
       el.innerHTML = `
@@ -727,11 +771,8 @@ document.addEventListener('DOMContentLoaded', function() {
       ` : '';
 
       let ratingHtml = '';
-      if (!isMissing && task.elo_rating !== null && task.elo_rating !== undefined) {
-        let rVal = Math.round(parseFloat(task.elo_rating));
-        let badgeClass = getRatingBadgeClass(rVal);
-        ratingHtml = `<span class="badge ${badgeClass} ms-2" style="font-size:0.7rem;">
-    <i class="bi bi-star-fill me-1"></i>${rVal}</span>`;
+      if (!isMissing && DATA.hasRatingTable) {
+        ratingHtml = getRatingBadgeHtml(task, isMissing, 'ms-2');
       }
 
       el.innerHTML = `
@@ -1037,7 +1078,51 @@ document.addEventListener('DOMContentLoaded', function() {
   ptsModal.querySelector('.close-modal')?.addEventListener('click', () => ptsModal.classList.add('hidden'));
 
 
-  var sortSelector = document.getElementById('bacs_sort_selector');
+    let globalTooltip = document.getElementById('bacs-global-tooltip');
+  if (!globalTooltip) {
+      globalTooltip = document.createElement('div');
+      globalTooltip.id = 'bacs-global-tooltip';
+      globalTooltip.style.display = 'none';
+      document.body.appendChild(globalTooltip);
+  }
+
+  document.addEventListener('mouseover', function(e) {
+      const trigger = e.target.closest('.bacs-rating-trigger');
+      if (trigger) {
+          const wrapper = trigger.closest('.bacs-rating-badge-wrapper');
+          if (!wrapper) return;
+          const dataDiv = wrapper.querySelector('.tooltip-data');
+          if (dataDiv) {
+              globalTooltip.innerHTML = dataDiv.innerHTML;
+              globalTooltip.style.display = 'block';
+              
+              const rect = trigger.getBoundingClientRect();
+              const tooltipHeight = globalTooltip.offsetHeight;
+              const spaceBottom = window.innerHeight - rect.bottom;
+              
+              if (spaceBottom < tooltipHeight + 15 && rect.top > tooltipHeight + 15) {
+                  globalTooltip.style.top = (rect.top - tooltipHeight - 8) + 'px';
+                  globalTooltip.classList.add('tooltip-top');
+              } else {
+                  globalTooltip.style.top = (rect.bottom + 8) + 'px';
+                  globalTooltip.classList.remove('tooltip-top');
+              }
+              
+              globalTooltip.style.left = (rect.left + rect.width / 2) + 'px';
+          }
+      }
+  });
+
+  document.addEventListener('mouseout', function(e) {
+      const trigger = e.target.closest('.bacs-rating-trigger');
+      if (trigger) {
+          globalTooltip.style.display = 'none';
+      }
+  });
+
+  window.addEventListener('scroll', function() {
+      if (globalTooltip.style.display === 'block') globalTooltip.style.display = 'none';
+  }, true);
 
   renderClassicSourceTable();
   renderAll();
