@@ -96,17 +96,19 @@ class mod_bacs_mod_form extends moodleform_mod
         $is_plugin_presented = $rating_plugin_info && $rating_plugin_info->is_installed_and_upgraded() && $rating_plugin_info->is_enabled();
         $this->has_rating_table = $is_plugin_presented && $DB->get_manager()->table_exists('bacs_rating_tasks');
 
+        $has_expert_rating = $DB->get_manager()->field_exists('bacs_tasks', 'expert_rating');
+        $expert_select = $has_expert_rating ? "t.expert_rating" : "NULL as expert_rating";
+
         if ($this->has_rating_table) {
             $sql_tasks = "SELECT t.task_id, t.name, t.author, t.statement_format, 
                                  t.statement_url, t.test_points as default_points,
                                  t.count_tests, t.count_pretests, t.time_limit_millis, t.memory_limit_bytes,
                                  tc.collection_id, 
-                                 rt.id as rt_id, rt.elo_rating, rt.submit_count, rt.contest_count, rt.seen_by_count, rt.solved,
-                                 ri.atstng_rating
+                                 rt.id as rt_id, rt.elo_rating, rt.init_rating, rt.min_rating, rt.max_rating, rt.confidence, rt.submit_count, rt.contest_count, rt.seen_by_count, rt.solved,
+                                 $expert_select
                           FROM {bacs_tasks} t
                           LEFT JOIN {bacs_tasks_to_collections} tc ON t.task_id = tc.task_id
-                          LEFT JOIN {bacs_rating_tasks} rt ON t.task_id = rt.task_id
-                          LEFT JOIN {bacs_rating_tasks_init_rating} ri ON t.task_id = ri.task_id";
+                          LEFT JOIN {bacs_rating_tasks} rt ON t.task_id = rt.task_id";
 
             $raw_ratings = $DB->get_records('bacs_rating_tasks',[], '', 'task_id, elo_rating');
             foreach ($raw_ratings as $r) {
@@ -116,13 +118,16 @@ class mod_bacs_mod_form extends moodleform_mod
             $sql_tasks = "SELECT t.task_id, t.name, t.author, t.statement_format, 
                                  t.statement_url, t.test_points as default_points,
                                  t.count_tests, t.count_pretests, t.time_limit_millis, t.memory_limit_bytes,
-                                 tc.collection_id, NULL as elo_rating
+                                 tc.collection_id, NULL as elo_rating,
+                                 $expert_select
                           FROM {bacs_tasks} t
                           LEFT JOIN {bacs_tasks_to_collections} tc ON t.task_id = tc.task_id";
         }
         
         $all_tasks_raw = $DB->get_records_sql($sql_tasks);
         $collections = $DB->get_records('bacs_tasks_collections',[], 'id ASC');
+
+        $lang = current_language();
 
         $js_data =[
             'tasks' => array_values($all_tasks_raw),
@@ -166,7 +171,8 @@ class mod_bacs_mod_form extends moodleform_mod
                 'stat_seen' => get_string('stat_seen', 'bacs'),
                 'stat_solved' => get_string('stat_solved', 'bacs'),
                 'stat_rating' => get_string('stat_rating', 'bacs'),
-                'stat_atstng' => get_string('stat_atstng', 'bacs'),
+                'stat_init' => get_string('stat_init', 'bacs'),
+                'stat_expert' => get_string('stat_expert', 'bacs'),
                 'stat_min' => get_string('stat_min', 'bacs'),
                 'stat_max' => get_string('stat_max', 'bacs'),
                 'stat_confidence' => get_string('stat_confidence', 'bacs'),

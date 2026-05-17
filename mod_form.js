@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function getRatingBadgeHtml(task, isMissing = false, marginClass = 'ms-1') {
     if (isMissing || !DATA.hasRatingTable) return '';
 
-    const hasData = task.rt_id != null || task.atstng_rating != null || task.submit_count != null || task.contest_count != null;
+    const hasData = task.rt_id != null || task.expert_rating != null || task.submit_count != null || task.contest_count != null;
     
     let isRealRating = task.elo_rating != null;
     if (isRealRating) {
@@ -278,10 +278,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (task.seen_by_count != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_seen', 'Seen by')}:</span> <b>${task.seen_by_count}</b></div>`);
     if (task.solved != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_solved', 'Solved')}:</span> <b>${task.solved}</b></div>`);
     if (task.elo_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_rating', 'Rating')}:</span> <b>${parseFloat(task.elo_rating).toFixed(1)}</b></div>`);
-    if (task.atstng_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_atstng', 'ATSTNG')}:</span> <b>${parseFloat(task.atstng_rating).toFixed(1)}</b></div>`);
-    if (task.rating_min != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_min', 'Min Rating')}:</span> <b>${task.rating_min}</b></div>`);
-    if (task.rating_max != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_max', 'Max Rating')}:</span> <b>${task.rating_max}</b></div>`);
-    if (task.confidence != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_confidence', 'Confidence')}:</span> <b>${task.confidence}</b></div>`);
+    if (task.init_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_init', 'Init Rating')}:</span> <b>${parseFloat(task.init_rating).toFixed(1)}</b></div>`);
+    if (task.expert_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_expert', 'Expert Rating')}:</span> <b>${parseFloat(task.expert_rating).toFixed(1)}</b></div>`);
+    if (task.min_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_min', 'Min Rating')}:</span> <b>${parseFloat(task.min_rating).toFixed(1)}</b></div>`);
+    if (task.max_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_max', 'Max Rating')}:</span> <b>${parseFloat(task.max_rating).toFixed(1)}</b></div>`);
+    if (task.confidence != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_confidence', 'Confidence')}:</span> <b>${parseFloat(task.confidence).toFixed(2)}</b></div>`);
 
     return `
     <span class="bacs-rating-badge-wrapper ${marginClass} d-inline-flex align-items-center">
