@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/bacs/db" VERSION="20250615" COMMENT="XMLDB file for Moodle mod/bacs"
+<XMLDB PATH="mod/bacs/db" VERSION="20260518" COMMENT="XMLDB file for Moodle mod/bacs"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -45,6 +45,7 @@
         <FIELD NAME="author" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Task author"/>
         <FIELD NAME="revision" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Task revision"/>
         <FIELD NAME="statement_format" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Task statement format"/>
+        <FIELD NAME="expert_rating" TYPE="number" LENGTH="10" DECIMALS="2" NOTNULL="false" SEQUENCE="false" COMMENT="Expert rating for the task"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

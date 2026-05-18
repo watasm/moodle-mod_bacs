@@ -934,5 +934,19 @@ function xmldb_bacs_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2025073100, 'bacs');
     }
 
+    if ($oldversion < 2026051800) {
+        // Define field expert_rating to be added to bacs_tasks.
+        $table = new xmldb_table('bacs_tasks');
+        $field = new xmldb_field('expert_rating', XMLDB_TYPE_NUMBER, '10, 2', null, null, null, null, 'names');
+
+        // Conditionally launch add field expert_rating.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Bacs savepoint reached.
+        upgrade_mod_savepoint(true, 2026051800, 'bacs');
+    }
+
     return true;
 }
