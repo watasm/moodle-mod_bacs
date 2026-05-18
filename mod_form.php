@@ -369,7 +369,7 @@ class mod_bacs_mod_form extends moodleform_mod
                     <th class='py-2' style='width: 90px; overflow: hidden; text-overflow: ellipsis;'>" . get_string('author', 'bacs') . "</th>
                     <th class='pe-2 py-2 text-end' style='width: 110px;'></th>
                     </tr></thead>
-                <tbody id='dynamic_classic_tbody'></tbody></table></div></div>";
+                <tbody id='dynamic_classic_tbody'></tbody></table></div>";
 
         return $result;
     }
