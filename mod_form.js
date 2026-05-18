@@ -96,11 +96,11 @@ document.addEventListener('DOMContentLoaded', function() {
           const targetMonth = instance.currentMonth;
           const targetDay = d.getDate();
           const maxDays = new Date(targetYear, targetMonth + 1, 0).getDate();
-          
+
           d.setFullYear(targetYear);
           d.setMonth(targetMonth, 1);
           d.setDate(Math.min(targetDay, maxDays));
-          
+
           instance.setDate(d, true);
         }
       };
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
       startInput.addEventListener('blur', function() {
         if (fpStart.selectedDates[0]) {
           updateSelects('starttime', fpStart.selectedDates[0]);
-          
+
           const currentEndDate = fpEnd.selectedDates[0] || getMoodleDate('endtime');
           if (currentEndDate < fpStart.selectedDates[0]) {
             const newEnd = new Date(fpStart.selectedDates[0]);
@@ -231,16 +231,19 @@ document.addEventListener('DOMContentLoaded', function() {
   const DATA = window.BACS_FORM_DATA;
   const loc = (key, fallback) => (DATA.strings && DATA.strings[key]) ? DATA.strings[key] : fallback;
 
-  function getRatingBadgeClass(rVal) {
-    if (rVal > 1500) {
-      return 'bg-danger text-white border-danger';
+  function getRatingBadgeClassByConfidence(confidence) {
+    if (confidence == null || isNaN(parseFloat(confidence))) {
+        return 'bg-warning text-dark border-warning';
     }
-    if (rVal < 1000) {
-      return 'bg-success text-white border-success';
+    const val = parseFloat(confidence);
+    if (val > 0.80) {
+        return 'bg-success text-white border-success';
     }
-    return 'bg-warning text-dark border-warning';
+    if (val >= 0.50) {
+        return 'bg-warning text-dark border-warning';
+    }
+    return 'bg-danger text-white border-danger';
   }
-
 
   function getRatingBadgeHtml(task, isMissing = false, marginClass = 'ms-1') {
     if (isMissing || !DATA.hasRatingTable) return '';
@@ -249,7 +252,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let isRealRating = task.elo_rating != null;
     if (isRealRating) {
-        const val = parseFloat(task.elo_rating);
         if (!task.submit_count || parseInt(task.submit_count) === 0) {
             isRealRating = false;
         }
@@ -261,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (isRealRating) {
         let rVal = Math.round(parseFloat(task.elo_rating));
-        let badgeClass = getRatingBadgeClass(rVal);
+        let badgeClass = getRatingBadgeClassByConfidence(task.confidence);
         let starColor = badgeClass.includes('text-dark') ? 'text-dark' : 'text-white';
         triggerHtml = `<span class="badge ${badgeClass} shadow-sm bacs-rating-trigger" style="cursor: help;"><i class="bi bi-star-fill ${starColor} me-1"></i>${rVal}</span>`;
     } else {
@@ -282,7 +284,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (task.expert_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_expert', 'Expert Rating')}:</span> <b>${parseFloat(task.expert_rating).toFixed(1)}</b></div>`);
     if (task.min_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_min', 'Min Rating')}:</span> <b>${parseFloat(task.min_rating).toFixed(1)}</b></div>`);
     if (task.max_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_max', 'Max Rating')}:</span> <b>${parseFloat(task.max_rating).toFixed(1)}</b></div>`);
-    if (task.confidence != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_confidence', 'Confidence')}:</span> <b>${parseFloat(task.confidence).toFixed(2)}</b></div>`);
+    
+    if (task.confidence != null) {
+        let confPercent = Math.round(parseFloat(task.confidence) * 100);
+        rows.push(`<div class="tooltip-row"><span>${loc('stat_confidence', 'Confidence')}:</span> <b>${confPercent}%</b></div>`);
+    }
 
     return `
     <span class="bacs-rating-badge-wrapper ${marginClass} d-inline-flex align-items-center">
@@ -358,8 +364,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let filtered = allTasks.filter((task) => {
       if (selectedCol !== 'all' && String(task.collection_id) !== selectedCol) return false;
       if (phrase) {
-        const matchSearch = String(task.name).toLowerCase().includes(phrase) || 
-                            String(task.task_id).includes(phrase) || 
+        const matchSearch = String(task.name).toLowerCase().includes(phrase) ||
+                            String(task.task_id).includes(phrase) ||
                             String(task.author).toLowerCase().includes(phrase);
         if (!matchSearch) return false;
       }
@@ -375,16 +381,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const frag = document.createDocumentFragment();
-    
+
     filtered.forEach((task) => {
       const tr = document.createElement('tr');
       const rVal = task.elo_rating ? Math.round(parseFloat(task.elo_rating)) : 0;
-      
+
       const name = escapeHtml(task.name);
       const format = (task.statement_format || 'PDF').toUpperCase();
       let fmt_badge = 'bg-light text-dark border border-secondary';
       if (format === 'HTML') fmt_badge = 'bg-white text-dark border border-secondary';
-      
+
       let rating_td = '';
       if (DATA.hasRatingTable) {
         let badgeHtml = getRatingBadgeHtml(task, false, '');
@@ -394,9 +400,9 @@ document.addEventListener('DOMContentLoaded', function() {
           rating_td = "<td class='text-center text-muted small'>-</td>";
         }
       }
-      
+
       const tests_info = `${task.count_tests || 0} <span class='text-muted'>(${task.count_pretests || 0})</span>`;
-      
+
       tr.innerHTML = `
         <td class='ps-3 text-muted small'>${task.task_id}</td>
         <td class='text-truncate' style='max-width: 250px;'><a href='${task.statement_url}' target='_blank' class='text-decoration-none fw-medium text-dark hover-primary'>${name}</a></td>
@@ -406,14 +412,14 @@ document.addEventListener('DOMContentLoaded', function() {
         <td class='text-muted small text-truncate' style='max-width: 150px;'>${escapeHtml(task.author)}</td>
         <td class='pe-2 text-end'><button type='button' class='btn btn-sm btn-light text-primary border shadow-sm px-2 py-1 btn-action-add-cl' style='font-size: 0.8rem;'><i class="bi bi-plus-lg"></i> ${loc('add', 'Add')}</button></td>
       `;
-      
+
       tr.querySelector('.btn-action-add-cl').addEventListener('click', () => {
         addTask(task);
       });
-      
+
       frag.appendChild(tr);
     });
-    
+
     tbody.innerHTML = '';
     tbody.appendChild(frag);
   }
@@ -504,11 +510,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="text-muted me-3 drag-handle" style="cursor: grab; font-size: 1.2rem;" title="${loc('dragreorder', 'Drag to reorder')}">⋮⋮</div>
                 <div class="fw-bold ${isMissing ? 'text-danger' : 'text-dark'} me-3 fs-5" style="width: 25px; flex-shrink: 0;">${letter}.</div>
                 <div class="d-flex flex-column text-truncate pe-3">
-                    <span class="${isMissing ? 'text-danger fw-bold' : 'text-dark fw-medium'} text-truncate d-flex align-items-center" title="${escapeHtml(task.name)}">
-                        <span class="text-truncate" style="max-width: 300px;">${escapeHtml(task.name)}</span>
-                        <span class="ms-1">${statusIcon}</span>
+                    <div class="${isMissing ? 'text-danger fw-bold' : 'text-dark fw-medium'} d-flex align-items-center">
+                        <span class="text-truncate" style="max-width: 300px;" title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</span>
+                        <span class="ms-1 d-inline-flex align-items-center">${statusIcon}</span>
                         ${ratingBadge}
-                    </span>
+                    </div>
                     <span class="${isMissing ? 'text-danger' : 'text-muted'}" style="font-size: 0.75rem; font-family: monospace;">ID: ${task.task_id}</span>
                 </div>
             </div>
@@ -1096,11 +1102,11 @@ document.addEventListener('DOMContentLoaded', function() {
           if (dataDiv) {
               globalTooltip.innerHTML = dataDiv.innerHTML;
               globalTooltip.style.display = 'block';
-              
+
               const rect = trigger.getBoundingClientRect();
               const tooltipHeight = globalTooltip.offsetHeight;
               const spaceBottom = window.innerHeight - rect.bottom;
-              
+
               if (spaceBottom < tooltipHeight + 15 && rect.top > tooltipHeight + 15) {
                   globalTooltip.style.top = (rect.top - tooltipHeight - 8) + 'px';
                   globalTooltip.classList.add('tooltip-top');
@@ -1108,7 +1114,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   globalTooltip.style.top = (rect.bottom + 8) + 'px';
                   globalTooltip.classList.remove('tooltip-top');
               }
-              
+
               globalTooltip.style.left = (rect.left + rect.width / 2) + 'px';
           }
       }
