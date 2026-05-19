@@ -96,7 +96,8 @@ class mod_bacs_mod_form extends moodleform_mod
         $is_plugin_presented = $rating_plugin_info && $rating_plugin_info->is_installed_and_upgraded() && $rating_plugin_info->is_enabled();
         $this->has_rating_table = $is_plugin_presented && $DB->get_manager()->table_exists('bacs_rating_tasks');
 
-        $has_expert_rating = $DB->get_manager()->field_exists('bacs_tasks', 'expert_rating');
+        $bacs_tasks_columns = $DB->get_columns('bacs_tasks');
+        $has_expert_rating = array_key_exists('expert_rating', $bacs_tasks_columns);
         $expert_select = $has_expert_rating ? "t.expert_rating" : "NULL as expert_rating";
 
         if ($this->has_rating_table) {
