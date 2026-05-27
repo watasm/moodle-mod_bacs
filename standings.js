@@ -1,5 +1,40 @@
 /* jshint ignore:start */
 /* eslint-disable */
+
+class StandingsScoringRules {
+  static evaluateSubmission(mode, isAccepted, newPoints, taskState, timeMin) {
+    let isImprovement = false;
+
+    if (mode === this.MODE_ICPC) {
+      isImprovement = isAccepted && !taskState.accepted;
+    } else {
+      isImprovement = newPoints > taskState.bestPoints;
+    }
+
+    if (!isImprovement) {
+      return { isImprovement: false };
+    }
+
+    const pointsDelta = newPoints - taskState.bestPoints;
+    const failedAttempts = taskState.attempts - (isAccepted ? 1 : 0);
+
+    const newPenaltyTime = timeMin + 20 * failedAttempts;
+    const penaltyDelta = newPenaltyTime - taskState.penaltyTime;
+
+    return {
+      isImprovement: true,
+      pointsDelta,
+      penaltyDelta,
+      newPenaltyTime,
+      newPoints,
+    };
+  }
+}
+
+StandingsScoringRules.MODE_IOI = 0;
+StandingsScoringRules.MODE_ICPC = 1;
+StandingsScoringRules.MODE_GENERAL = 2;
+
 class StandingsStudent {
   constructor(student, standings) {
     this.student = student;
@@ -73,18 +108,24 @@ class StandingsStudent {
       result.last_submit_time = Math.max(0, Math.floor((submit.submit_time - this.start_time_cut) / 60));
       result.incident_level = Math.max(result.incident_level, submit.incident_level);
 
-      const is_improvement =
-        this.standings.mode === StandingsRenderer.MODE_ICPC
-          ? submit.accepted && !result.accepted
-          : result.points < submit.points;
+      const evalResult = StandingsScoringRules.evaluateSubmission(
+        this.standings.mode,
+        submit.accepted,
+        submit.points,
+        {
+          bestPoints: result.points,
+          attempts: result.attempts,
+          accepted: result.accepted,
+          penaltyTime: result.penalty_time,
+        },
+        result.last_submit_time,
+      );
 
-      if (is_improvement) {
-        result.points = submit.points;
+      if (evalResult.isImprovement) {
+        result.points = evalResult.newPoints;
         result.attempts_upto_best = result.attempts;
         result.best_submit_time = result.last_submit_time;
-
-        const prev_attempts = result.attempts_upto_best - 1;
-        result.penalty_time = result.best_submit_time + 20 * prev_attempts;
+        result.penalty_time = evalResult.newPenaltyTime;
       }
 
       result.accepted = result.accepted || submit.accepted;
@@ -385,11 +426,17 @@ class StandingsRenderer {
                 </sub>`;
     }
 
+    const renderNameLink = (name) => {
+      return `<a href="/user/view.php?id=${student.user_id}" target="_blank" class="profile-link" style="text-decoration: none; color: var(--bacs-primary-color, #0f6cbf); font-weight: 500;">
+          <i class="bi bi-person-circle text-muted me-1"></i> ${name}
+      </a>`;
+    };
+
     if (this.standings.split_fullname) {
-      html += `<td class="cell align-middle text-nowrap" data-user-id="${student.user_id}">${student.firstname}</td>`;
+      html += `<td class="cell align-middle text-nowrap" data-user-id="${student.user_id}">${renderNameLink(student.firstname)}</td>`;
       html += `<td class="cell align-middle text-nowrap" data-user-id="${student.user_id}">${student.lastname} ${can_view_link_html}</td>`;
     } else {
-      html += `<td class="cell align-middle text-nowrap" data-user-id="${student.user_id}">${student.fullname} ${can_view_link_html}</td>`;
+      html += `<td class="cell align-middle text-nowrap" data-user-id="${student.user_id}">${renderNameLink(student.fullname)} ${can_view_link_html}</td>`;
     }
 
     for (const result of student.results) {
@@ -494,14 +541,16 @@ class Standings {
       try {
         const stored = JSON.parse(localStorage.getItem('bacs_ui_settings_' + this.moodle_user_id) || '{}');
         return stored.hasOwnProperty(key) ? stored[key] : defaultVal;
-      } catch (e) { return defaultVal; }
+      } catch (e) {
+        return defaultVal;
+      }
     };
 
     this.mode = loadPref('mode', mode);
     this.hide_upsolving = loadPref('hide_upsolving', hide_upsolving || false);
     this.hide_inactive = loadPref('hide_inactive', hide_inactive || false);
     this.split_fullname = loadPref('split_fullname', split_fullname || false);
-    
+
     this.show_first_accepted_flag = loadPref('show_first_accepted_flag', true);
     this.show_incident_flags = loadPref('show_incident_flags', false);
     this.show_testing_flag = loadPref('show_testing_flag', true);
@@ -583,27 +632,30 @@ class Standings {
       let stored = JSON.parse(localStorage.getItem(lsKey) || '{}');
       stored[key] = value;
       localStorage.setItem(lsKey, JSON.stringify(stored));
-    } catch (e) {} 
+    } catch (e) {}
   }
 
   sync_ui_elements() {
-    const setCheck = (id, val) => { const el = document.getElementById(id); if (el) el.checked = val; };
+    const setCheck = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = val;
+    };
     setCheck('hide_inactive_checkbox', this.hide_inactive);
     setCheck('show_first_accepted_flag', this.show_first_accepted_flag);
     setCheck('show_testing_flag', this.show_testing_flag);
     setCheck('show_submits_upto_best', this.show_submits_upto_best);
     setCheck('show_last_improvement_column', this.show_last_improvement_column);
     setCheck('show_incident_flags', this.show_incident_flags);
-    setCheck('split_fullname_checkbox', this.split_fullname); 
+    setCheck('split_fullname_checkbox', this.split_fullname);
 
     const modeSel = document.getElementById('standings_mode_select');
     if (modeSel) modeSel.value = this.mode;
 
     const upBtn = document.getElementById('upsolving_button');
     if (upBtn) {
-        upBtn.innerHTML = this.hide_upsolving 
-            ? '<i class="bi bi-clock-history"></i> ' + this.get_string('showupsolving', 'Show upsolving') 
-            : '<i class="bi bi-clock-history"></i> ' + this.get_string('hideupsolving', 'Hide upsolving');
+      upBtn.innerHTML = this.hide_upsolving
+        ? '<i class="bi bi-clock-history"></i> ' + this.get_string('showupsolving', 'Show upsolving')
+        : '<i class="bi bi-clock-history"></i> ' + this.get_string('hideupsolving', 'Hide upsolving');
     }
   }
 
@@ -679,7 +731,9 @@ class Standings {
     var renderer = new StandingsRenderer(this);
 
     // build each line
-    this.students.forEach((student) => { student.build_results(); });
+    this.students.forEach((student) => {
+      student.build_results();
+    });
 
     // sort students
     this.students.sort(renderer.students_strict_comparator);
@@ -708,7 +762,9 @@ class Standings {
     }
 
     // prepare html
-    this.students.forEach((student) => { student.html = renderer.render_student(student); });
+    this.students.forEach((student) => {
+      student.html = renderer.render_student(student);
+    });
 
     // prepare stats
     this.task_stats = this.tasks.map((task) => ({ task, solved: 0, tried: 0 }));
@@ -726,7 +782,9 @@ class Standings {
     this.html += `<thead>${renderer.render_header()}</thead>`;
 
     this.html += '<tbody>';
-    this.students.forEach((student) => { this.html += student.html; });
+    this.students.forEach((student) => {
+      this.html += student.html;
+    });
     this.html += '</tbody><tfoot><tr><td></td>';
 
     if (this.split_fullname) this.html += '<td></td>';
@@ -757,8 +815,78 @@ class Standings {
     });
 
     this.html += '<td></td></tr></tfoot>';
-    
+
     const tableEl = document.getElementById('standings_table');
-    if (tableEl) tableEl.innerHTML = this.html;
+    if (tableEl) {
+      tableEl.innerHTML = this.html;
+      this.attachSortListeners(tableEl);
+    }
+  }
+
+  attachSortListeners(table) {
+    const headers = table.querySelectorAll('thead th');
+    headers.forEach((th, index) => {
+      if (th.classList.contains('sort-enabled')) return;
+
+      th.classList.add('sort-enabled');
+      th.style.cursor = 'pointer';
+      th.title = this.get_string('clicktosort', 'Click to sort');
+      th.innerHTML +=
+        ' <i class="bi bi-arrow-down-up text-muted sort-icon" style="font-size: 0.7em; margin-left: 4px;"></i>';
+
+      th.addEventListener('click', () => this.sortTableDom(table, index));
+    });
+
+    if (this.currentSortCol !== undefined) {
+      this.sortDirection = this.sortDirection * -1;
+      this.sortTableDom(table, this.currentSortCol);
+    }
+  }
+
+  sortTableDom(table, colIndex) {
+    this.currentSortCol = colIndex;
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    this.sortDirection = (this.sortDirection || 1) * -1;
+
+    rows.sort((a, b) => {
+      let cellA = a.cells[colIndex] ? a.cells[colIndex].textContent.trim() : '';
+      let cellB = b.cells[colIndex] ? b.cells[colIndex].textContent.trim() : '';
+
+      cellA = cellA.replace(/\[.*\]/g, '').trim();
+      cellB = cellB.replace(/\[.*\]/g, '').trim();
+
+      const parseScore = (v) => {
+        if (v.includes(':')) return v.split(':').reduce((acc, val) => 60 * acc + +val, 0);
+        if (v.includes('/')) {
+          let [solved, failed] = v.split('/').map((n) => parseFloat(n) || 0);
+          return solved - failed / 10000;
+        }
+        return parseFloat(v);
+      };
+
+      let numA = parseScore(cellA);
+      let numB = parseScore(cellB);
+
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return (numA - numB) * this.sortDirection;
+      }
+      return cellA.localeCompare(cellB) * this.sortDirection;
+    });
+
+    table
+      .querySelectorAll('thead th i.sort-icon')
+      .forEach((i) => (i.className = 'bi bi-arrow-down-up text-muted sort-icon'));
+    const clickedIcon = table.querySelectorAll('thead th')[colIndex].querySelector('i.sort-icon');
+    if (clickedIcon) {
+      clickedIcon.className =
+        this.sortDirection === 1
+          ? 'bi bi-caret-up-fill text-primary sort-icon'
+          : 'bi bi-caret-down-fill text-primary sort-icon';
+    }
+
+    rows.forEach((row) => tbody.appendChild(row));
   }
 }

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   let leaderDynamicsInitialized = false;
 
   const toggleContainer = document.querySelector('.bacs-view-toggles');
@@ -53,16 +53,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const intervalSelect = document.getElementById('task-dynamics-step-select');
 
   if (taskSelect) {
- taskSelect.addEventListener('change', renderTaskGraph);
-}
+    taskSelect.addEventListener('change', renderTaskGraph);
+  }
   if (studentSelect) {
- studentSelect.addEventListener('change', renderTaskGraph);
-}
+    studentSelect.addEventListener('change', renderTaskGraph);
+  }
   if (intervalSelect) {
- intervalSelect.addEventListener('change', renderTaskGraph);
-}
-
-  if (typeof window.renderTaskDynamicsGraph === 'function') {
-    window.renderTaskDynamicsGraph();
+    intervalSelect.addEventListener('change', renderTaskGraph);
   }
 });
