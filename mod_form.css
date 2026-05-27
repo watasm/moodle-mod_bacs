@@ -741,6 +741,12 @@
     font-size: 0.7rem;
     color: #999;
     margin-bottom: 1px;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-align: center;
+    display: block;
 }
 
 .point-item input {
