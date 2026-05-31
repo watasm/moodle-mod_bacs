@@ -1,9 +1,15 @@
-/* global BacsUtils, Chart */
 /* eslint-disable complexity */
 /* eslint-disable object-curly-spacing */
 /* eslint-disable curly */
 /* eslint-disable max-len */
 window.renderTaskDynamicsGraph = () => {
+  const CHART_ICONS = {
+    CALENDAR: '📅',
+    STOPWATCH: '⏱️',
+    TROPHY: '🏆',
+    BULLET: '•',
+  };
+
   const select = document.getElementById('task-dynamics-select');
   const studentSelect = document.getElementById('student-dynamics-select');
   const intervalSelect = document.getElementById('task-dynamics-step-select');
@@ -33,6 +39,8 @@ window.renderTaskDynamicsGraph = () => {
   const currentLocale = BacsUtils.currentLocale();
   const loc = BacsUtils.loc;
   const VERDICT_ACCEPTED = 13;
+
+  console.log(contestData, students, tasks);
 
   const fmtTime = (sec) => {
     const d = new Date(sec * 1000);
@@ -335,69 +343,12 @@ window.renderTaskDynamicsGraph = () => {
     }
   });
 
-  // Session
-
-  const MIN_SUBS_FOR_SESSION = 8;
-  const MIN_USERS_FOR_SESSION = 2;
-
-  const activeSessions = [];
-  let currentSession = null;
-  for (let i = 0; i < finalBuckets.length; i++) {
-    const b = finalBuckets[i];
-    if (!b.isEmpty && !b.isGap) {
-      if (!currentSession) currentSession = { startIdx: i, endIdx: i };
-      currentSession.endIdx = i;
-    } else {
-      if (currentSession && i + 1 < finalBuckets.length && !finalBuckets[i + 1].isEmpty && !b.isGap) {
-        currentSession.endIdx = i;
-      } else {
-        if (currentSession) {
-          activeSessions.push(currentSession);
-          currentSession = null;
-        }
-      }
-    }
-  }
-  if (currentSession) activeSessions.push(currentSession);
-
-  const validSessions = activeSessions.reduce((acc, session) => {
-    let okCount = 0;
-    const users = new Set();
-    const taskCounts = {};
-    const allSubs = [];
-    const failCountsByUser = {};
-    let maxFailsByUser = 0;
-
-    for (let i = session.startIdx; i <= session.endIdx; i++) {
-      const b = finalBuckets[i];
-      if (b.isGap) continue;
-      b.subs.forEach((s) => {
-        allSubs.push(s);
-        users.add(s.user_id);
-        if (s.result_id == VERDICT_ACCEPTED) {
-          okCount++;
-        } else {
-          failCountsByUser[s.user_id] = (failCountsByUser[s.user_id] || 0) + 1;
-          if (failCountsByUser[s.user_id] > maxFailsByUser) maxFailsByUser = failCountsByUser[s.user_id];
-        }
-        taskCounts[s.task_id] = (taskCounts[s.task_id] || 0) + 1;
-      });
-    }
-
-    session.totalSubs = allSubs.length;
-    session.okCount = okCount;
-    session.successRate = session.totalSubs > 0 ? okCount / session.totalSubs : 0;
-    session.uniqueUsers = users.size;
-    session.allSubs = allSubs;
-    session.hasSpammer =
-      session.totalSubs - okCount > 0 && maxFailsByUser / (session.totalSubs - okCount) > 0.5 && maxFailsByUser >= 5;
-    session.topTasks = Object.entries(taskCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3);
-
-    if (session.totalSubs >= MIN_SUBS_FOR_SESSION && session.uniqueUsers >= MIN_USERS_FOR_SESSION) acc.push(session);
-    return acc;
-  }, []);
+  const validSessions = window.BacsSessionAnalytics
+    ? window.BacsSessionAnalytics.findSessions(finalBuckets, VERDICT_ACCEPTED)
+    : [];
+  const sessionAnalyticsPlugin = window.BacsSessionAnalytics
+    ? window.BacsSessionAnalytics.getChartPlugin(validSessions, finalBuckets, getSessionColorScheme, loc)
+    : { id: 'sessionAnalytics' };
 
   const labels = [];
   const okData = [];
@@ -450,8 +401,10 @@ window.renderTaskDynamicsGraph = () => {
   const getSessionAtEvent = (e, chartInstance) => {
     if (!chartInstance) return null;
     const { top, bottom } = chartInstance.chartArea;
-    const x = e.x !== undefined ? e.x : e.offsetX;
-    const y = e.y !== undefined ? e.y : e.offsetY;
+
+    const x = e.native ? e.native.offsetX : e.offsetX;
+    const y = e.native ? e.native.offsetY : e.offsetY;
+
     return (
       validSessions.find(
         (s) =>
@@ -555,10 +508,10 @@ window.renderTaskDynamicsGraph = () => {
       const maxStr = new Date(b.endSec * 1000).toLocaleString(currentLocale, opts);
       const rangeStr = b.startSec === b.endSec ? minStr : `${minStr} —\n${maxStr}`;
       return [
-        `📅 ${loc('period', 'Period:')}`,
+        `${CHART_ICONS.CALENDAR} ${loc('period', 'Period:')}`,
         rangeStr,
         ``,
-        `⏱️ ${loc('elapsedfromstart', 'Elapsed from start: +')} ${BacsUtils.formatTime(b.startSec - contestData.starttime)}`,
+        `${CHART_ICONS.STOPWATCH} ${loc('elapsedfromstart', 'Elapsed from start: +')} ${BacsUtils.formatTime(b.startSec - contestData.starttime)}`,
       ];
     },
     label: (context) => `${context.dataset.label}: ${context.raw}`,
@@ -566,8 +519,10 @@ window.renderTaskDynamicsGraph = () => {
       const b = finalBuckets[context[0].dataIndex];
       if (!b || b.isGap || !b.firstSolvedTasks?.length) return [];
       return [
-        `\n🏆 ${loc('firstaccepted', 'First Accepted:')}`,
-        ...b.firstSolvedTasks.map((sub) => `  • ${taskMap[sub.task_id] || loc('task', 'Task') + ' ' + sub.task_id}`),
+        `\n${CHART_ICONS.TROPHY} ${loc('firstaccepted', 'First Accepted:')}`,
+        ...b.firstSolvedTasks.map(
+          (sub) => `  ${CHART_ICONS.BULLET} ${taskMap[sub.task_id] || loc('task', 'Task') + ' ' + sub.task_id}`,
+        ),
       ];
     },
   });
@@ -701,117 +656,6 @@ window.renderTaskDynamicsGraph = () => {
     },
   };
 
-  const sessionAnalyticsPlugin = {
-    id: 'sessionAnalytics',
-    beforeDatasetsDraw(chart) {
-      const ctx = chart.ctx;
-      const meta = chart.getDatasetMeta(0);
-      const area = chart.chartArea;
-
-      withClip(ctx, area, 0, () => {
-        validSessions.forEach((s) => {
-          const barStart = meta.data[s.startIdx];
-          const barEnd = meta.data[s.endIdx];
-          if (!barStart || !barEnd) return;
-
-          const startX = barStart.x - barStart.width / 2;
-          const endX = barEnd.x + barEnd.width / 2;
-          const width = endX - startX;
-
-          ctx.fillStyle = getSessionColorScheme(s.successRate).bg;
-          ctx.beginPath();
-          ctx.roundRect(startX, area.top, width, area.bottom - area.top, 4);
-          ctx.fill();
-          s._hitbox = { x: startX, w: width };
-        });
-      });
-    },
-
-    afterDatasetsDraw(chart) {
-      const ctx = chart.ctx;
-      const meta0 = chart.getDatasetMeta(0);
-      const meta1 = chart.getDatasetMeta(1);
-      const { top, left, right, bottom } = chart.chartArea;
-
-      withClip(ctx, { left, top, right, bottom }, 25, () => {
-        finalBuckets.forEach((b, i) => {
-          if (!b.firstSolvedTasks?.length) return;
-          const bar0 = meta0.data[i];
-          const bar1 = meta1.data[i];
-          if (!bar0 && !bar1) return;
-
-          const activeBar = bar0 || bar1;
-          const x = activeBar.x;
-          const barWidth = activeBar.width;
-
-          if (x < left || x > right) return;
-
-          let y = Math.min(bar0 ? bar0.y : Infinity, bar1 ? bar1.y : Infinity);
-          if (y === Infinity) y = bottom;
-
-          const starSize = Math.max(11, Math.min(32, barWidth * 0.6));
-          const textSize = Math.max(9, Math.min(16, barWidth * 0.3));
-
-          ctx.fillStyle = '#eab308';
-          ctx.font = `${starSize}px Arial`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText('★', x, y - 2);
-
-          if (b.firstSolvedTasks.length > 1) {
-            ctx.font = `bold ${textSize}px 'Inter', sans-serif`;
-            ctx.textAlign = 'left';
-            ctx.fillText('+' + (b.firstSolvedTasks.length - 1), x + starSize / 2 + 2, y - 2);
-          }
-        });
-
-        validSessions.forEach((s) => {
-          const barStart = meta0.data[s.startIdx];
-          const barEnd = meta0.data[s.endIdx];
-          if (!barStart || !barEnd) return;
-
-          const startX = barStart.x - barStart.width / 2;
-          const endX = barEnd.x + barEnd.width / 2;
-          const width = endX - startX;
-          const midX = startX + width / 2;
-
-          let localPeakY = bottom;
-          for (let i = s.startIdx; i <= s.endIdx; i++) {
-            const b0 = meta0.data[i],
-              b1 = meta1.data[i];
-            if (b0 && b0.y < localPeakY) localPeakY = b0.y;
-            if (b1 && b1.y < localPeakY) localPeakY = b1.y;
-          }
-
-          const text = `${s.totalSubs} ${loc('subs', 'subs')} / ${s.uniqueUsers} ${loc('usr', 'usr')}`;
-          ctx.font = "600 10px 'Inter', sans-serif";
-          let boxW = ctx.measureText(text).width + 16 + (s.hasSpammer ? 16 : 0);
-          const boxH = 20;
-
-          let labelY = Math.max(localPeakY - 14, top + 12);
-          let labelX = Math.min(Math.max(midX, left + boxW / 2 + 2), right - boxW / 2 - 2);
-
-          const { bgSolid, text: textColor, border } = getSessionColorScheme(s.successRate);
-
-          ctx.fillStyle = bgSolid;
-          ctx.beginPath();
-          ctx.roundRect(labelX - boxW / 2, labelY - boxH / 2, boxW, boxH, 4);
-          ctx.fill();
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = border;
-          ctx.stroke();
-
-          ctx.fillStyle = s.hasSpammer ? '#dc2626' : textColor;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText((s.hasSpammer ? '⚠️ ' : '') + text, labelX, labelY + 1);
-
-          s._labelBox = { x: labelX - boxW / 2, y: labelY - boxH / 2, w: boxW, h: boxH };
-        });
-      });
-    },
-  };
-
   const chartCtx = canvas.getContext('2d');
   window.taskDynamicsChartInstance = new Chart(chartCtx, {
     type: 'bar',
@@ -844,7 +688,7 @@ window.renderTaskDynamicsGraph = () => {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { top: 20, right: 20, left: 10, bottom: 10 } },
+      layout: { padding: { top: 10, right: 20, left: 10, bottom: 10 } },
       scales: {
         x: {
           stacked: true,
@@ -868,7 +712,12 @@ window.renderTaskDynamicsGraph = () => {
           stacked: true,
           beginAtZero: true,
           border: { display: false },
-          title: { display: true, text: loc('submits', 'Submissions'), color: TEXT_COLOR, font: { weight: '500' } },
+          title: {
+            display: true,
+            text: loc('submits', 'Submissions'),
+            color: TEXT_COLOR,
+            font: { weight: '500' },
+          },
           ticks: { color: TEXT_COLOR, precision: 0, padding: 10 },
           grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
         },

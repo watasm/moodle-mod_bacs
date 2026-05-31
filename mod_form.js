@@ -1,8 +1,7 @@
-/* eslint-disable no-console */
 /* eslint-disable complexity */
 /* eslint-disable max-len */
 /* global flatpickr, openPointsModal, Sortable*/
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const getEl = (id) => document.getElementById(id);
 
   function formatTime(ms) {
@@ -14,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function escapeHtml(text) {
     return !text
       ? ''
-      : text.replace(/[&<>"']/g, (m) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'})[m]);
+      : text.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m]);
   }
   function parseRawString(str) {
     return !str
@@ -40,6 +39,11 @@ document.addEventListener('DOMContentLoaded', function() {
     settings: `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
     <circle cx="12" cy="12" r="3"></circle>
     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.82 1.82l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
+    drag: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>`,
+    show: `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" style="vertical-align: text-bottom; margin-right: 4px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`,
+    hide: `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" style="vertical-align: text-bottom; margin-right: 4px;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`,
+    sum: `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" style="vertical-align: middle; margin-top: -2px;"><polyline points="18 5 6 5 12 12 6 19 18 19"></polyline></svg>`,
+    bullet: `<svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" stroke="none" style="vertical-align: middle; margin: 0 2px;"><circle cx="12" cy="12" r="4"></circle></svg>`,
   };
 
   // FLATPICKR
@@ -89,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       };
 
-      const handleMonthYearChange = function(selectedDates, dateStr, instance) {
+      const handleMonthYearChange = function (selectedDates, dateStr, instance) {
         if (selectedDates.length > 0) {
           const d = new Date(selectedDates[0]);
           const targetYear = instance.currentYear;
@@ -105,16 +109,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       };
 
-       let fpStart = flatpickr(startInput, {
+      let fpStart = flatpickr(startInput, {
         enableTime: true,
         dateFormat: 'Y-m-d H:i',
         time_24hr: true,
         allowInput: true,
         defaultDate: getMoodleDate('starttime'),
-        onReady: function(selectedDates, dateStr, instance) {
-          instance.calendarContainer.querySelectorAll('.flatpickr-hour, .flatpickr-minute').forEach(function(inp) {
-            inp.addEventListener('keyup', function() {
-              setTimeout(function() {
+        onReady: function (selectedDates, dateStr, instance) {
+          instance.calendarContainer.querySelectorAll('.flatpickr-hour, .flatpickr-minute').forEach(function (inp) {
+            inp.addEventListener('keyup', function () {
+              setTimeout(function () {
                 const h = instance.calendarContainer.querySelector('.flatpickr-hour');
                 const m = instance.calendarContainer.querySelector('.flatpickr-minute');
                 const d = instance.selectedDates[0] ? new Date(instance.selectedDates[0]) : new Date();
@@ -126,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
           });
         },
-        onChange: function(selectedDates) {
+        onChange: function (selectedDates) {
           if (selectedDates[0]) {
             updateSelects('starttime', selectedDates[0]);
             const currentEndDate = fpEnd.selectedDates[0] || getMoodleDate('endtime');
@@ -142,9 +146,9 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         onMonthChange: handleMonthYearChange,
         onYearChange: handleMonthYearChange,
-        onTimeChange: function(selectedDates) {
+        onTimeChange: function (selectedDates) {
           if (selectedDates[0]) updateSelects('starttime', selectedDates[0]);
-        }
+        },
       });
 
       let fpEnd = flatpickr(endInput, {
@@ -154,10 +158,10 @@ document.addEventListener('DOMContentLoaded', function() {
         allowInput: true,
         defaultDate: getMoodleDate('endtime'),
         minDate: getMoodleDate('starttime'),
-        onReady: function(selectedDates, dateStr, instance) {
-          instance.calendarContainer.querySelectorAll('.flatpickr-hour, .flatpickr-minute').forEach(function(inp) {
-            inp.addEventListener('keyup', function() {
-              setTimeout(function() {
+        onReady: function (selectedDates, dateStr, instance) {
+          instance.calendarContainer.querySelectorAll('.flatpickr-hour, .flatpickr-minute').forEach(function (inp) {
+            inp.addEventListener('keyup', function () {
+              setTimeout(function () {
                 const h = instance.calendarContainer.querySelector('.flatpickr-hour');
                 const m = instance.calendarContainer.querySelector('.flatpickr-minute');
                 const d = instance.selectedDates[0] ? new Date(instance.selectedDates[0]) : new Date();
@@ -169,19 +173,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
           });
         },
-        onChange: function(selectedDates) {
+        onChange: function (selectedDates) {
           if (selectedDates[0]) {
             updateSelects('endtime', selectedDates[0]);
           }
         },
         onMonthChange: handleMonthYearChange,
         onYearChange: handleMonthYearChange,
-        onTimeChange: function(selectedDates) {
+        onTimeChange: function (selectedDates) {
           if (selectedDates[0]) updateSelects('endtime', selectedDates[0]);
-        }
+        },
       });
 
-      startInput.addEventListener('blur', function() {
+      startInput.addEventListener('blur', function () {
         if (fpStart.selectedDates[0]) {
           updateSelects('starttime', fpStart.selectedDates[0]);
 
@@ -196,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
           fpEnd.set('minDate', fpStart.selectedDates[0]);
         }
       });
-      endInput.addEventListener('blur', function() {
+      endInput.addEventListener('blur', function () {
         if (fpEnd.selectedDates[0]) {
           updateSelects('endtime', fpEnd.selectedDates[0]);
         }
@@ -211,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const modeCards = document.querySelectorAll('.mode-card');
     if (modeSelect && modeCards.length) {
       modeCards.forEach((c) =>
-        c.addEventListener('click', function() {
+        c.addEventListener('click', function () {
           modeSelect.value = this.dataset.value;
           modeCards.forEach((card) => card.classList.toggle('active', card === this));
         }),
@@ -229,18 +233,18 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   const DATA = window.BACS_FORM_DATA;
-  const loc = (key, fallback) => (DATA.strings && DATA.strings[key]) ? DATA.strings[key] : fallback;
+  const loc = (key, fallback) => (DATA.strings && DATA.strings[key] ? DATA.strings[key] : fallback);
 
   function getRatingBadgeClassByConfidence(confidence) {
     if (confidence == null || isNaN(parseFloat(confidence))) {
-        return 'bg-warning text-dark border-warning';
+      return 'bg-warning text-dark border-warning';
     }
     const val = parseFloat(confidence);
-    if (val > 0.80) {
-        return 'bg-success text-white border-success';
+    if (val > 0.8) {
+      return 'bg-success text-white border-success';
     }
-    if (val >= 0.50) {
-        return 'bg-warning text-dark border-warning';
+    if (val >= 0.5) {
+      return 'bg-warning text-dark border-warning';
     }
     return 'bg-danger text-white border-danger';
   }
@@ -248,13 +252,14 @@ document.addEventListener('DOMContentLoaded', function() {
   function getRatingBadgeHtml(task, isMissing = false, marginClass = 'ms-1') {
     if (isMissing || !DATA.hasRatingTable) return '';
 
-    const hasData = task.rt_id != null || task.expert_rating != null || task.submit_count != null || task.contest_count != null;
-    
+    const hasData =
+      task.rt_id != null || task.expert_rating != null || task.submit_count != null || task.contest_count != null;
+
     let isRealRating = task.elo_rating != null;
     if (isRealRating) {
-        if (!task.submit_count || parseInt(task.submit_count) === 0) {
-            isRealRating = false;
-        }
+      if (!task.submit_count || parseInt(task.submit_count) === 0) {
+        isRealRating = false;
+      }
     }
 
     if (!isRealRating && !hasData) return '';
@@ -262,32 +267,59 @@ document.addEventListener('DOMContentLoaded', function() {
     let triggerHtml = '';
 
     if (isRealRating) {
-        let rVal = Math.round(parseFloat(task.elo_rating));
-        let badgeClass = getRatingBadgeClassByConfidence(task.confidence);
-        let starColor = badgeClass.includes('text-dark') ? 'text-dark' : 'text-white';
-        triggerHtml = `<span class="badge ${badgeClass} shadow-sm bacs-rating-trigger" style="cursor: help;"><i class="bi bi-star-fill ${starColor} me-1"></i>${rVal}</span>`;
+      let rVal = Math.round(parseFloat(task.elo_rating));
+      let badgeClass = getRatingBadgeClassByConfidence(task.confidence);
+      let starColor = badgeClass.includes('text-dark') ? 'text-dark' : 'text-white';
+      triggerHtml = `<span class="badge ${badgeClass} shadow-sm bacs-rating-trigger" style="cursor: help;"><i class="bi bi-star-fill ${starColor} me-1"></i>${rVal}</span>`;
     } else {
-        triggerHtml = `<i class="bi bi-info-circle-fill text-secondary bacs-rating-trigger" style="font-size: 0.95rem; cursor: help; opacity: 0.6;"></i>`;
+      triggerHtml = `<i class="bi bi-info-circle-fill text-secondary bacs-rating-trigger" style="font-size: 0.95rem; cursor: help; opacity: 0.6;"></i>`;
     }
 
     if (!hasData) {
-        return `<span class="bacs-rating-badge-wrapper ${marginClass} d-inline-flex align-items-center">${triggerHtml}</span>`;
+      return `<span class="bacs-rating-badge-wrapper ${marginClass} d-inline-flex align-items-center">${triggerHtml}</span>`;
     }
 
     let rows = [];
-    if (task.submit_count != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_submits', 'Submits')}:</span> <b>${task.submit_count}</b></div>`);
-    if (task.contest_count != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_contests', 'Contests')}:</span> <b>${task.contest_count}</b></div>`);
-    if (task.seen_by_count != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_seen', 'Seen by')}:</span> <b>${task.seen_by_count}</b></div>`);
-    if (task.solved != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_solved', 'Solved')}:</span> <b>${task.solved}</b></div>`);
-    if (task.elo_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_rating', 'Rating')}:</span> <b>${parseFloat(task.elo_rating).toFixed(1)}</b></div>`);
-    if (task.init_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_init', 'Init Rating')}:</span> <b>${parseFloat(task.init_rating).toFixed(1)}</b></div>`);
-    if (task.expert_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_expert', 'Expert Rating')}:</span> <b>${parseFloat(task.expert_rating).toFixed(1)}</b></div>`);
-    if (task.min_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_min', 'Min Rating')}:</span> <b>${parseFloat(task.min_rating).toFixed(1)}</b></div>`);
-    if (task.max_rating != null) rows.push(`<div class="tooltip-row"><span>${loc('stat_max', 'Max Rating')}:</span> <b>${parseFloat(task.max_rating).toFixed(1)}</b></div>`);
-    
+    if (task.submit_count != null)
+      rows.push(
+        `<div class="tooltip-row"><span>${loc('stat_submits', 'Submits')}:</span> <b>${task.submit_count}</b></div>`,
+      );
+    if (task.contest_count != null)
+      rows.push(
+        `<div class="tooltip-row"><span>${loc('stat_contests', 'Contests')}:</span> <b>${task.contest_count}</b></div>`,
+      );
+    if (task.seen_by_count != null)
+      rows.push(
+        `<div class="tooltip-row"><span>${loc('stat_seen', 'Seen by')}:</span> <b>${task.seen_by_count}</b></div>`,
+      );
+    if (task.solved != null)
+      rows.push(`<div class="tooltip-row"><span>${loc('stat_solved', 'Solved')}:</span> <b>${task.solved}</b></div>`);
+    if (task.elo_rating != null)
+      rows.push(
+        `<div class="tooltip-row"><span>${loc('stat_rating', 'Rating')}:</span> <b>${parseFloat(task.elo_rating).toFixed(1)}</b></div>`,
+      );
+    if (task.init_rating != null)
+      rows.push(
+        `<div class="tooltip-row"><span>${loc('stat_init', 'Init Rating')}:</span> <b>${parseFloat(task.init_rating).toFixed(1)}</b></div>`,
+      );
+    if (task.expert_rating != null)
+      rows.push(
+        `<div class="tooltip-row"><span>${loc('stat_expert', 'Expert Rating')}:</span> <b>${parseFloat(task.expert_rating).toFixed(1)}</b></div>`,
+      );
+    if (task.min_rating != null)
+      rows.push(
+        `<div class="tooltip-row"><span>${loc('stat_min', 'Min Rating')}:</span> <b>${parseFloat(task.min_rating).toFixed(1)}</b></div>`,
+      );
+    if (task.max_rating != null)
+      rows.push(
+        `<div class="tooltip-row"><span>${loc('stat_max', 'Max Rating')}:</span> <b>${parseFloat(task.max_rating).toFixed(1)}</b></div>`,
+      );
+
     if (task.confidence != null) {
-        let confPercent = Math.round(parseFloat(task.confidence) * 100);
-        rows.push(`<div class="tooltip-row"><span>${loc('stat_confidence', 'Confidence')}:</span> <b>${confPercent}%</b></div>`);
+      let confPercent = Math.round(parseFloat(task.confidence) * 100);
+      rows.push(
+        `<div class="tooltip-row"><span>${loc('stat_confidence', 'Confidence')}:</span> <b>${confPercent}%</b></div>`,
+      );
     }
 
     return `
@@ -296,7 +328,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="tooltip-data" style="display: none;">${rows.join('')}</div>
     </span>`;
   }
-
 
   const allTasks = DATA.tasks || [];
   let selectedIds = (DATA.selectedTaskIds || []).map(String);
@@ -350,6 +381,13 @@ document.addEventListener('DOMContentLoaded', function() {
     updateHiddenInputs();
   }
 
+  window.BacsPointsEditor.init({
+    pointsMap: pointsMap,
+    onSave: () => renderAll(),
+    loc: loc,
+    parseRawString: parseRawString,
+  });
+
   function renderClassicSourceTable() {
     const tbody = getEl('dynamic_classic_tbody');
     if (!tbody) return;
@@ -364,9 +402,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let filtered = allTasks.filter((task) => {
       if (selectedCol !== 'all' && String(task.collection_id) !== selectedCol) return false;
       if (phrase) {
-        const matchSearch = String(task.name).toLowerCase().includes(phrase) ||
-                            String(task.task_id).includes(phrase) ||
-                            String(task.author).toLowerCase().includes(phrase);
+        const matchSearch =
+          String(task.name).toLowerCase().includes(phrase) ||
+          String(task.task_id).includes(phrase) ||
+          String(task.author).toLowerCase().includes(phrase);
         if (!matchSearch) return false;
       }
       return true;
@@ -428,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() {
   getEl('search-text')?.addEventListener('keyup', renderClassicSourceTable);
   getEl('bacs_sort_selector')?.addEventListener('change', renderClassicSourceTable);
 
-  window.cleanSearch = function() {
+  window.cleanSearch = function () {
     const elem = getEl('search-text');
     if (elem) {
       elem.value = '';
@@ -469,12 +508,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const totalSum = fullPoints + sumOfTests;
 
       let statusClass = 'task-status-incomplete';
-      let statusIcon = '<i class="bi bi-info-circle text-primary" title="' + loc('warningzeropoints', 'Warning: Contains tests with 0 points') + '"></i>';
+      let statusIcon =
+        '<i class="bi bi-info-circle text-primary" title="' +
+        loc('warningzeropoints', 'Warning: Contains tests with 0 points') +
+        '"></i>';
 
       if (isMissing) {
         statusClass = 'bg-danger bg-opacity-10 border-danger';
         statusIcon =
-          '<i class="bi bi-exclamation-triangle-fill text-danger ms-2" title="' + loc('taskdeletedfromdb', 'TASK DELETED FROM DB! Remove it from the contest.') + '"></i>';
+          '<i class="bi bi-exclamation-triangle-fill text-danger ms-2" title="' +
+          loc('taskdeletedfromdb', 'TASK DELETED FROM DB! Remove it from the contest.') +
+          '"></i>';
       } else {
         const pretestsCount = parseInt(task.count_pretests) || 0;
         const mainTests = testPointsArr.slice(pretestsCount);
@@ -483,11 +527,15 @@ document.addEventListener('DOMContentLoaded', function() {
           const hasZeroInMain = mainTests.includes(0);
           if (!hasZeroInMain) {
             statusClass = 'task-status-complete';
-            statusIcon = '<i class="bi bi-check2-circle text-success" title="' + loc('allmaintestsconfigured', 'All main tests configured') + '"></i>';
+            statusIcon =
+              '<i class="bi bi-check2-circle text-success" title="' +
+              loc('allmaintestsconfigured', 'All main tests configured') +
+              '"></i>';
           }
         } else if (testPointsArr.length > 0 && pretestsCount >= testPointsArr.length) {
           statusClass = 'task-status-complete';
-          statusIcon = '<i class="bi bi-check2-circle text-success" title="' + loc('onlypretests', 'Pretests only') + '"></i>';
+          statusIcon =
+            '<i class="bi bi-check2-circle text-success" title="' + loc('onlypretests', 'Pretests only') + '"></i>';
         }
       }
 
@@ -507,7 +555,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       row.innerHTML = `
             <div class="d-flex align-items-center flex-grow-1" style="min-width: 0;">
-                <div class="text-muted me-3 drag-handle" style="cursor: grab; font-size: 1.2rem;" title="${loc('dragreorder', 'Drag to reorder')}">⋮⋮</div>
+                <div class="text-muted me-3 drag-handle" style="cursor: grab; display: flex; align-items: center;" title="${loc('dragreorder', 'Drag to reorder')}">${icons.drag}</div>
                 <div class="fw-bold ${isMissing ? 'text-danger' : 'text-dark'} me-3 fs-5" style="width: 25px; flex-shrink: 0;">${letter}.</div>
                 <div class="d-flex flex-column text-truncate pe-3">
                     <div class="${isMissing ? 'text-danger fw-bold' : 'text-dark fw-medium'} d-flex align-items-center">
@@ -521,8 +569,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             <div class="task-actions-wrapper ms-auto">
                 <div class="text-end d-none d-md-block ${isMissing ? 'text-danger' : 'text-muted'}" style="font-size: 0.8rem; line-height: 1.3;">
-                    <div>${task.count_tests || 0} ${loc('tests_count', 'tests')} • ${task.count_pretests || 0} ${loc('pre_count', 'pre')}</div>
-                    <div><strong class="${isMissing ? 'text-danger' : 'text-dark'}">Σ: ${totalSum}</strong> (${loc('full_points', 'Full:')} ${fullPoints})</div>
+                    <div>${task.count_tests || 0} ${loc('tests_count', 'tests')} ${icons.bullet} ${task.count_pretests || 0} ${loc('pre_count', 'pre')}</div>
+                    <div><strong class="${isMissing ? 'text-danger' : 'text-dark'}">${icons.sum}: ${totalSum}</strong> (${loc('full_points', 'Full:')} ${fullPoints})</div>
                 </div>
                 
                 <div class="btn-group shadow-sm">
@@ -535,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!isMissing) {
         row.querySelector('.btn-classic-settings').addEventListener('click', (e) => {
           e.stopPropagation();
-          openPointsModal(task);
+          window.BacsPointsEditor.open(task);
         });
       }
       row.querySelector('.btn-classic-remove').addEventListener('click', (e) => {
@@ -551,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
         animation: 150,
         handle: '.drag-handle',
         ghostClass: 'bg-light',
-        onEnd: function() {
+        onEnd: function () {
           const newOrder = [];
           list.querySelectorAll('.list-group-item').forEach((el) => newOrder.push(el.dataset.id));
           selectedIds = newOrder;
@@ -573,14 +621,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const isHidden = localStorage.getItem('bacs_stmt_hidden') === 'true';
     if (isHidden) {
       colStatement.classList.add('col-hidden');
-      btnToggleStmt.innerHTML = loc('showstatement_btn', '👁‍🗨 Show Statement');
+      btnToggleStmt.innerHTML = loc('showstatement_btn', `${icons.show} Show Statement`);
     }
 
     btnToggleStmt.addEventListener('click', () => {
       colStatement.classList.toggle('col-hidden');
       const hiddenNow = colStatement.classList.contains('col-hidden');
       localStorage.setItem('bacs_stmt_hidden', hiddenNow);
-      btnToggleStmt.innerHTML = hiddenNow ? loc('showstatement_btn', '👁‍🗨 Show Statement') : loc('hidestatement_btn', '👁 Hide Statement');
+      btnToggleStmt.innerHTML = hiddenNow
+        ? loc('showstatement_btn', `${icons.show} Show Statement`)
+        : loc('hidestatement_btn', `${icons.hide} Hide Statement`);
     });
   }
 
@@ -606,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function() {
       handle.addEventListener('mouseleave', () => col.setAttribute('draggable', 'false'));
     }
 
-    col.addEventListener('dragstart', function(e) {
+    col.addEventListener('dragstart', function (e) {
       if (e.target !== col) {
         return;
       }
@@ -619,7 +669,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    col.addEventListener('dragenter', function() {
+    col.addEventListener('dragenter', function () {
       if (!draggedColumn || draggedColumn === this) {
         return;
       }
@@ -633,13 +683,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    col.addEventListener('dragover', function(e) {
+    col.addEventListener('dragover', function (e) {
       if (draggedColumn) {
         e.preventDefault();
       }
     });
 
-    col.addEventListener('dragend', function() {
+    col.addEventListener('dragend', function () {
       managerGrid.classList.remove('is-dragging');
       this.classList.remove('col-dragging');
       this.setAttribute('draggable', 'false');
@@ -670,7 +720,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (managerCollection && managerCollection.options.length === 0) {
     let optAll = document.createElement('option');
     optAll.value = 'all';
-    optAll.textContent = loc('allcollections', 'Все коллекции (All)');
+    optAll.textContent = loc('allcollections', 'All collections (All)');
     managerCollection.appendChild(optAll);
     if (DATA.collections) {
       DATA.collections.forEach((c) => {
@@ -761,7 +811,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (!task) {
         isMissing = true;
-        task = {task_id: id, name: loc('tasknotfoundid', '[TASK NOT FOUND, ID = {id}]').replace('{id}', id), statement_format: 'ERR', count_tests: 0};
+        task = {
+          task_id: id,
+          name: loc('tasknotfoundid', '[TASK NOT FOUND, ID = {id}]').replace('{id}', id),
+          statement_format: 'ERR',
+          count_tests: 0,
+        };
       }
 
       const el = document.createElement('div');
@@ -772,10 +827,12 @@ document.addEventListener('DOMContentLoaded', function() {
         ? `<button type="button" class="btn-action-settings opacity-50" disabled title="${loc('cannotconfigdeletedtask', 'Cannot configure deleted task')}">${icons.settings}</button>`
         : `<button type="button" class="btn-action-settings" title="${loc('pointssettings', 'Points Settings')}">${icons.settings}</button>`;
 
-      const timeAndMemory = !isMissing ? `
+      const timeAndMemory = !isMissing
+        ? `
             <span class="mt-meta-item" title="${loc('timelimit', 'Time Limit')}">${icons.time} ${formatTime(task.time_limit_millis)}</span>
             <span class="mt-meta-item" title="${loc('memorylimit', 'Memory Limit')}">${icons.memory} ${formatMemory(task.memory_limit_bytes)}</span>
-      ` : '';
+      `
+        : '';
 
       let ratingHtml = '';
       if (!isMissing && DATA.hasRatingTable) {
@@ -806,7 +863,7 @@ document.addEventListener('DOMContentLoaded', function() {
         el.addEventListener('click', () => loadStatement(task, el));
         el.querySelector('.btn-action-settings').addEventListener('click', (e) => {
           e.stopPropagation();
-          openPointsModal(task);
+          window.BacsPointsEditor.open(task);
         });
       }
       el.querySelector('.btn-action-remove').addEventListener('click', (e) => {
@@ -821,7 +878,7 @@ document.addEventListener('DOMContentLoaded', function() {
       Sortable.create(targetList, {
         animation: 150,
         ghostClass: 'bg-light',
-        onEnd: function() {
+        onEnd: function () {
           const newOrder = [];
           targetList.querySelectorAll('.m-task-card').forEach((el) => newOrder.push(el.dataset.id));
           selectedIds = newOrder;
@@ -894,242 +951,55 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Tests points modal
-  const ptsModal = getEl('test-points-modal');
-  const ptsRawInput = getEl('modal-points-input');
-  const modalFullPoints = getEl('modal-full-points');
-
-  let editingId = null;
-  let currentModalTestCount = 0;
-  let currentModalPretestCount = 0;
-
-  window.openPointsModal = function(task) {
-    editingId = String(task.task_id);
-    currentModalTestCount = parseInt(task.count_tests) || 0;
-    currentModalPretestCount = parseInt(task.count_pretests) || 0;
-    getEl('modal-task-name').textContent = `${task.name}`;
-
-    let savedValues = parseRawString(pointsMap[editingId] || task.default_points || '');
-    let fullPts = savedValues.length > 0 ? parseInt(savedValues[0]) || 0 : 0;
-    if (modalFullPoints) {
-      modalFullPoints.value = fullPts;
-    }
-
-    let testValues = savedValues.slice(1);
-    if (currentModalTestCount === 0 && testValues.length > 0) {
-      currentModalTestCount = testValues.length;
-    }
-
-    renderGrid(currentModalTestCount, currentModalPretestCount, testValues);
-    updateRawFromGrid();
-    ptsModal.classList.remove('hidden');
-  };
-
-  function renderGrid(count, pretestsCount, values = []) {
-    const visualGrid = getEl('visual-points-grid');
-    visualGrid.innerHTML = '';
-
-    for (let i = 0; i < count; i++) {
-      const val = values[i] !== undefined ? values[i] : '0';
-      const isPretest = i < pretestsCount;
-
-      const div = document.createElement('div');
-      div.className = 'point-item';
-
-      const inputClass = isPretest ? 'grid-input pretest-input' : 'grid-input';
-      const labelText = isPretest ? `<span class="text-warning">${loc('pretest', 'Pre')} ${i + 1}</span>` : `${i + 1}`;
-
-      div.innerHTML = `<label>${labelText}</label><input type="text" class="${inputClass}" data-index="${i}" value="${val}" title="${isPretest ? loc('pretest', 'Pretest') : loc('maintest', 'Main Test')}">`;
-      visualGrid.appendChild(div);
-    }
-    visualGrid.querySelectorAll('.grid-input').forEach((inp) => {
-      inp.addEventListener('input', updateRawFromGrid);
-    });
-  }
-
-  function updateRawFromGrid() {
-    let fullPts = parseInt(modalFullPoints?.value) || 0;
-    let arr = [fullPts];
-    let gridSum = 0;
-
-    getEl('visual-points-grid')
-      .querySelectorAll('.grid-input')
-      .forEach((inp) => {
-        let val = parseInt(inp.value) || 0;
-        arr.push(val);
-        gridSum += val;
-      });
-
-    if (ptsRawInput) {
-      ptsRawInput.value = arr.join(',');
-    }
-    if (getEl('points-total-sum')) {
-      getEl('points-total-sum').textContent = fullPts + gridSum;
-    }
-  }
-
-  if (modalFullPoints) {
-    modalFullPoints.addEventListener('input', updateRawFromGrid);
-  }
-  ptsRawInput?.addEventListener('input', () => {
-    let vals = parseRawString(ptsRawInput.value);
-    if (vals.length > 0 && modalFullPoints) {
-      modalFullPoints.value = vals[0];
-    }
-    let tests = vals.slice(1);
-
-    getEl('visual-points-grid')
-      .querySelectorAll('.grid-input')
-      .forEach((inp, i) => {
-        if (tests[i] !== undefined) {
-          inp.value = tests[i];
-        }
-      });
-    updateRawFromGrid();
-  });
-
-  getEl('btn-range-apply')?.addEventListener('click', () => {
-    const s = parseInt(getEl('range-start').value) || 1;
-    const e = parseInt(getEl('range-end').value) || currentModalTestCount;
-    const val = getEl('range-val').value || '0';
-
-    const inputs = getEl('visual-points-grid').querySelectorAll('.grid-input');
-    const startIdx = Math.max(1, s) - 1;
-    const endIdx = Math.min(inputs.length, e);
-
-    for (let i = startIdx; i < endIdx; i++) {
-      if (inputs[i]) {
-        inputs[i].value = val;
-      }
-    }
-    updateRawFromGrid();
-  });
-
-  document
-    .querySelectorAll('.btn-preset')
-    .forEach((btn) => btn.addEventListener('click', () => applyValueToGrid(btn.dataset.val)));
-  getEl('btn-clear-grid')?.addEventListener('click', () => applyValueToGrid(0));
-
-  function applyValueToGrid(val) {
-    getEl('visual-points-grid')
-      .querySelectorAll('.grid-input')
-      .forEach((inp) => {
-        inp.value = val;
-      });
-    updateRawFromGrid();
-  }
-
-  getEl('btn-normalize')?.addEventListener('click', () => {
-    const targetSum = parseInt(getEl('norm-target').value) || 100;
-    const includePretests = getEl('norm-include-pretests') ? getEl('norm-include-pretests').checked : false;
-
-    const allInputs = Array.from(getEl('visual-points-grid').querySelectorAll('.grid-input'));
-    if (allInputs.length === 0) {
-      return;
-    }
-
-    const inputsToNormalize = [];
-    allInputs.forEach((inp, idx) => {
-      const isPretest = idx < currentModalPretestCount;
-      if (!isPretest || includePretests) {
-        inputsToNormalize.push(inp);
-      }
-    });
-
-    if (inputsToNormalize.length === 0) {
-      return;
-    }
-
-    let currentValues = inputsToNormalize.map((inp) => Math.max(0, parseFloat(inp.value) || 0));
-    let currentSum = currentValues.reduce((a, b) => a + b, 0);
-    let newValues = [];
-
-    if (currentSum === 0) {
-      const base = Math.floor(targetSum / inputsToNormalize.length);
-      const remainder = targetSum % inputsToNormalize.length;
-      for (let i = 0; i < inputsToNormalize.length; i++) {
-        newValues[i] = base + (i < remainder ? 1 : 0);
-      }
-    } else {
-      let floorValues = [],
-        remainderParts = [];
-      for (let i = 0; i < inputsToNormalize.length; i++) {
-        let ideal = (currentValues[i] / currentSum) * targetSum;
-        let floored = Math.floor(ideal);
-        floorValues[i] = floored;
-        remainderParts.push({index: i, fraction: ideal - floored});
-      }
-      let diff = targetSum - floorValues.reduce((a, b) => a + b, 0);
-      remainderParts.sort((a, b) => b.fraction - a.fraction);
-      for (let i = 0; i < diff; i++) {
-        floorValues[remainderParts[i % inputsToNormalize.length].index]++;
-      }
-      newValues = floorValues;
-    }
-
-    inputsToNormalize.forEach((inp, i) => {
-      inp.value = newValues[i];
-    });
-    updateRawFromGrid();
-  });
-
-  getEl('save-points-btn')?.addEventListener('click', () => {
-    if (!editingId) {
-      return;
-    }
-    pointsMap[editingId] = ptsRawInput.value;
-    renderAll();
-    ptsModal.classList.add('hidden');
-  });
-
-  ptsModal.querySelector('.close-modal')?.addEventListener('click', () => ptsModal.classList.add('hidden'));
-
-
-    let globalTooltip = document.getElementById('bacs-global-tooltip');
+  let globalTooltip = document.getElementById('bacs-global-tooltip');
   if (!globalTooltip) {
-      globalTooltip = document.createElement('div');
-      globalTooltip.id = 'bacs-global-tooltip';
-      globalTooltip.style.display = 'none';
-      document.body.appendChild(globalTooltip);
+    globalTooltip = document.createElement('div');
+    globalTooltip.id = 'bacs-global-tooltip';
+    globalTooltip.style.display = 'none';
+    document.body.appendChild(globalTooltip);
   }
 
-  document.addEventListener('mouseover', function(e) {
-      const trigger = e.target.closest('.bacs-rating-trigger');
-      if (trigger) {
-          const wrapper = trigger.closest('.bacs-rating-badge-wrapper');
-          if (!wrapper) return;
-          const dataDiv = wrapper.querySelector('.tooltip-data');
-          if (dataDiv) {
-              globalTooltip.innerHTML = dataDiv.innerHTML;
-              globalTooltip.style.display = 'block';
+  document.addEventListener('mouseover', function (e) {
+    const trigger = e.target.closest('.bacs-rating-trigger');
+    if (trigger) {
+      const wrapper = trigger.closest('.bacs-rating-badge-wrapper');
+      if (!wrapper) return;
+      const dataDiv = wrapper.querySelector('.tooltip-data');
+      if (dataDiv) {
+        globalTooltip.innerHTML = dataDiv.innerHTML;
+        globalTooltip.style.display = 'block';
 
-              const rect = trigger.getBoundingClientRect();
-              const tooltipHeight = globalTooltip.offsetHeight;
-              const spaceBottom = window.innerHeight - rect.bottom;
+        const rect = trigger.getBoundingClientRect();
+        const tooltipHeight = globalTooltip.offsetHeight;
+        const spaceBottom = window.innerHeight - rect.bottom;
 
-              if (spaceBottom < tooltipHeight + 15 && rect.top > tooltipHeight + 15) {
-                  globalTooltip.style.top = (rect.top - tooltipHeight - 8) + 'px';
-                  globalTooltip.classList.add('tooltip-top');
-              } else {
-                  globalTooltip.style.top = (rect.bottom + 8) + 'px';
-                  globalTooltip.classList.remove('tooltip-top');
-              }
+        if (spaceBottom < tooltipHeight + 15 && rect.top > tooltipHeight + 15) {
+          globalTooltip.style.top = rect.top - tooltipHeight - 8 + 'px';
+          globalTooltip.classList.add('tooltip-top');
+        } else {
+          globalTooltip.style.top = rect.bottom + 8 + 'px';
+          globalTooltip.classList.remove('tooltip-top');
+        }
 
-              globalTooltip.style.left = (rect.left + rect.width / 2) + 'px';
-          }
+        globalTooltip.style.left = rect.left + rect.width / 2 + 'px';
       }
+    }
   });
 
-  document.addEventListener('mouseout', function(e) {
-      const trigger = e.target.closest('.bacs-rating-trigger');
-      if (trigger) {
-          globalTooltip.style.display = 'none';
-      }
+  document.addEventListener('mouseout', function (e) {
+    const trigger = e.target.closest('.bacs-rating-trigger');
+    if (trigger) {
+      globalTooltip.style.display = 'none';
+    }
   });
 
-  window.addEventListener('scroll', function() {
+  window.addEventListener(
+    'scroll',
+    function () {
       if (globalTooltip.style.display === 'block') globalTooltip.style.display = 'none';
-  }, true);
+    },
+    true,
+  );
 
   renderClassicSourceTable();
   renderAll();

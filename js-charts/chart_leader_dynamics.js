@@ -234,8 +234,6 @@ window.initializeLeaderDynamicsChart = () => {
     }
 
     const currentStandingsMode = window.BACS_PAGE_DATA.contest.mode ?? 1;
-    console.log('Contest mode:', currentStandingsMode, typeof currentStandingsMode);
-    console.log('Full contest data:', window.BACS_PAGE_DATA.contest);
     if (!precomputedData) precomputedData = precomputeAllData(submissions, currentStandingsMode);
 
     const { finalRankedUsers, rankSnapshots, eventsByUser, maxContestScore, globalMaxSubmitTime } = precomputedData;
@@ -329,7 +327,12 @@ window.initializeLeaderDynamicsChart = () => {
           const currentRank = snap.ranks[user.id] || students.length + 1;
 
           if (currentRank !== lastRank) {
-            smoothData.push({ x: eventIndex - curveOffset, y: lastRank, realTime: snap.time, isDummy: true });
+            smoothData.push({
+              x: eventIndex - curveOffset,
+              y: lastRank,
+              realTime: snap.time,
+              isDummy: true,
+            });
             smoothData.push({ x: eventIndex, y: currentRank, realTime: snap.time });
             lastRank = currentRank;
           }

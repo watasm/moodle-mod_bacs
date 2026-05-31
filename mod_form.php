@@ -68,6 +68,7 @@ class mod_bacs_mod_form extends moodleform_mod
         
         $PAGE->requires->css('/mod/bacs/mod_form.css');
         $PAGE->requires->js('/mod/bacs/mod_form.js', true);
+        $PAGE->requires->js('/mod/bacs/points_editor.js', true);
         
         $PAGE->requires->js('/mod/bacs/manage_tasks.js', true);
         $PAGE->requires->js('/mod/bacs/manage_test_points.js', true);
