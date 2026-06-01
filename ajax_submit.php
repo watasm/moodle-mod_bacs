@@ -27,7 +27,7 @@ try {
     $contest->pageisallowedforisolatedparticipantbacs = true; 
     $contest->initialize_page();
 
-    $recenttime = time() - 5 * 60;
+    $recenttime = time() - 60;
     
     $recentsubmits = $DB->count_records_select(
         'bacs_submits', 
@@ -38,7 +38,7 @@ try {
         ]
     );
     
-    if ($recentsubmits > 50) {
+    if ($recentsubmits > 10) {
         die(json_encode(['status' => 'error', 'msg' => 'Submissions spam penalty']));
     }
 
