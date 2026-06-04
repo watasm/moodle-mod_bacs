@@ -89,6 +89,7 @@ window.BacsSessionAnalytics = {
     return {
       id: 'sessionAnalytics',
       beforeDatasetsDraw(chart) {
+        if (!chart.isDatasetVisible(0) || !chart.isDatasetVisible(1)) return;
         const ctx = chart.ctx;
         const meta = chart.getDatasetMeta(0);
         const area = chart.chartArea;
@@ -113,6 +114,7 @@ window.BacsSessionAnalytics = {
       },
 
       afterDatasetsDraw(chart) {
+        if (!chart.isDatasetVisible(0) || !chart.isDatasetVisible(1)) return;
         const ctx = chart.ctx;
         const meta0 = chart.getDatasetMeta(0);
         const meta1 = chart.getDatasetMeta(1);

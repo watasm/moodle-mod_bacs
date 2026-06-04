@@ -507,3 +507,4 @@ $string['stat_expert'] = 'Expert Rating';
 $string['stat_min'] = 'Min Rating';
 $string['stat_max'] = 'Max Rating';
 $string['stat_confidence'] = 'Confidence';
+$string['ws_offline_fallback'] = 'You should refresh the page manually to see the checking results.';

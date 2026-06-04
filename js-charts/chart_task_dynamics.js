@@ -712,6 +712,7 @@ window.renderTaskDynamicsGraph = () => {
           stacked: true,
           beginAtZero: true,
           border: { display: false },
+          grace: '20%',
           title: {
             display: true,
             text: loc('submits', 'Submissions'),

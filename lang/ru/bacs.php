@@ -509,3 +509,4 @@ $string['stat_expert'] = 'Рейтинг эксперта';
 $string['stat_min'] = 'Мин. рейтинг';
 $string['stat_max'] = 'Макс. рейтинг';
 $string['stat_confidence'] = 'Уверенность';
+$string['ws_offline_fallback'] = 'Вам нужно обновлять страницу вручную, чтобы увидеть результат проверки.';

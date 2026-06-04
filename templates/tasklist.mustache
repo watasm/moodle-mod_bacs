@@ -13,6 +13,18 @@
     }
 </script>
 
+<div id="ws-fallback-info" class="{{#ws_url}}d-none{{/ws_url}}">
+    <div class="alert alert-info mb-3 shadow-sm d-flex align-items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle flex-shrink-0 me-2" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+        </svg>
+        <div>
+            {{#str}} ws_offline_fallback, mod_bacs {{/str}}
+        </div>
+    </div>
+</div>
+
 <table class="cwidetable accordion">
 
 <thead>
@@ -244,6 +256,8 @@
 </table>
 
 <script>
+    window.bacsWsAvailable = false;
+
     async function sendSolutionInBg(formElement, taskId, taskOrder) {
         const btnSend = document.getElementById('sendbutton' + taskOrder);
         const btnLock = document.getElementById('sendbuttonlocked' + taskOrder);
@@ -302,60 +316,78 @@
 </script>
 
 {{#ws_url}}
-<script src="{{ws_url}}/socket.io/socket.io.js"></script>
+<script src="{{ws_url}}/socket.io/socket.io.js" onerror="handleWsFallback()"></script>
 <script>
+    function handleWsFallback() {
+        window.bacsWsAvailable = false;
+        const infoEl = document.getElementById('ws-fallback-info');
+        if (infoEl) infoEl.classList.remove('d-none');
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
-        window.bacsSocket = io('{{ws_url}}', {
-            auth: { token: '{{ws_jwt}}' }
-        });
+        if (typeof io !== 'undefined') {
+            window.bacsSocket = io('{{ws_url}}', {
+                auth: { token: '{{ws_jwt}}' },
+                reconnectionAttempts: 5
+            });
 
-        window.bacsWsAvailable = true;
-        
-        window.bacsSocket.on('submit_update', (data) => {
-            const row = document.getElementById('task_row_' + data.task_id);
+            window.bacsSocket.on('connect', () => {
+                window.bacsWsAvailable = true;
+                const infoEl = document.getElementById('ws-fallback-info');
+                if (infoEl) infoEl.classList.add('d-none');
+            });
+
+            window.bacsSocket.on('connect_error', () => handleWsFallback());
+            window.bacsSocket.on('disconnect', () => handleWsFallback());
             
-            if (row) {
-                const successMsg = document.getElementById('success_msg_task_' + data.task_id);
-                if (successMsg) successMsg.classList.add('d-none');
-
-                const isCurrentlyAccepted = row.classList.contains('verdict-accepted');
-                const isIncomingAccepted = data.verdict_css_class === 'verdict-accepted';
-
-                if (!isCurrentlyAccepted || isIncomingAccepted) {
-                    row.classList.remove('verdict-none', 'verdict-accepted', 'verdict-failed');
-                    if (data.verdict_css_class) row.classList.add(data.verdict_css_class);
-                    
-                    const statusEl = document.getElementById('task_status_' + data.task_id);
-                    if (statusEl) statusEl.innerHTML = data.verdict_formatted;
-
-                    const statusLink = document.getElementById('task_status_link_' + data.task_id);
-                    if (statusLink) {
-                        statusLink.href = 'results_for_submit.php?id={{coursemodule_id}}&submit_id=' + data.submit_id;
-                        statusLink.classList.remove('disabled-link');
-                        
-                        const icon = document.getElementById('task_status_icon_' + data.task_id);
-                        if (icon) icon.classList.remove('d-none');
-                    }
-                }
+            window.bacsSocket.on('submit_update', (data) => {
+                const row = document.getElementById('task_row_' + data.task_id);
                 
-                const pointsEl = document.getElementById('task_points_' + data.task_id);
-                if (pointsEl) {
-                    const currentPoints = parseInt(pointsEl.innerHTML) || 0;
-                    const newPoints = parseInt(data.points) || 0;
-                    pointsEl.innerHTML = Math.max(currentPoints, newPoints);
-                }
+                if (row) {
+                    const successMsg = document.getElementById('success_msg_task_' + data.task_id);
+                    if (successMsg) successMsg.classList.add('d-none');
 
-                if (data.verdict_css_class !== 'verdict-none') {
-                    const form = document.getElementById('form_' + data.task_id);
-                    if (form) {
-                        const btnSend = form.querySelector('.btn-success');
-                        const btnLock = form.querySelector('.btn-secondary');
-                        if (btnSend) btnSend.classList.remove('d-none');
-                        if (btnLock) btnLock.classList.add('d-none');
+                    const isCurrentlyAccepted = row.classList.contains('verdict-accepted');
+                    const isIncomingAccepted = data.verdict_css_class === 'verdict-accepted';
+
+                    if (!isCurrentlyAccepted || isIncomingAccepted) {
+                        row.classList.remove('verdict-none', 'verdict-accepted', 'verdict-failed');
+                        if (data.verdict_css_class) row.classList.add(data.verdict_css_class);
+                        
+                        const statusEl = document.getElementById('task_status_' + data.task_id);
+                        if (statusEl) statusEl.innerHTML = data.verdict_formatted;
+
+                        const statusLink = document.getElementById('task_status_link_' + data.task_id);
+                        if (statusLink) {
+                            statusLink.href = 'results_for_submit.php?id={{coursemodule_id}}&submit_id=' + data.submit_id;
+                            statusLink.classList.remove('disabled-link');
+                            
+                            const icon = document.getElementById('task_status_icon_' + data.task_id);
+                            if (icon) icon.classList.remove('d-none');
+                        }
+                    }
+                    
+                    const pointsEl = document.getElementById('task_points_' + data.task_id);
+                    if (pointsEl) {
+                        const currentPoints = parseInt(pointsEl.innerHTML) || 0;
+                        const newPoints = parseInt(data.points) || 0;
+                        pointsEl.innerHTML = Math.max(currentPoints, newPoints);
+                    }
+
+                    if (data.verdict_css_class !== 'verdict-none') {
+                        const form = document.getElementById('form_' + data.task_id);
+                        if (form) {
+                            const btnSend = form.querySelector('.btn-success');
+                            const btnLock = form.querySelector('.btn-secondary');
+                            if (btnSend) btnSend.classList.remove('d-none');
+                            if (btnLock) btnLock.classList.add('d-none');
+                        }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            handleWsFallback();
+        }
     });
 </script>
 {{/ws_url}}
