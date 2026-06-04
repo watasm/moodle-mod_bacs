@@ -709,10 +709,10 @@ class mod_bacs_mod_form extends moodleform_mod
                     <div class="toolbar-box">
                         <div class="toolbar-row main-tools d-flex flex-wrap align-items-center" style="gap: 10px;">
                             <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-light border btn-preset" data-val="0">0</button>
                                 <button type="button" class="btn btn-sm btn-light border btn-preset" data-val="1">1</button>
+                                <button type="button" class="btn btn-sm btn-light border btn-preset" data-val="5">5</button>
                                 <button type="button" class="btn btn-sm btn-light border btn-preset" data-val="10">10</button>
-                                <button type="button" class="btn btn-sm btn-light border btn-preset" data-val="100">100</button>
+                                <button type="button" class="btn btn-sm btn-light border btn-preset" data-val="25">25</button>
                             </div>
                             <div class="separator d-none d-md-block"></div>
                             
