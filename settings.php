@@ -36,8 +36,12 @@ if ($ADMIN->fulltree) {
     );
 
     $sybonapikey->set_updatedcallback(function () {
-        \mod_bacs\cron_lib::cron_langs();
-        \mod_bacs\cron_lib::cron_tasks();
+        \core_shutdown_manager::register_function(function() {
+            try {
+                \mod_bacs\cron_lib::cron_langs();
+                \mod_bacs\cron_lib::cron_tasks();
+            } catch (\Exception $e) {}
+        });
     });
 
     $settings->add($sybonapikey);
@@ -51,8 +55,12 @@ if ($ADMIN->fulltree) {
     );
 
     $sybondomain->set_updatedcallback(function () {
-        \mod_bacs\cron_lib::cron_langs();
-        \mod_bacs\cron_lib::cron_tasks();
+        \core_shutdown_manager::register_function(function() {
+            try {
+                \mod_bacs\cron_lib::cron_langs();
+                \mod_bacs\cron_lib::cron_tasks();
+            } catch (\Exception $e) {}
+        });
     });
 
     $settings->add($sybondomain);
