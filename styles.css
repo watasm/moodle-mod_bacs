@@ -167,8 +167,8 @@
     display: inline-block;
 }
 
-.path-mod-bacs .collapsed .custom-row-collapse-icon svg,
-.path-mod-bacs .collapsed .custom-row-collapse-icon i,
+.path-mod-bacs .collapsed.custom-row-collapse-icon svg,
+.path-mod-bacs .collapsed.custom-row-collapse-icon i,
 .path-mod-bacs tr.collapsed .custom-row-collapse-icon svg,
 .path-mod-bacs tr.collapsed .custom-row-collapse-icon i {
     transform: rotate(180deg);

@@ -14,8 +14,21 @@
 </script>
 
 <div id="ws-fallback-info" class="{{#ws_url}}d-none{{/ws_url}}">
-    <div class="alert alert-info mb-3 shadow-sm d-flex align-items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle flex-shrink-0 me-2" viewBox="0 0 16 16">
+    <style>
+        @keyframes bacsAlertFade {
+            from { opacity: 0; transform: translateY(-3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bacs-compact-alert {
+            font-size: 0.85rem !important;
+            line-height: 1.2 !important;
+            min-height: 31px;
+            animation: bacsAlertFade 0.2s ease-out forwards;
+            border-radius: 4px !important;
+        }
+    </style>
+    <div class="alert alert-info py-1 px-3 mb-1 shadow-sm d-inline-flex align-items-center bacs-compact-alert">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-info-circle flex-shrink-0 me-2" viewBox="0 0 16 16">
             <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
             <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
         </svg>
@@ -51,9 +64,7 @@
 {{#tasks}}
     <tr id="task_row_{{task_id}}" class="{{tr_color_class}}">
         <td class="cell c0 custom-row-collapse-icon {{^is_target_task}}collapsed{{/is_target_task}} cursor-pointer" {{{td_toggle_attr}}}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-up" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/>
-            </svg>
+            <i class="bi bi-chevron-down"></i>
             {{letter}}
         </td>
         <td class="cell c1 cursor-pointer" {{{td_toggle_attr}}}>
@@ -299,10 +310,20 @@
                     if (statusLink) statusLink.classList.add('disabled-link');
                 }
 
+                btnLock.classList.add('d-none');
+                btnSend.classList.remove('d-none', 'btn-success');
+                btnSend.classList.add('btn-secondary');
+                btnSend.disabled = true;
+                btnSend.innerHTML = '<i class="bi bi-check-lg"></i>';
+
                 if (window.bacsSocket && window.bacsWsAvailable) {
                     window.bacsSocket.emit('watch_submits', [data.submit_id]);
-                    return;
+                } else {
+                    if (successMsg) {
+                        successMsg.innerHTML = '{{#str}} solutionsentwait, mod_bacs {{/str}} <br><small><b>{{#str}} ws_offline_fallback, mod_bacs {{/str}}</b></small>';
+                    }
                 }
+                return;
             } else {
                 alert('{{#str}} error {{/str}}: ' + data.msg);
             }
@@ -316,7 +337,6 @@
 </script>
 
 {{#ws_url}}
-<script src="{{ws_url}}/socket.io/socket.io.js" onerror="handleWsFallback()"></script>
 <script>
     function handleWsFallback() {
         window.bacsWsAvailable = false;
@@ -325,69 +345,104 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        if (typeof io !== 'undefined') {
-            window.bacsSocket = io('{{ws_url}}', {
-                auth: { token: '{{ws_jwt}}' },
-                reconnectionAttempts: 5
-            });
+        setTimeout(function() {
+            function setupSocket(ioFunc) {
+                window.bacsSocket = ioFunc('{{ws_url}}', {
+                    auth: { token: '{{ws_jwt}}' },
+                    reconnectionAttempts: 2,
+                    timeout: 5000
+                });
 
-            window.bacsSocket.on('connect', () => {
-                window.bacsWsAvailable = true;
-                const infoEl = document.getElementById('ws-fallback-info');
-                if (infoEl) infoEl.classList.add('d-none');
-            });
+                window.bacsSocket.on('connect', () => {
+                    window.bacsWsAvailable = true;
+                    const infoEl = document.getElementById('ws-fallback-info');
+                    if (infoEl) infoEl.classList.add('d-none');
+                });
 
-            window.bacsSocket.on('connect_error', () => handleWsFallback());
-            window.bacsSocket.on('disconnect', () => handleWsFallback());
-            
-            window.bacsSocket.on('submit_update', (data) => {
-                const row = document.getElementById('task_row_' + data.task_id);
+                window.bacsSocket.on('connect_error', () => handleWsFallback());
+                window.bacsSocket.on('disconnect', () => handleWsFallback());
                 
-                if (row) {
-                    const successMsg = document.getElementById('success_msg_task_' + data.task_id);
-                    if (successMsg) successMsg.classList.add('d-none');
+                window.bacsSocket.on('submit_update', (data) => {
+                    const row = document.getElementById('task_row_' + data.task_id);
+                    if (row) {
+                        const successMsg = document.getElementById('success_msg_task_' + data.task_id);
+                        if (successMsg) successMsg.classList.add('d-none');
 
-                    const isCurrentlyAccepted = row.classList.contains('verdict-accepted');
-                    const isIncomingAccepted = data.verdict_css_class === 'verdict-accepted';
+                        const isCurrentlyAccepted = row.classList.contains('verdict-accepted');
+                        const isIncomingAccepted = data.verdict_css_class === 'verdict-accepted';
 
-                    if (!isCurrentlyAccepted || isIncomingAccepted) {
-                        row.classList.remove('verdict-none', 'verdict-accepted', 'verdict-failed');
-                        if (data.verdict_css_class) row.classList.add(data.verdict_css_class);
-                        
-                        const statusEl = document.getElementById('task_status_' + data.task_id);
-                        if (statusEl) statusEl.innerHTML = data.verdict_formatted;
-
-                        const statusLink = document.getElementById('task_status_link_' + data.task_id);
-                        if (statusLink) {
-                            statusLink.href = 'results_for_submit.php?id={{coursemodule_id}}&submit_id=' + data.submit_id;
-                            statusLink.classList.remove('disabled-link');
+                        if (!isCurrentlyAccepted || isIncomingAccepted) {
+                            row.classList.remove('verdict-none', 'verdict-accepted', 'verdict-failed');
+                            if (data.verdict_css_class) row.classList.add(data.verdict_css_class);
                             
-                            const icon = document.getElementById('task_status_icon_' + data.task_id);
-                            if (icon) icon.classList.remove('d-none');
-                        }
-                    }
-                    
-                    const pointsEl = document.getElementById('task_points_' + data.task_id);
-                    if (pointsEl) {
-                        const currentPoints = parseInt(pointsEl.innerHTML) || 0;
-                        const newPoints = parseInt(data.points) || 0;
-                        pointsEl.innerHTML = Math.max(currentPoints, newPoints);
-                    }
+                            const statusEl = document.getElementById('task_status_' + data.task_id);
+                            if (statusEl) statusEl.innerHTML = data.verdict_formatted;
 
-                    if (data.verdict_css_class !== 'verdict-none') {
-                        const form = document.getElementById('form_' + data.task_id);
-                        if (form) {
-                            const btnSend = form.querySelector('.btn-success');
-                            const btnLock = form.querySelector('.btn-secondary');
-                            if (btnSend) btnSend.classList.remove('d-none');
-                            if (btnLock) btnLock.classList.add('d-none');
+                            const statusLink = document.getElementById('task_status_link_' + data.task_id);
+                            if (statusLink) {
+                                statusLink.href = 'results_for_submit.php?id={{coursemodule_id}}&submit_id=' + data.submit_id;
+                                statusLink.classList.remove('disabled-link');
+                                
+                                const icon = document.getElementById('task_status_icon_' + data.task_id);
+                                if (icon) icon.classList.remove('d-none');
+                            }
+                        }
+                        
+                        const pointsEl = document.getElementById('task_points_' + data.task_id);
+                        if (pointsEl) {
+                            const currentPoints = parseInt(pointsEl.innerHTML) || 0;
+                            const newPoints = parseInt(data.points) || 0;
+                            pointsEl.innerHTML = Math.max(currentPoints, newPoints);
+                        }
+
+                        if (data.verdict_css_class !== 'verdict-none') {
+                            const form = document.getElementById('form_' + data.task_id);
+                            if (form) {
+                                const btnSend = form.querySelector('button[type="submit"]');
+                                const btnLock = form.querySelector('button[id^="sendbuttonlocked"]');
+                                if (btnSend) {
+                                    btnSend.disabled = false;
+                                    btnSend.classList.remove('d-none', 'btn-secondary');
+                                    btnSend.classList.add('btn-success');
+                                    btnSend.innerHTML = '{{#str}}send, mod_bacs{{/str}}';
+                                }
+                                if (btnLock) btnLock.classList.add('d-none');
+                            }
+
+                            if (data.verdict_css_class === 'verdict-accepted') {
+                                const toggleCell = row.querySelector('.custom-row-collapse-icon');
+                                if (toggleCell && !toggleCell.classList.contains('collapsed')) {
+                                    toggleCell.click(); 
+                                }
+                            }
                         }
                     }
-                }
-            });
-        } else {
-            handleWsFallback();
-        }
+                });
+            }
+
+            if (typeof require !== 'undefined') {
+                require(['{{ws_url}}/socket.io/socket.io.js'], function(ioModule) {
+                    if (typeof ioModule !== 'undefined') {
+                        setupSocket(ioModule);
+                    } else if (typeof io !== 'undefined') {
+                        setupSocket(io);
+                    } else {
+                        handleWsFallback();
+                    }
+                }, function(err) {
+                    handleWsFallback();
+                });
+            } else {
+                const wsScript = document.createElement('script');
+                wsScript.src = '{{ws_url}}/socket.io/socket.io.js';
+                wsScript.onload = function() {
+                    if (typeof io !== 'undefined') setupSocket(io);
+                    else handleWsFallback();
+                };
+                wsScript.onerror = handleWsFallback;
+                document.head.appendChild(wsScript);
+            }
+        }, 200);
     });
 </script>
 {{/ws_url}}
