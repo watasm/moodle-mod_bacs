@@ -72,27 +72,27 @@
 
 	{{#show_tab_user_dynamics}}
 	<li class="nav-item">
-		<a class="nav-link {{#active_tab_user_dynamics}}active{{/active_tab_user_dynamics}}" href="user_dynamics.php?id={{coursemodule_id}}">
+		<a class="nav-link {{#active_tab_user_dynamics}}active{{/active_tab_user_dynamics}}" href="view.php?id={{coursemodule_id}}#leader-dynamics">
 			{{{icon_user_dynamics}}}
-			{{#str}} userdynamics, mod_bacs {{/str}}
+			{{#str}} view_leaderdynamics, mod_bacs {{/str}}
 		</a>
 	</li>
 	{{/show_tab_user_dynamics}}
 
 	{{#show_tab_task_dynamics}}
 	<li class="nav-item">
-		<a class="nav-link {{#active_tab_task_dynamics}}active{{/active_tab_task_dynamics}}" href="task_dynamics.php?id={{coursemodule_id}}">
+		<a class="nav-link {{#active_tab_task_dynamics}}active{{/active_tab_task_dynamics}}" href="view.php?id={{coursemodule_id}}#task-dynamics">
 			{{{icon_task_dynamics}}}
-			{{#str}} taskdynamics, mod_bacs {{/str}}
+			{{#str}} view_taskdynamics, mod_bacs {{/str}}
 		</a>
 	</li>
 	{{/show_tab_task_dynamics}}
 
 	{{#show_tab_results_graph}}
 	<li class="nav-item">
-		<a class="nav-link {{#active_tab_results_graph}}active{{/active_tab_results_graph}}" href="results_graph.php?id={{coursemodule_id}}">
+		<a class="nav-link {{#active_tab_results_graph}}active{{/active_tab_results_graph}}" href="view.php?id={{coursemodule_id}}#results-graph">
 			{{{icon_results_graph}}}
-			{{#str}} resultsgraph, mod_bacs {{/str}}
+			{{#str}} view_resultsgraph, mod_bacs {{/str}}
 		</a>
 	</li>
 	{{/show_tab_results_graph}}
@@ -170,27 +170,27 @@
 
 			{{#show_more_item_user_dynamics}}
 			<li>
-				<a class="dropdown-item {{#active_tab_user_dynamics}}active{{/active_tab_user_dynamics}}" href="user_dynamics.php?id={{coursemodule_id}}">
+				<a class="dropdown-item {{#active_tab_user_dynamics}}active{{/active_tab_user_dynamics}}" href="view.php?id={{coursemodule_id}}#leader-dynamics">
 					{{{icon_user_dynamics}}}
-					{{#str}} userdynamics, mod_bacs {{/str}}
+					{{#str}} view_leaderdynamics, mod_bacs {{/str}}
 				</a>
 			</li>
 			{{/show_more_item_user_dynamics}}
 
 			{{#show_more_item_task_dynamics}}
 			<li>
-				<a class="dropdown-item {{#active_tab_task_dynamics}}active{{/active_tab_task_dynamics}}" href="task_dynamics.php?id={{coursemodule_id}}">
+				<a class="dropdown-item {{#active_tab_task_dynamics}}active{{/active_tab_task_dynamics}}" href="view.php?id={{coursemodule_id}}#task-dynamics">
 					{{{icon_task_dynamics}}}
-					{{#str}} taskdynamics, mod_bacs {{/str}}
+					{{#str}} view_taskdynamics, mod_bacs {{/str}}
 				</a>
 			</li>
 			{{/show_more_item_task_dynamics}}
 
 			{{#show_more_item_results_graph}}
 			<li>
-				<a class="dropdown-item {{#active_tab_results_graph}}active{{/active_tab_results_graph}}" href="results_graph.php?id={{coursemodule_id}}">
+				<a class="dropdown-item {{#active_tab_results_graph}}active{{/active_tab_results_graph}}" href="view.php?id={{coursemodule_id}}#results-graph">
 					{{{icon_results_graph}}}
-					{{#str}} resultsgraph, mod_bacs {{/str}}
+					{{#str}} view_resultsgraph, mod_bacs {{/str}}
 				</a>
 			</li>
 			{{/show_more_item_results_graph}}
