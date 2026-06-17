@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/bacs/lib.php');
+require_once(dirname(__FILE__) . '/utils.php');
 require_once(dirname(__FILE__) . '/locale_utils.php');
 
 /**
@@ -92,10 +93,7 @@ class mod_bacs_mod_form extends moodleform_mod
             }
         }
 
-        $pluginman = \core\plugin_manager::instance();
-        $rating_plugin_info = $pluginman->get_plugin_info('block_bacs_rating');
-        $is_plugin_presented = $rating_plugin_info && $rating_plugin_info->is_installed_and_upgraded() && $rating_plugin_info->is_enabled();
-        $this->has_rating_table = $is_plugin_presented && $DB->get_manager()->table_exists('bacs_rating_tasks');
+        $this->has_rating_table = bacs_is_rating_available();
 
         $bacs_tasks_columns = $DB->get_columns('bacs_tasks');
         $has_expert_rating = array_key_exists('expert_rating', $bacs_tasks_columns);
@@ -258,9 +256,9 @@ class mod_bacs_mod_form extends moodleform_mod
 
         $mform->addElement('html', '<div id="bacs-classic-ui" style="display: block;">');
         
-        $participants_rating_html = $this->get_participants_rating_summary($this->has_rating_table);
+        $participants_rating_html = $this->get_participants_rating_summary();
         
-        $mform->addElement('html', $this->get_classic_tasks_html($collections, $all_tasks_raw, $is_plugin_presented, $participants_rating_html));
+        $mform->addElement('html', $this->get_classic_tasks_html($collections, $all_tasks_raw, $participants_rating_html));
         $mform->addElement('html', '</div>');
 
         $mform->addElement('html', $this->get_modals_html());
@@ -293,10 +291,10 @@ class mod_bacs_mod_form extends moodleform_mod
     }
 
 
-    private function get_classic_tasks_html($collectionsinfo, $alltasks, $is_plugin_presented, $participants_rating_html = '') {
+    private function get_classic_tasks_html($collectionsinfo, $alltasks, $participants_rating_html = '') {
         
         $button_text = get_string('analyzecontestdifficulty', 'bacs');
-        $disabled_attr = !$is_plugin_presented ? 'disabled="true"' : '';
+        $disabled_attr = !$this->has_rating_table ? 'disabled="true"' : '';
         
         $difficulty_analysis_html = '
             <div id="bacs-difficulty-analysis-container" class="mt-4 mb-4 p-3 bg-light rounded border">
@@ -310,7 +308,7 @@ class mod_bacs_mod_form extends moodleform_mod
                     <canvas id="bacs-difficulty-chart" style="max-width: 100%; height: 400px;"></canvas>
                 </div>';
         
-        if (!$is_plugin_presented) {
+        if (!$this->has_rating_table) {
             $difficulty_analysis_html .= '<p class="text-muted small mt-2 mb-0">' . get_string('no_plugin_installed', 'bacs') . '</p>';
         }
         $difficulty_analysis_html .= '</div>';
@@ -571,10 +569,10 @@ class mod_bacs_mod_form extends moodleform_mod
         ");
     }
 
-    private function get_participants_rating_summary($has_rating) {
+    private function get_participants_rating_summary() {
         global $DB, $PAGE;
 
-        if (!$has_rating) return '';
+        if (!bacs_is_rating_available()) return '';
 
         $context = $PAGE->context;
         $users = get_enrolled_users($context, 'mod/bacs:view', 0, 'u.*');

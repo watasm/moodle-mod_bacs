@@ -41,6 +41,13 @@ $bacs = $DB->get_record('bacs', ['id' => $cm->instance], '*', MUST_EXIST);
 $context = context_module::instance($cm->id);
 require_capability('mod/bacs:edit', $context);
 
+if (!bacs_is_rating_available()) {
+    echo json_encode([
+        'success' => false,
+        'error' => get_string('no_plugin_installed', 'bacs')
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 $task_ids = optional_param_array('task_ids', [], PARAM_INT);
 

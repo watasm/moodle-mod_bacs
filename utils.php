@@ -455,11 +455,36 @@ function bacs_calculate_solve_probability(float $R_task, float $R_user): float
     return 1 / (1 + pow(10, ($R_task - $R_user) / BACS_ELO_LOG_SCALE_FACTOR));
 }
 
-function bacs_is_plugin_presented($plugin_name)
+/**
+ * Whether the rating data provided by the block_bacs_rating plugin is available.
+ *
+ * Verifies the required tables and columns exist directly, instead of querying
+ * the plugin manager (unreliable inside a mod_form definition on Moodle 3.11).
+ *
+ * @return bool true if every required rating table and column is present
+ */
+function bacs_is_rating_available(): bool
 {
-    $pluginmanager = \core_plugin_manager::instance();
-    $parsed_plugin_name_str = explode("_", $plugin_name);
-    $name = implode("_", array_slice($parsed_plugin_name_str, 1));
-    $plugins_by_type = $pluginmanager->get_present_plugins($parsed_plugin_name_str[0]);
-    return isset($plugins_by_type[$name]);
+    global $DB;
+
+    $required =[
+        'bacs_rating_tasks' =>[
+            'task_id', 'elo_rating', 'init_rating', 'min_rating', 'max_rating',
+            'confidence', 'submit_count', 'contest_count', 'seen_by_count', 'solved',
+        ],
+        'bacs_user_ratings' =>['userid', 'rating'],
+    ];
+
+    $dbman = $DB->get_manager();
+    foreach ($required as $table => $columns) {
+        if (!$dbman->table_exists($table)) {
+            return false;
+        }
+        $existing = array_keys($DB->get_columns($table));
+        if (array_diff($columns, $existing)) {
+            return false;
+        }
+    }
+
+    return true;
 }
