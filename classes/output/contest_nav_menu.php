@@ -681,17 +681,15 @@ xmlns="http://www.w3.org/2000/svg">
         $data->show_tab_more                 = $snoisolatedf;
         $data->show_tab_statements           = true;
 
-        $data->show_more_item_view                 = true;
-        $data->show_more_item_tasks                = true;
-        $data->show_more_item_status               = true;
-        $data->show_more_item_results              = true;
-        $data->show_more_item_user_dynamics        = true;
-        $data->show_more_item_task_dynamics        = true;
-        $data->show_more_item_results_graph        = true;
-        $data->show_more_item_virtual_contest      = $sanyvirtual;
-        $data->show_more_item_virtual_participants = $scanedit && $sanyvirtual;
-        $data->show_more_item_incidents            = $scanviewany;
-        $data->show_more_item_actions              = $scanedit;
+        // The "more" dropdown is an overflow menu: list only items that are not
+        // already shown as a top-level tab, so nothing is duplicated.
+        $data->show_more_item_user_dynamics        = !$data->show_tab_user_dynamics;
+        $data->show_more_item_task_dynamics        = !$data->show_tab_task_dynamics;
+        $data->show_more_item_results_graph        = !$data->show_tab_results_graph;
+        $data->show_more_item_virtual_contest      = $sanyvirtual && !$data->show_tab_virtual_contest;
+        $data->show_more_item_virtual_participants = $scanedit && $sanyvirtual && !$data->show_tab_virtual_participants;
+        $data->show_more_item_incidents            = $scanviewany && !$data->show_tab_incidents;
+        $data->show_more_item_actions              = $scanedit && !$data->show_tab_actions;
         $data->show_more_item_settings             = $scanedit;
 
         $data->active_tab_view                 = $this->activetabviewbacs;
