@@ -36,12 +36,34 @@ if ($ADMIN->fulltree) {
     );
 
     $sybonapikey->set_updatedcallback(function () {
-        \mod_bacs\cron_lib::cron_langs();
-        \mod_bacs\cron_lib::cron_tasks();
+        \core_shutdown_manager::register_function(function() {
+            try {
+                \mod_bacs\cron_lib::cron_langs();
+                \mod_bacs\cron_lib::cron_tasks();
+            } catch (\Exception $e) {}
+        });
     });
 
-    $settings->add(
-        $sybonapikey);
+    $settings->add($sybonapikey);
+
+    $sybondomain = new admin_setting_configtext(
+        'mod_bacs/sybondomain',
+        get_string('sybondomain', 'mod_bacs'),
+        get_string('configsybondomain', 'mod_bacs'),
+        "sybon.ru",
+        PARAM_RAW
+    );
+
+    $sybondomain->set_updatedcallback(function () {
+        \core_shutdown_manager::register_function(function() {
+            try {
+                \mod_bacs\cron_lib::cron_langs();
+                \mod_bacs\cron_lib::cron_tasks();
+            } catch (\Exception $e) {}
+        });
+    });
+
+    $settings->add($sybondomain);
 
     $settings->add(
         new admin_setting_configtext(
@@ -79,4 +101,25 @@ if ($ADMIN->fulltree) {
             ],
         )
     );
+
+    // WebSockets
+    $settings->add(new admin_setting_configtext('mod_bacs/ws_url', 
+        'WebSocket URL (Public)', 'Публичный URL Node.js сервера (например, http://moodle.site:3000)', '', PARAM_URL));
+
+    $settings->add(new admin_setting_configtext('mod_bacs/ws_internal_url', 
+        'WebSocket URL (Internal API)', 'Внутренний URL для вебхуков (например, http://localhost:3000/internal/notify)', '', PARAM_URL));
+
+    global $CFG;
+    $default_ws_secret = hash('sha256', $CFG->siteidentifier . 'bacs_websocket_secret_v1');
+
+    $settings->add(new admin_setting_configpasswordunmask('mod_bacs/ws_secret', 
+        'WebSocket Secret Key', 'Секретный ключ для JWT и вебхуков. Если пусто — генерируется автоматически.', $default_ws_secret, PARAM_RAW));
+
+
+    $settings->add(new admin_setting_configpasswordunmask('mod_bacs/submit_salt', 
+        'Submit Hash Salt', 
+        'Соль для хэширования ключей при отправке посылок (создается автоматически, если пуста)', 
+        '', 
+        PARAM_RAW
+    ));
 }

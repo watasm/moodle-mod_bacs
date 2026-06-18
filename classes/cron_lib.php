@@ -44,7 +44,8 @@ use stdClass;
  * @copyright  SybonTeam, sybon.org
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class cron_lib {
+class cron_lib
+{
     /**
      * This function
      * @param int $contestid
@@ -52,7 +53,8 @@ class cron_lib {
      * @param array $changedcontests
      * @return void
      */
-    public static function mark_to_rebuild_standings($contestid, $groupid, &$changedcontests) {
+    public static function mark_to_rebuild_standings($contestid, $groupid, &$changedcontests)
+    {
         if (!array_key_exists($contestid, $changedcontests)) {
             $changedcontests[$contestid] = [];
         }
@@ -67,7 +69,8 @@ class cron_lib {
      * @throws dml_exception
      * @throws dml_transaction_exception
      */
-    public static function cron_langs() {
+    public static function cron_langs()
+    {
         global $DB;
 
         $sybonapikey = get_config('mod_bacs', 'sybonapikey');
@@ -106,7 +109,8 @@ class cron_lib {
      * @throws exception
      * @throws dml_exception
      */
-    public static function cron_sendsubmits(&$changedcontests): void {
+    public static function cron_sendsubmits(&$changedcontests): void
+    {
         global $DB;
 
         $sybonapikey = get_config('mod_bacs', 'sybonapikey');
@@ -150,18 +154,18 @@ class cron_lib {
 
             // Prepare Sybon submit.
             $sybonsubmit = (object) [
-                    'compilerId' => $submit->lang_id,
-                    'solution' => base64_encode($submit->source),
-                    'solutionFileType' => 'Text',
-                    'problemId' => $submit->task_id,
-                    'pretestsOnly' => false,
-                    'continueCondition' => 'Always',
+                'compilerId' => $submit->lang_id,
+                'solution' => base64_encode($submit->source),
+                'solutionFileType' => 'Text',
+                'problemId' => $submit->task_id,
+                'pretestsOnly' => false,
+                'continueCondition' => 'Always',
             ];
 
             // Add.
             $matchedsubmits[] = (object) [
-                    'as_sybon_submit' => $sybonsubmit,
-                    'submit_id' => $submit->id,
+                'as_sybon_submit' => $sybonsubmit,
+                'submit_id' => $submit->id,
             ];
         }
 
@@ -199,7 +203,8 @@ class cron_lib {
      * @throws dml_exception
      * @throws dml_transaction_exception
      */
-    public static function cron_getresults_for_submits(&$changedcontests, &$submits): void {
+    public static function cron_getresults_for_submits(&$changedcontests, &$submits): void
+    {
         $sybonapikey = get_config('mod_bacs', 'sybonapikey');
         $sybonclient = new sybon_client($sybonapikey);
 
@@ -225,12 +230,13 @@ class cron_lib {
         foreach ($checkingresults as $checkingresult) {
             global $DB;
 
-            $syncid = $checkingresult->id;
-            $submitid = $syncidtosubmitid[$syncid];
-
             if (is_null($checkingresult)) {
                 continue;
             }
+
+            $syncid = $checkingresult->id;
+            $submitid = $syncidtosubmitid[$syncid];
+
             if (!property_exists($checkingresult, 'buildResult')) {
                 continue;
             }
@@ -327,16 +333,38 @@ class cron_lib {
 
             // Decode and convert to UTF-8.
             $submit->info = base64_decode($checkingresult->buildResult->output);
-            $mostlikelyencoding = mb_detect_encoding($submit->info, [ 'UTF-8', 'ASCII' ]);
+            $mostlikelyencoding = mb_detect_encoding($submit->info, ['UTF-8', 'ASCII']);
             $submit->info = mb_convert_encoding($submit->info, 'UTF-8', $mostlikelyencoding);
 
             $submit->max_time_used = $maxtimeused;
             $submit->max_memory_used = $maxmemoryused;
             $DB->update_record('bacs_submits', $submit);
 
-            bacs_calculate_sumbit_points($submitid);
+            bacs_calculate_submit_points($submitid);
 
             $transaction->allow_commit();
+
+            // --- FOR WEBSOCKETS ---
+            $runningsubmit_user_id = 0;
+            foreach ($submits as $s) {
+                if ($s->id == $submitid) {
+                    $runningsubmit_user_id = $s->user_id;
+                    break;
+                }
+            }
+
+            if ($runningsubmit_user_id) {
+                $ws_data = [
+                    'submit_id' => $submitid,
+                    'result_id' => $submit->result_id,
+                    'points' => $submit->points,
+                    'verdict_css_class' => bacs_verdict_to_css_class($submit->result_id),
+                    'verdict_formatted' => format_verdict($submit->result_id),
+                    'time_formatted' => format_time_consumed($maxtimeused),
+                    'memory_formatted' => format_memory_consumed($maxmemoryused),
+                ];
+                bacs_notify_ws_broker($runningsubmit_user_id, $ws_data);
+            }
 
             unset($submits[$submitid]);
         }
@@ -354,7 +382,8 @@ class cron_lib {
      * @throws dml_exception
      * @throws coding_exception
      */
-    public static function cron_getresults(&$changedcontests): void {
+    public static function cron_getresults(&$changedcontests): void
+    {
         global $DB;
 
         $maximumrecordsforsinglerequest = 50;
@@ -374,14 +403,14 @@ class cron_lib {
             return;
         }
 
-        // Try to proccess all selected submits.
+        // Try to process all selected submits.
         try {
             self::cron_getresults_for_submits($changedcontests, $runningsubmits);
         } catch (Exception $e) {
             // Failed to process some of selected submits, processing them one by one.
             foreach ($runningsubmits as $submitid => $runningsubmit) {
                 try {
-                    $unprocessedrunningsubmit = [ $submitid => $runningsubmit ];
+                    $unprocessedrunningsubmit = [$submitid => $runningsubmit];
                     self::cron_getresults_for_submits($changedcontests, $unprocessedrunningsubmit);
                 } catch (Exception $e) {
                     // Failed to process single submit so it's invalidated.
@@ -400,7 +429,8 @@ class cron_lib {
      * @throws dml_exception
      * @throws exception
      */
-    public static function cron_send($verbose): void {
+    public static function cron_send($verbose): void
+    {
         $changedcontests = [];
 
         if ($verbose) {
@@ -435,7 +465,8 @@ class cron_lib {
      * @return void
      * @throws dml_exception
      */
-    public static function cron_tasks() {
+    public static function cron_tasks()
+    {
         global $DB;
 
         $sybonapikey = get_config('mod_bacs', 'sybonapikey');
@@ -450,7 +481,7 @@ class cron_lib {
 
             $collections = $sybonclient->get_collections();
 
-            $insertedtskids = [];
+            $insertedtaskids = [];
             foreach ($collections as $collectioninfo) {
                 $collectionrecord = new stdClass();
                 $collectionrecord->name = $collectioninfo->name;
@@ -464,11 +495,11 @@ class cron_lib {
                 $collectionproblems = $collection->problems;
 
                 foreach ($collectionproblems as $item) {
-                    if (array_key_exists($item->id, $insertedtskids)) {
+                    if (array_key_exists($item->id, $insertedtaskids)) {
                         continue;
                     }
 
-                    $insertedtskids[$item->id] = true;
+                    $insertedtaskids[$item->id] = true;
 
                     $record = new stdClass();
                     $record->task_id = $item->id;
@@ -517,7 +548,7 @@ class cron_lib {
                         $record->count_pretests
                     );
 
-                    if(isset($item->statementUrl)) {
+                    if (isset($item->statementUrl)) {
                         $record->statement_url = $item->statementUrl;
                     }
                     $record->statement_urls = json_encode($item->statementUrls);
@@ -543,7 +574,8 @@ class cron_lib {
      * @return void
      * @throws dml_exception
      */
-    public static function cron_task_url() {
+    public static function cron_task_url()
+    {
         global $DB;
 
         $sybonapikey = get_config('mod_bacs', 'sybonapikey');
@@ -570,7 +602,8 @@ class cron_lib {
      * @return void
      * @throws dml_exception
      */
-    public static function cron_incidents($verbose=false) {
+    public static function cron_incidents($verbose = false)
+    {
         global $DB;
 
         /// TODO apply contest incident settings here
@@ -602,7 +635,7 @@ class cron_lib {
         // Compute fingerprints
         foreach ($submitstoprocess as $submit) {
             if ($verbose) print "<p>Computing fingerprints for submit submit_id=$submit->submit_id ...</p>";
-            
+
             $tokenseq = bacs_tokenize_submit($submit->source);
 
             $tokencountsmap = [];
@@ -686,7 +719,7 @@ class cron_lib {
             // a set of max-inclusion KS-incident clusters including all involved submits
 
             $usersubmits = array_values($DB->get_records('bacs_submits', ['contest_id' => $contestid, 'user_id' => $userid], 'submit_time ASC'));
-            
+
             // Iterate all segments of sorted submits
             for ($l = 0; $l < count($usersubmits); $l++) {
                 $submitvalue = 0;
@@ -699,7 +732,7 @@ class cron_lib {
                     if ($l == $r) continue;
 
                     $timedelta = ($usersubmits[$r]->submit_time - $usersubmits[$l]->submit_time) / 60;
-                    $ks = (pow($submitvalue, 1.75) - 3) / $timedelta;
+                    $ks = (pow($submitvalue, 1.75) - 3) / max($timedelta, 0.00001);
 
                     if ($ks >= $ksthreshold) {
                         $bestr = $r;
@@ -711,7 +744,7 @@ class cron_lib {
 
                 // If no KS incidents with current $l, then proceed to the next $l, otherwise generate largest one
                 if ($bestr == -1) continue;
-                
+
                 $r = $bestr;
                 $ks = $ksforbestr;
 
@@ -719,8 +752,15 @@ class cron_lib {
                 $submitids = [];
                 for ($i = $l; $i <= $r; $i++) $submitids[] = $usersubmits[$i]->id;
 
-                [$insql, $inparams] = $DB->get_in_or_equal($submitids);
-                $sql = "SELECT * FROM {bacs_incidents_to_submits} WHERE submit_id $insql";
+                [$insql, $inparams] = $DB->get_in_or_equal($submitids, SQL_PARAMS_NAMED);
+
+                $sql = "SELECT its.id, its.incident_id
+                        FROM {bacs_incidents_to_submits} its
+                        JOIN {bacs_incidents} incident ON incident.id = its.incident_id
+                        WHERE its.submit_id $insql
+                        AND incident.method = :method";
+                $inparams['method'] = 'kangaroo';
+
                 $delincidentstosubmits = $DB->get_records_sql($sql, $inparams);
 
                 $delincidentids = [];
@@ -736,7 +776,7 @@ class cron_lib {
                 // Generate KS incident
                 if ($verbose) {
                     $submitidsasstr = '[' . implode(', ', $submitids) . ']';
-                    print "<p>Generating KS-incident for contestid=$contestid userid=$userid ks=$ks " 
+                    print "<p>Generating KS-incident for contestid=$contestid userid=$userid ks=$ks "
                         . "range=[$l; $r] submitids=$submitidsasstr ...</p>";
                 }
 
@@ -794,8 +834,10 @@ class cron_lib {
                 $collidingsubmits = $DB->get_records_sql($sql, $params);
 
                 // Check if multiple users are involved
-                $useridcounts = array_count_values(array_map(function($s) {return $s->user_id;}, $collidingsubmits));
-                
+                $useridcounts = array_count_values(array_map(function ($s) {
+                    return $s->user_id;
+                }, $collidingsubmits));
+
                 if (count($useridcounts) <= 1) continue;
 
                 // Find possible fingerprint incident
@@ -803,15 +845,15 @@ class cron_lib {
                 foreach ($collidingsubmits as $collidingsubmit) $collidingsubmitids[] = $collidingsubmit->submit_id;
                 [$insql, $params] = $DB->get_in_or_equal($collidingsubmitids, SQL_PARAMS_NAMED);
 
-                $sql = "SELECT incident.id
+                $sql = "SELECT DISTINCT incident.id
                           FROM {bacs_incidents} incident
                           JOIN {bacs_incidents_to_submits} its ON incident.id = its.incident_id
-                         WHERE incident.contest_id = :contest_id AND incident.method = :method AND its.submit_id $insql
+                         WHERE incident.contest_id = :contest_id AND incident.method = :method AND its.submit_id $insql                    
                 ";
                 $params['method'] = $method;
                 $params['contest_id'] = $submit->contest_id;
 
-                $optionalincident = $DB->get_records_sql($sql, $params);
+                $optionalincident = $DB->get_records_sql($sql, $params, 0, 1);
 
                 // Update incident
                 if (count($optionalincident) > 0) {
@@ -822,7 +864,7 @@ class cron_lib {
                         'incident_id' => $incidentid,
                         'submit_id' => $submit->submit_id
                     ]);
-                    
+
                     if (!$submitisalreadyincluded) {
                         $DB->insert_record('bacs_incidents_to_submits', (object) [
                             'incident_id' => $incidentid,
@@ -837,7 +879,7 @@ class cron_lib {
                         'contest_id' => $submit->contest_id,
                         'method' => $method,
                         'info' => json_encode([
-                            'task_id' => $submit->task_id, 
+                            'task_id' => $submit->task_id,
                             // probably should be changed to most popular task_id in colliding submits instead of arbitrary one
                         ]),
                     ];
@@ -865,10 +907,15 @@ class cron_lib {
             if ($verbose) print "<p>Updating incidents_info for contestid=$contestid ...</p>";
 
             $contest = $DB->get_record('bacs', ['id' => $contestid]);
+            if (!$contest) {
+                 print("Cannot update incidents_info: bacs record not found for contestid=$contestid\n");
+                continue;
+            }
             $incidents = $DB->get_records('bacs_incidents', ['contest_id' => $contestid]);
 
             $incidentids = [];
             foreach ($incidents as $incident) $incidentids[] = $incident->id;
+            if (empty($incidentids)) continue;
             [$insql, $inparams] = $DB->get_in_or_equal($incidentids);
             $incidentstosubmits = $DB->get_records_select('bacs_incidents_to_submits', "incident_id $insql", $inparams);
 
@@ -894,9 +941,7 @@ class cron_lib {
 
             $DB->update_record('bacs', $contest);
         }
-        
+
         $transaction->allow_commit();
     }
-
-
 }

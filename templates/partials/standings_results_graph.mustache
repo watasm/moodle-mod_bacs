@@ -1,0 +1,28 @@
+<div id="view-results-graph" class="bacs-view">
+    <div class="mb-3 d-flex align-items-center">
+        
+        <div>
+            <button id="results-graph-reset-zoom" class="btn btn-sm btn-outline-danger d-none shadow-sm">
+                <i class="bi bi-zoom-out"></i> {{#str}} resetzoom, mod_bacs {{/str}}
+            </button>
+        </div>
+        
+        <div class="d-flex flex-wrap justify-content-end align-items-center ms-auto" style="gap: 12px; min-height: 38px;">
+            <div class="form-check form-switch d-flex align-items-center m-0">
+                <input class="form-check-input me-2" type="checkbox" id="results-graph-hide-upsolving" style="cursor: pointer;">
+                <label class="form-check-label text-muted fw-bold" style="font-size: 0.85rem; cursor: pointer; user-select: none;" for="results-graph-hide-upsolving">{{#str}} hideupsolving, mod_bacs {{/str}}</label>
+            </div>
+
+            <div class="d-flex align-items-center bg-light p-1 rounded border shadow-sm" id="results-graph-manual-zoom">
+                <span class="text-muted ms-2 me-2" style="font-size: 0.85rem;"><i class="bi bi-calendar-range"></i> {{#str}} view, mod_bacs {{/str}}:</span>
+                <input type="datetime-local" id="results-zoom-start" class="form-control form-control-sm border-0" style="max-width: 175px; background: transparent;">
+                <span class="text-muted mx-1">—</span>
+                <input type="datetime-local" id="results-zoom-end" class="form-control form-control-sm border-0" style="max-width: 175px; background: transparent;">
+                <button id="results-zoom-apply" class="btn btn-sm btn-primary ms-2 px-3 rounded-pill">{{#str}} apply, mod_bacs {{/str}}</button>
+            </div>
+        </div>
+        
+    </div>
+    
+    <canvas id="results-graph-chart" style="max-height: 600px;"></canvas>
+</div>

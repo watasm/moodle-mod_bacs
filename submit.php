@@ -55,7 +55,11 @@ foreach ($contest->tasks as $task) {
 
 $now = time();
 $recenttime = $now - 5 * 60;
-$recentsubmits = $DB->count_records_select('bacs_submits', "submit_time > $recenttime AND user_id = $USER->id");
+$recentsubmits = $DB->count_records_select(
+    'bacs_submits', 
+    'submit_time > :recenttime AND user_id = :userid', 
+    ['recenttime' => $recenttime, 'userid' => $USER->id]
+);
 
 $showsubmitsspamwarning = ($recentsubmits > 40);
 $showsubmitsspampenalty = ($recentsubmits > 50);
@@ -85,6 +89,11 @@ if ($cansubmit && $contest->queryparamsbacs->key == $submitkey) {
 
         $submitid = $DB->insert_record('bacs_submits', $record);
 
+        $task = new \mod_bacs\task\sybon_submits_processing();
+        $task->set_custom_data(['singleton' => 1]);
+        $task->set_next_run_time(time());
+        \core\task\manager::reschedule_or_queue_adhoc_task($task);
+
         if ($contest->bacs->detect_incidents == 1) {
             bacs_mark_submit_for_incidents_recalc($submitid);
         }
@@ -97,7 +106,7 @@ if ($cansubmit && $contest->queryparamsbacs->key == $submitkey) {
         bacs_redirect_via_js("tasks.php?id=" . $contest->coursemodule->id);
     }
 } else {
-    print "Error occured on submitting / Произошла ошибка при отправке";
+    print "Error occurred on submitting / Произошла ошибка при отправке";
 }
 
 die();

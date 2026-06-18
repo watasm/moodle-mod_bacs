@@ -351,12 +351,12 @@ function bacs_rebuild_common_standings($bacsid) {
     $submits = $DB->get_records('bacs_submits', ['contest_id' => $bacsid]);
     foreach ($submits as $cursubmit) {
         $standings[] = [
-            'id'          => $cursubmit->id,
-            'user_id'     => $cursubmit->user_id,
-            'task_id'     => $cursubmit->task_id,
-            'submit_time' => $cursubmit->submit_time,
-            'result_id'   => $cursubmit->result_id,
-            'points'      => $cursubmit->points,
+            'id'          => (int)$cursubmit->id,
+            'user_id'     => (int)$cursubmit->user_id,
+            'task_id'     => (int)$cursubmit->task_id,
+            'submit_time' => (int)$cursubmit->submit_time,
+            'result_id'   => (int)$cursubmit->result_id,
+            'points'      => (int)$cursubmit->points,
         ];
     }
 
@@ -397,15 +397,16 @@ function bacs_rebuild_standings_for_group($bacsid, $groupid) {
 
     $standings = [];
 
-    $submits = $DB->get_records('bacs_submits', ['contest_id' => $bacsid, 'group_id' => $groupid]);
+        $submits = $DB->get_records('bacs_submits', ['contest_id' => $bacsid, 'group_id' => $groupid]);
+
     foreach ($submits as $cursubmit) {
         $standings[] = [
-            'id'          => $cursubmit->id,
-            'user_id'     => $cursubmit->user_id,
-            'task_id'     => $cursubmit->task_id,
-            'submit_time' => $cursubmit->submit_time,
-            'result_id'   => $cursubmit->result_id,
-            'points'      => $cursubmit->points,
+            'id'          => (int)$cursubmit->id,
+            'user_id'     => (int)$cursubmit->user_id,
+            'task_id'     => (int)$cursubmit->task_id,
+            'submit_time' => (int)$cursubmit->submit_time,
+            'result_id'   => (int)$cursubmit->result_id,
+            'points'      => (int)$cursubmit->points,
         ];
     }
 
@@ -1092,4 +1093,88 @@ function bacs_diagnostics_task_statement_format() {
     }
 
     return $result;
+}
+
+/**
+ * Generates a JWT token using HS256.
+ *
+ * @param array $payload Data to include in the token payload
+ * @param string $secret Secret key used to sign the token
+ * @return string Generated JWT token
+ */
+function bacs_generate_jwt($payload, $secret) {
+    $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
+    $base64UrlHeader = str_replace(['+', '/', '='],['-', '_', ''], base64_encode($header));
+    $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode(json_encode($payload)));
+    $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $secret, true);
+    $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+    return $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
+}
+
+/**
+ * Sends submission notification to the WebSocket broker.
+ *
+ * @param int $userid ID of the user who submitted
+ * @param array $submitdata Data related to the submission
+ * @return void
+ */
+function bacs_notify_ws_broker($userid, $submitdata) {
+    $url = get_config('mod_bacs', 'ws_internal_url');
+    $secret = bacs_get_ws_secret();
+    if (empty($url) || empty($secret)) return;
+
+    $payload =[
+        'user_id' => $userid,
+        'data' => $submitdata
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+    curl_setopt($ch, CURLOPT_HTTPHEADER,['Content-Type: application/json', 'X-Auth-Secret: ' . $secret]);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 2); 
+    curl_exec($ch);
+    curl_close($ch);
+}
+
+/**
+ * Generates a secure key for submitting solutions
+ * 
+ * @param int $cmid Course module ID
+ * @param int $task_id Task ID
+ * @return string Hash key
+ */
+function bacs_generate_submit_key($cmid, $task_id) {
+    global $USER;
+    
+    $salt = get_config('mod_bacs', 'submit_salt');
+    
+    if (empty($salt)) {
+        $salt = bin2hex(random_bytes(16));
+        set_config('submit_salt', $salt, 'mod_bacs');
+    }
+    
+    // Generate the key (sha256)
+    return hash('sha256', $USER->email . $USER->sesskey . $cmid . $task_id . $salt);
+}
+
+/**
+ * Retrieves or generates a secret key for WebSocket connections.
+ * 
+ * @return string
+ */
+function bacs_get_ws_secret() {
+    global $CFG;
+    $secret = get_config('mod_bacs', 'ws_secret');
+    
+    if (empty($secret)) {
+        
+        // $CFG->siteidentifier is generated during Moodle installation.
+        // We hash it with a salt to obtain a unique and secure key for THIS specific server.
+        $secret = hash('sha256', $CFG->siteidentifier . 'bacs_websocket_secret_v1');
+        
+        set_config('ws_secret', $secret, 'mod_bacs');
+    }
+    
+    return $secret;
 }

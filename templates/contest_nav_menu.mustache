@@ -25,6 +25,15 @@
 	</li>
 	{{/show_tab_tasks}}
 
+	{{#show_tab_statements}}
+	<li class="nav-item">
+		<a class="nav-link {{#active_tab_statements}}active{{/active_tab_statements}}" href="statements.php?id={{coursemodule_id}}">
+			{{{icon_statements}}}
+			{{#str}} statement, mod_bacs {{/str}}
+		</a>
+	</li>
+	{{/show_tab_statements}}
+
 	{{#show_tab_status}}
 	<li class="nav-item">
 		<a class="nav-link {{#active_tab_status}}active{{/active_tab_status}}" href="status.php?id={{coursemodule_id}}">
@@ -63,27 +72,27 @@
 
 	{{#show_tab_user_dynamics}}
 	<li class="nav-item">
-		<a class="nav-link {{#active_tab_user_dynamics}}active{{/active_tab_user_dynamics}}" href="user_dynamics.php?id={{coursemodule_id}}">
+		<a class="nav-link {{#active_tab_user_dynamics}}active{{/active_tab_user_dynamics}}" href="view.php?id={{coursemodule_id}}#leader-dynamics">
 			{{{icon_user_dynamics}}}
-			{{#str}} userdynamics, mod_bacs {{/str}}
+			{{#str}} view_leaderdynamics, mod_bacs {{/str}}
 		</a>
 	</li>
 	{{/show_tab_user_dynamics}}
 
 	{{#show_tab_task_dynamics}}
 	<li class="nav-item">
-		<a class="nav-link {{#active_tab_task_dynamics}}active{{/active_tab_task_dynamics}}" href="task_dynamics.php?id={{coursemodule_id}}">
+		<a class="nav-link {{#active_tab_task_dynamics}}active{{/active_tab_task_dynamics}}" href="view.php?id={{coursemodule_id}}#task-dynamics">
 			{{{icon_task_dynamics}}}
-			{{#str}} taskdynamics, mod_bacs {{/str}}
+			{{#str}} view_taskdynamics, mod_bacs {{/str}}
 		</a>
 	</li>
 	{{/show_tab_task_dynamics}}
 
 	{{#show_tab_results_graph}}
 	<li class="nav-item">
-		<a class="nav-link {{#active_tab_results_graph}}active{{/active_tab_results_graph}}" href="results_graph.php?id={{coursemodule_id}}">
+		<a class="nav-link {{#active_tab_results_graph}}active{{/active_tab_results_graph}}" href="view.php?id={{coursemodule_id}}#results-graph">
 			{{{icon_results_graph}}}
-			{{#str}} resultsgraph, mod_bacs {{/str}}
+			{{#str}} view_resultsgraph, mod_bacs {{/str}}
 		</a>
 	</li>
 	{{/show_tab_results_graph}}
@@ -123,65 +132,29 @@
 		</a>
 
 		<ul class="dropdown-menu">
-			{{#show_more_item_view}}
-			<li>
-				<a class="dropdown-item {{#active_tab_view}}active{{/active_tab_view}}" href="view.php?id={{coursemodule_id}}">
-					{{{icon_standings}}}
-					{{#str}} standings, mod_bacs {{/str}}
-				</a>
-			</li>
-			{{/show_more_item_view}}
-
-			{{#show_more_item_tasks}}
-			<li>
-				<a class="dropdown-item {{#active_tab_tasks}}active{{/active_tab_tasks}}" href="tasks.php?id={{coursemodule_id}}">
-					{{{icon_tasklist}}}
-					{{#str}} tasklist, mod_bacs {{/str}}
-				</a>
-			</li>
-			{{/show_more_item_tasks}}
-
-			{{#show_more_item_status}}
-			<li>
-				<a class="dropdown-item {{#active_tab_status}}active{{/active_tab_status}}" href="status.php?id={{coursemodule_id}}">
-					{{{icon_status}}}
-					{{#str}} status, mod_bacs {{/str}}
-				</a>
-			</li>
-			{{/show_more_item_status}}
-
-			{{#show_more_item_results}}
-			<li>
-				<a class="dropdown-item {{#active_tab_results}}active{{/active_tab_results}}" href="results.php?id={{coursemodule_id}}">
-					{{{icon_results}}}
-					{{#str}} mysubmits, mod_bacs {{/str}}
-				</a>
-			</li>
-			{{/show_more_item_results}}
-
 			{{#show_more_item_user_dynamics}}
 			<li>
-				<a class="dropdown-item {{#active_tab_user_dynamics}}active{{/active_tab_user_dynamics}}" href="user_dynamics.php?id={{coursemodule_id}}">
+				<a class="dropdown-item {{#active_tab_user_dynamics}}active{{/active_tab_user_dynamics}}" href="view.php?id={{coursemodule_id}}#leader-dynamics">
 					{{{icon_user_dynamics}}}
-					{{#str}} userdynamics, mod_bacs {{/str}}
+					{{#str}} view_leaderdynamics, mod_bacs {{/str}}
 				</a>
 			</li>
 			{{/show_more_item_user_dynamics}}
 
 			{{#show_more_item_task_dynamics}}
 			<li>
-				<a class="dropdown-item {{#active_tab_task_dynamics}}active{{/active_tab_task_dynamics}}" href="task_dynamics.php?id={{coursemodule_id}}">
+				<a class="dropdown-item {{#active_tab_task_dynamics}}active{{/active_tab_task_dynamics}}" href="view.php?id={{coursemodule_id}}#task-dynamics">
 					{{{icon_task_dynamics}}}
-					{{#str}} taskdynamics, mod_bacs {{/str}}
+					{{#str}} view_taskdynamics, mod_bacs {{/str}}
 				</a>
 			</li>
 			{{/show_more_item_task_dynamics}}
 
 			{{#show_more_item_results_graph}}
 			<li>
-				<a class="dropdown-item {{#active_tab_results_graph}}active{{/active_tab_results_graph}}" href="results_graph.php?id={{coursemodule_id}}">
+				<a class="dropdown-item {{#active_tab_results_graph}}active{{/active_tab_results_graph}}" href="view.php?id={{coursemodule_id}}#results-graph">
 					{{{icon_results_graph}}}
-					{{#str}} resultsgraph, mod_bacs {{/str}}
+					{{#str}} view_resultsgraph, mod_bacs {{/str}}
 				</a>
 			</li>
 			{{/show_more_item_results_graph}}
@@ -242,8 +215,7 @@
 <script type='text/javascript'>
 	function ace_theme_selector_change() {
 		var selector = document.getElementById('ace_theme_selector');
-		localStorage.setItem('ace_saved_theme', selector.value);
-
+		localStorage.setItem('ace_theme_' + '{{target_user_id}}', selector.value);
 		window.location.href = '{{{ace_editor_redirect_url}}}'.replace('{acetheme}', selector.value);
 	}
 </script>
@@ -307,11 +279,11 @@
 
 {{^ace_editor_theme_present}}
     <script type='text/javascript'>
-        if (localStorage.getItem('ace_saved_theme') === null) {
+        const userThemeKey = 'ace_theme_' + '{{target_user_id}}';
+        if (localStorage.getItem(userThemeKey) === null) {
             document.getElementById('ace_theme_selector').value = 'textmate'; // default
         } else {
-            document.getElementById('ace_theme_selector').value = 
-                localStorage.getItem('ace_saved_theme');
+            document.getElementById('ace_theme_selector').value = localStorage.getItem(userThemeKey);
         }
     </script>
 {{/ace_editor_theme_present}}

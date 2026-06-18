@@ -33,6 +33,10 @@ require_login();
 $contest = new contest();
 $contest->initialize_page();
 
+require_capability('mod/bacs:edit', $PAGE->context);
+
+require_sesskey();
+
 $contest->pageurlbacs = new moodle_url('/mod/bacs/recalculate_points.php', ['id' => $contest->coursemodule->id]);
 
 echo $OUTPUT->header();
@@ -95,7 +99,7 @@ try {
 
     foreach ($submits as $submit) {
         print "Recalculating submit $submit->id...<br>";
-        bacs_calculate_sumbit_points($submit->id, $testpointsstring);
+        bacs_calculate_submit_points($submit->id, $testpointsstring);
     }
 
     $transaction->allow_commit();
@@ -107,10 +111,5 @@ try {
 } catch (Exception $e) {
     debugging($e->getMessage());
 }
-
-
-
-
-
 
 echo $OUTPUT->footer();

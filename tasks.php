@@ -37,7 +37,7 @@ $contest = new contest();
 $contest->pageisallowedforisolatedparticipantbacs = true;
 $contest->initialize_page();
 
-$contest->pageurlbacs = new moodle_url('/mod/bacs/tasks.php', ['id' => $contest->coursemodule->id]);
+$contest->pageurlbacs = new moodle_url('/mod/bacs/tasks.php',['id' => $contest->coursemodule->id]);
 
 echo $OUTPUT->header();
 
@@ -50,14 +50,25 @@ $tasklist = new tasklist();
 
 $now = time();
 $recenttime = $now - 5 * 60;
-$tasklist->recentsubmitsbacs = $DB->count_records_select('bacs_submits', "submit_time > $recenttime AND user_id = $USER->id");
+$tasklist->recentsubmitsbacs = $DB->count_records_select(
+    'bacs_submits', 
+    'submit_time > :recenttime AND user_id = :userid', 
+    ['recenttime' => $recenttime, 'userid' => $USER->id]
+);
 
 $tasklist->coursemoduleidbacs = $contest->coursemodule->id;
 $tasklist->usercapabilitiesbacs = $contest->usercapabilitiesbacs;
-$tasklist->showpointsbacs = $contest->get_show_points();
+$tasklist->showpointsbacs       = $contest->get_show_points();
+$tasklist->showmaxpointsbacs    = !empty($contest->bacs->show_max_points);
+
+$target_task_id = optional_param('task_id', 0, PARAM_INT);
 
 foreach ($contest->tasks as $task) {
     $tasklisttask = new stdClass();
+
+    $tasklisttask->is_target_task = ($task->task_id == $target_task_id);
+
+    $tasklisttask->show_max_points_setting = !empty($contest->bacs->show_max_points);
 
     // getting preferred languages from module settings
     $preferedlanguages = explode(',', get_config('mod_bacs', 'preferedlanguages'));
@@ -71,8 +82,9 @@ foreach ($contest->tasks as $task) {
         $task->statement_urls = json_encode(["ru" => $task->statement_url]);
     }
 
-    if (isset($task->statement_urls)) {
-        $tasklisttask->statement_urls = json_decode($task->statement_urls, true);
+    if(isset($task->statement_urls)) {
+        $tasklisttask->statement_urls = is_string($task->statement_urls) ? json_decode($task->statement_urls, true) : $task->statement_urls;
+        
         $tasklisttask->is_multi_statements = empty($tasklisttask->statement_urls) ? false : count($tasklisttask->statement_urls) > 0;
 
         if ($tasklisttask->is_multi_statements) {
@@ -100,8 +112,9 @@ foreach ($contest->tasks as $task) {
         }
     }
 
-    if (isset($task->names)) {
-        $tasklisttask->names = json_decode($task->names, true);
+    if(isset($task->names)) {
+        $tasklisttask->names = is_string($task->names) ? json_decode($task->names, true) : $task->names;
+        
         $tasklisttask->is_multi_names = empty($tasklisttask->names) ? 0 : count($tasklisttask->names) > 0;
         if ($tasklisttask->is_multi_names) {
             $tasklisttask->names = bacs_filter_multilingual_data($tasklisttask->names, [$currentlang], 'name');
@@ -171,7 +184,7 @@ foreach ($contest->tasks as $task) {
             "</div>";
     }
 
-    $submitconditions = [
+    $submitconditions =[
         'contest_id' => $contest->bacs->id,
         'user_id' => $USER->id,
         'task_id' => $task->task_id,
@@ -182,26 +195,93 @@ foreach ($contest->tasks as $task) {
 
     $submits = $DB->get_records('bacs_submits', $submitconditions);
 
+    $max_points = 0;
+    if (!empty($task->test_points)) {
+        $points_array = explode(',', $task->test_points);
+        foreach ($points_array as $p) { $max_points += (int)$p; }
+    } else {
+        $max_points = 100;
+    }
+    $tasklisttask->max_points = $max_points;
+
     $tasklisttask->points = "-";
     $tasklisttask->tr_color_class = "verdict-none";
+    $tasklisttask->current_status = "-"; 
+    $tasklisttask->status_id = 0;
+    $tasklisttask->best_submit_id = false; 
+
+    $best_points = 0;
+    $is_accepted = false;
+    
+    $latest_accepted_time = 0;
+    $latest_accepted_submit_id = null;
+
+    $latest_failed_time = 0;
+    $latest_failed_status = "";
+    $latest_failed_submit_id = null;
+    $latest_failed_test_num = null; 
+
+    $latest_running_time = 0;
+    $latest_running_status = "";
+    $latest_running_submit_id = null;
+
+    $has_any_submits = false;
 
     foreach ($submits as $submit) {
-        if ($submit->result_id == VERDICT_PENDING) {
-            continue;
-        }
-        if ($submit->result_id == VERDICT_RUNNING) {
-            continue;
+        $has_any_submits = true;
+
+        $points = intval($submit->points);
+        if ($points > $best_points) {
+            $best_points = $points;
         }
 
-        if (is_int($tasklisttask->points)) {
-            $tasklisttask->points = max($tasklisttask->points, intval($submit->points));
-        } else {
-            $tasklisttask->tr_color_class = "verdict-failed";
-            $tasklisttask->points = intval($submit->points);
+        if ($submit->result_id == VERDICT_PENDING || $submit->result_id == VERDICT_RUNNING) {
+            if ($submit->submit_time > $latest_running_time) {
+                $latest_running_time = $submit->submit_time;
+                $latest_running_submit_id = $submit->id;
+                $latest_running_status = format_verdict($submit->result_id);
+            }
+            continue;
         }
 
         if ($submit->result_id == VERDICT_ACCEPTED) {
+            $is_accepted = true;
+            if ($submit->submit_time > $latest_accepted_time) {
+                $latest_accepted_time = $submit->submit_time;
+                $latest_accepted_submit_id = $submit->id;
+            }
+        } else {
+            if ($submit->submit_time > $latest_failed_time) {
+                $latest_failed_time = $submit->submit_time;
+                $latest_failed_status = format_verdict($submit->result_id);
+                $latest_failed_submit_id = $submit->id;
+                $latest_failed_test_num = $submit->test_num_failed;
+            }
+        }
+    }
+
+    if ($has_any_submits) {
+        $tasklisttask->points = $best_points;
+        
+        if ($latest_running_time > 0) {
+            $tasklisttask->tr_color_class = "verdict-none";
+            $tasklisttask->current_status = $latest_running_status;
+            $tasklisttask->best_submit_id = $latest_running_submit_id;
+        }
+        elseif ($is_accepted) {
             $tasklisttask->tr_color_class = "verdict-accepted";
+            $tasklisttask->current_status = format_verdict(VERDICT_ACCEPTED);
+            $tasklisttask->best_submit_id = $latest_accepted_submit_id;
+        } 
+        elseif ($latest_failed_time > 0) {
+            $tasklisttask->tr_color_class = "verdict-failed";
+            
+            if ($latest_failed_test_num !== null) {
+                $latest_failed_status .= " - " . ($latest_failed_test_num + 1);
+            }
+            
+            $tasklisttask->current_status = $latest_failed_status;
+            $tasklisttask->best_submit_id = $latest_failed_submit_id;
         }
     }
 
@@ -234,9 +314,20 @@ foreach ($contest->tasks as $task) {
         onclick='$prepareaceeditorjs'
     ";
 
-    $tasklisttask->submit_key = md5($USER->email . $USER->sesskey . $contest->coursemodule->id . $task->task_id);
+    $tasklisttask->submit_key = bacs_generate_submit_key($contest->coursemodule->id, $task->task_id);
 
     $tasklist->add_task($tasklisttask);
+}
+
+$ws_secret = bacs_get_ws_secret();
+$ws_url = get_config('mod_bacs', 'ws_url');
+
+if (!empty($ws_secret) && !empty($ws_url)) {
+    $tasklist->ws_url = $ws_url;
+    $tasklist->ws_jwt = bacs_generate_jwt([
+        'user_id' => $USER->id,
+        'exp' => time() + 7200
+    ], $ws_secret);
 }
 
 print $contest->bacsoutput->render($tasklist);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/bacs/db" VERSION="20250615" COMMENT="XMLDB file for Moodle mod/bacs"
+<XMLDB PATH="mod/bacs/db" VERSION="20260518" COMMENT="XMLDB file for Moodle mod/bacs"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -20,6 +20,7 @@
         <FIELD NAME="detect_incidents" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="incidents_settings" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="incidents_info" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="show_max_points" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="1" SEQUENCE="false" COMMENT="Show max points for task"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -44,6 +45,7 @@
         <FIELD NAME="author" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Task author"/>
         <FIELD NAME="revision" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Task revision"/>
         <FIELD NAME="statement_format" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Task statement format"/>
+        <FIELD NAME="expert_rating" TYPE="number" LENGTH="10" DECIMALS="2" NOTNULL="false" SEQUENCE="false" COMMENT="Expert rating for the task"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -63,7 +65,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="bacs_tasks_to_contests" COMMENT="This table stores tasks list for each contest, thier order and points settings">
+    <TABLE NAME="bacs_tasks_to_contests" COMMENT="This table stores tasks list for each contest, their order and points settings">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Database record ID"/>
         <FIELD NAME="task_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Task ID"/>

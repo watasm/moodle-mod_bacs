@@ -55,11 +55,9 @@ if ($contest->currentgroupidbacs == 0) {
     $standings->submitsjsonbacs = $contest->bacs->standings;
 } else {
     $groupinfoentry = $contest->currentgroupinfobacs;
-
     if ($groupinfoentry) {
         $standings->submitsjsonbacs = $groupinfoentry->standings;
     }
-
     if ($groupinfoentry && $groupinfoentry->use_group_settings) {
         $standings->endtime   = $groupinfoentry->endtime;
         $standings->starttime = $groupinfoentry->starttime;
@@ -80,24 +78,30 @@ foreach ($selectedstudents as $curstudent) {
         'endtime'   => $curstudent->endtime,
     ];
 }
-
 $standings->studentsjsonbacs = json_encode($formattedstudents);
 
 // ...prepare tasks.
-$tasks = [];
+$tasks_for_js = []; 
+$tasks_for_template = []; 
 foreach ($contest->tasks as $task) {
-    $standingstask = new stdClass();
-
-    $standingstask->task_id    = $task->task_id;
-    $standingstask->name       = bacs_get_localized_name($task);
-    $standingstask->task_order = $task->task_order;
-
-    $tasks[] = $standingstask;
+    $tasks_for_js[] = [
+        'task_id'    => $task->task_id,
+        'name'       => bacs_get_localized_name($task),
+        'task_order' => $task->task_order, 
+    ];
+    $tasks_for_template[] = (object)[
+        'task_id'    => $task->task_id,
+        'name'       => bacs_get_localized_name($task),
+        'task_order' => $task->letter,
+    ];
 }
-$standings->tasksjsonbacs = json_encode($tasks);
+$standings->tasksjsonbacs = json_encode($tasks_for_js);
+// $standings->tasks_for_template = $tasks_for_template;
+
 
 // ...prepare localized strings.
-$standings->localizedstringsjsonbacs = json_encode([
+$strings_for_js = [
+    //general
     'submits'          => get_string('submits', 'mod_bacs'),
     'submitslowercase' => get_string('submitslowercase', 'mod_bacs'),
     'username'         => get_string('username', 'mod_bacs'),
@@ -106,8 +110,70 @@ $standings->localizedstringsjsonbacs = json_encode([
     'lastimprovedat'   => get_string('lastimprovedat', 'mod_bacs'),
     'amountofaccepted' => get_string('amountofaccepted', 'mod_bacs'),
     'amountoftried'    => get_string('amountoftried', 'mod_bacs'),
-]);
-
+    'timefromstart'    => get_string('timefromstart', 'mod_bacs'),
+    'showupsolving'    => get_string('showupsolving', 'mod_bacs'),
+    'hideupsolving'    => get_string('hideupsolving', 'mod_bacs'),
+    'verdict_ok'       => get_string('verdict_ok', 'mod_bacs'),
+    'verdict_not_ok'   => get_string('verdict_not_ok', 'mod_bacs'),
+    'firstname'        => get_string('firstname', 'mod_bacs'),
+    'lastname'         => get_string('lastname', 'mod_bacs'),
+    //charts
+    'allparticipants'         => get_string('allparticipants', 'mod_bacs'),
+    'interval'                => get_string('interval', 'mod_bacs'),
+    'auto'                    => get_string('auto', 'mod_bacs'),
+    'min_short'               => get_string('min_short', 'mod_bacs'),
+    'hour_short'              => get_string('hour_short', 'mod_bacs'),
+    'hours_short'             => get_string('hours_short', 'mod_bacs'),
+    'day_short'               => get_string('day_short', 'mod_bacs'),
+    'days_short'              => get_string('days_short', 'mod_bacs'),
+    'week_short'              => get_string('week_short', 'mod_bacs'),
+    'resetzoom'               => get_string('resetzoom', 'mod_bacs'),
+    'view'                    => get_string('view', 'mod_bacs'),
+    'apply'                   => get_string('apply', 'mod_bacs'),
+    'nodata'                  => get_string('nodata', 'mod_bacs'),
+    'nodatadesc'              => get_string('nodatadesc', 'mod_bacs'),
+    'notasksyet'              => get_string('notasksyet', 'mod_bacs'),
+    'notasksyetdesc'          => get_string('notasksyetdesc', 'mod_bacs'),
+    'tasknotsolvedyet'        => get_string('tasknotsolvedyet', 'mod_bacs'),
+    'tasknotsolvedyetdesc'    => get_string('tasknotsolvedyetdesc', 'mod_bacs'),
+    'usernotsubmittedyet'     => get_string('usernotsubmittedyet', 'mod_bacs'),
+    'usernotsubmittedyetdesc' => get_string('usernotsubmittedyetdesc', 'mod_bacs'),
+    'nosubmits'               => get_string('nosubmits', 'mod_bacs'),
+    'nosubmitsdesc'           => get_string('nosubmitsdesc', 'mod_bacs'),
+    'endofcontest'            => get_string('endofcontest', 'mod_bacs'),
+    'classsession'            => get_string('classsession', 'mod_bacs'),
+    'usersactive'             => get_string('usersactive', 'mod_bacs'),
+    'totalsubmits'            => get_string('totalsubmits', 'mod_bacs'),
+    'spammeranomaly'          => get_string('spammeranomaly', 'mod_bacs'),
+    'toptasks'                => get_string('toptasks', 'mod_bacs'),
+    'clicktoviewsubs'         => get_string('clicktoviewsubs', 'mod_bacs'),
+    'period'                  => get_string('period', 'mod_bacs'),
+    'elapsedfromstart'        => get_string('elapsedfromstart', 'mod_bacs'),
+    'firstaccepted'           => get_string('firstaccepted', 'mod_bacs'),
+    'submissionsdetails'      => get_string('submissionsdetails', 'mod_bacs'),
+    'classsessiondetails'     => get_string('classsessiondetails', 'mod_bacs'),
+    'total'                   => get_string('total', 'mod_bacs'),
+    'upsolving_label'         => get_string('upsolving_label', 'mod_bacs'),
+    'fail'                    => get_string('fail', 'mod_bacs'),
+    'subs'                    => get_string('subs', 'mod_bacs'),
+    'usr'                     => get_string('usr', 'mod_bacs'),
+    'participant'             => get_string('participant', 'mod_bacs'),
+    'statstotal'              => get_string('statstotal', 'mod_bacs'),
+    'statsok'                 => get_string('statsok', 'mod_bacs'),
+    'statssuccess'            => get_string('statssuccess', 'mod_bacs'),
+    'results_empty_title'     => get_string('results_empty_title', 'mod_bacs'),
+    'results_empty_desc'      => get_string('results_empty_desc', 'mod_bacs'),
+    'race_empty_title'        => get_string('race_empty_title', 'mod_bacs'),
+    'race_empty_desc'         => get_string('race_empty_desc', 'mod_bacs'),
+    'participants'            => get_string('participants', 'mod_bacs'),
+    'topparticipants'         => get_string('topparticipants', 'mod_bacs'),
+    'rank'                    => get_string('rank', 'mod_bacs'),
+    'event'                   => get_string('event', 'mod_bacs'),
+    'start'                   => get_string('start', 'mod_bacs'),
+    'end'                     => get_string('end', 'mod_bacs'),
+    'virtual'                 => get_string('virtual', 'mod_bacs'),
+];
+$standings->localizedstringsjsonbacs = json_encode($strings_for_js);
 
 print $contest->bacsoutput->render($standings);
 

@@ -1,0 +1,62 @@
+<style>
+    .bacs-chart-container {
+        background-color: #FFFFFF; 
+        border: 1px solid #dee2e6; 
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+    }
+</style>
+
+<div id="view-leader-dynamics" class="bacs-view">
+    <div class="bacs-chart-container">
+        
+        <div id="leader-dynamics-controls" class="mb-3 d-flex justify-content-center">
+            <div class="btn-group btn-group-sm shadow-sm" role="group">
+                <button type="button" class="btn btn-outline-primary active px-4" data-mode="realtime">{{#str}} chart_mode_realtime, mod_bacs {{/str}}</button>
+                <button type="button" class="btn btn-outline-secondary px-4" data-mode="normalized">{{#str}} chart_mode_normalized, mod_bacs {{/str}}</button>
+                <button type="button" class="btn btn-outline-secondary px-4" data-mode="events">{{#str}} events, mod_bacs {{/str}}</button>
+            </div>
+        </div>
+
+        <div class="mb-3 d-flex align-items-center">
+            
+            <div>
+                <button id="leader-dynamics-reset-zoom" class="btn btn-sm btn-outline-danger d-none shadow-sm">
+                    <i class="bi bi-zoom-out"></i> {{#str}} resetzoom, mod_bacs {{/str}}
+                </button>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-end align-items-center ms-auto" style="gap: 12px; min-height: 38px;">
+                
+                <div id="leader-dynamics-step-container" class="d-none align-items-center bg-light p-1 rounded border shadow-sm">
+                    <label for="leader-dynamics-step" class="me-2 ms-2 text-muted fw-bold mb-0" style="font-size: 0.85rem;">{{#str}} step, mod_bacs {{/str}}:</label>
+                    <select id="leader-dynamics-step" class="form-select form-select-sm border-0" style="background: transparent;">
+                        <option value="1">1%</option>
+                        <option value="2">2%</option>
+                        <option value="5" selected>5%</option>
+                        <option value="10">10%</option>
+                        <option value="20">20%</option>
+                        <option value="25">25%</option>
+                    </select>
+                </div>
+
+                <div class="form-check form-switch d-flex align-items-center m-0" id="leader-dynamics-hide-upsolving-container">
+                    <input class="form-check-input me-2" type="checkbox" id="leader-dynamics-hide-upsolving" style="cursor: pointer;">
+                    <label class="form-check-label text-muted fw-bold" style="font-size: 0.85rem; cursor: pointer; user-select: none;" for="leader-dynamics-hide-upsolving">{{#str}} hideupsolving, mod_bacs {{/str}}</label>
+                </div>
+
+                <div class="d-flex align-items-center bg-light p-1 rounded border shadow-sm" id="leader-dynamics-manual-zoom">
+                    <span class="text-muted ms-2 me-2" style="font-size: 0.85rem;"><i class="bi bi-calendar-range"></i> {{#str}} view, mod_bacs {{/str}}:</span>
+                    <input type="datetime-local" id="leader-zoom-start" class="form-control form-control-sm border-0" style="max-width: 175px; background: transparent;">
+                    <span class="text-muted mx-1">—</span>
+                    <input type="datetime-local" id="leader-zoom-end" class="form-control form-control-sm border-0" style="max-width: 175px; background: transparent;">
+                    <button id="leader-zoom-apply" class="btn btn-sm btn-primary ms-2 px-3 rounded-pill">{{#str}} apply, mod_bacs {{/str}}</button>
+                </div>
+                
+            </div>
+        </div>
+
+        <canvas id="leader-dynamics-chart" style="max-height: 600px;"></canvas>
+    </div>
+</div>
