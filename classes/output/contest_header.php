@@ -59,6 +59,10 @@ class contest_header implements renderable, templatable {
     /**
      * @var mixed
      */
+    public $timevalidbacs = true;
+    /**
+     * @var mixed
+     */
     public $conteststatusbacs = "";
 
     /**
@@ -95,6 +99,7 @@ class contest_header implements renderable, templatable {
 
         $data->minutes_from_start = $this->minutesfromstartbacs;
         $data->minutes_total      = $this->minutestotalbacs;
+        $data->time_valid         = $this->timevalidbacs;
         $data->contest_status     = $this->conteststatusbacs;
 
         $data->isolate_participants = $this->isolateparticipantsbacs;

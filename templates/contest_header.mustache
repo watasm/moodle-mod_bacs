@@ -9,7 +9,7 @@
     </div>
 
     <div class="text-muted">
-        <i class="bi bi-clock"></i> {{#str}}time, mod_bacs{{/str}}: <b>{{minutes_from_start}}</b> / <b>{{minutes_total}}</b> 
+        <i class="bi bi-clock"></i> {{#str}}time, mod_bacs{{/str}}: {{#time_valid}}<b>{{minutes_from_start}}</b> / <b>{{minutes_total}}</b>{{/time_valid}}{{^time_valid}}<b>—</b>{{/time_valid}}
         <span class="mx-2">|</span> 
         <i class="bi bi-info-circle"></i> {{#str}}status, mod_bacs{{/str}}: <b>{{contest_status}}</b>
     </div>
