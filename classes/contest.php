@@ -541,9 +541,9 @@ class contest {
             $virtualpinfo = $this->get_virtual_participation_for_user($userid, $curgroup->id);
 
             if ($groupinfo && $groupinfo->use_group_settings) {
-                $cursettings = $groupinfo;
+                $cursettings = clone $groupinfo;
             } else {
-                $cursettings = $this->bacs;
+                $cursettings = clone $this->bacs;
             }
 
             if ($virtualpinfo) {
@@ -942,6 +942,7 @@ class contest {
             $contestheader->conteststatusbacs = get_string('statusunknown', 'mod_bacs');
         }
 
+        $contestheader->timevalidbacs         = ($duration > 0);
         $contestheader->minutestotalbacs      = max(0, floor($duration / 60));
         $contestheader->minutesfromstartbacs = max(0, floor($timefromstart / 60));
         if ($contestheader->minutesfromstartbacs > $contestheader->minutestotalbacs) {
