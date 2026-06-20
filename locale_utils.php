@@ -51,30 +51,19 @@ function bacs_filter_multilingual_data($data, $preferedlanguages, $valueKey) {
 }
 
 /**
- * Finds value by language in array of associative arrays
- * 
- * @param array $data Array of associative arrays with keys 'lang' and 'valueKey'
- * @param string $lang Language to search for
- * @param string $valueKey Key for value ('url' or 'name')
- * @return mixed|null Found value or null
- */
-function bacs_find_value_by_lang($data, $lang, $valueKey) {
-    foreach ($data as $item) {
-        if ($item['lang'] === strtoupper($lang)) {
-            return $item[$valueKey];
-        }
-    }
-    return null;
-}
-
-/**
  * Gets localized name for task
  * 
  * @param object $task Task object
  * @return string Localized name
  */
 function bacs_get_localized_name($task) {
-    $preferedlanguages = [current_language()];
+    // Name language priority: interface language, then the admin's preferred
+    // languages, then C (author default), then ru. Mirrors the statement links.
+    $preferedlanguages = array_merge(
+        [current_language()],
+        array_filter(explode(',', (string) get_config('mod_bacs', 'preferedlanguages'))),
+        ['C', 'ru']
+    );
     
     $localized_name = $task->name;
     
@@ -91,14 +80,6 @@ function bacs_get_localized_name($task) {
                 }
             }
 
-            if ($found_name === null && isset($names['C'])) {
-                $found_name = $names['C'];
-            }
-            
-            if ($found_name === null && isset($names['ru'])) {
-                $found_name = $names['ru'];
-            }
-            
             if ($found_name === null) {
                 $found_name = reset($names);
             }
@@ -110,4 +91,45 @@ function bacs_get_localized_name($task) {
     }
     
     return $localized_name;
-} 
+}
+
+/**
+ * Gets the statement URL for a task in the best available language.
+ *
+ * Uses the same priority as bacs_get_localized_name(): interface language, then
+ * the admin's preferred languages, then C (author default), then ru, then the
+ * first available. Returns $task->statement_url when there is no multilingual data.
+ *
+ * @param object $task Task object (expects ->statement_url and ->statement_urls)
+ * @return string Statement URL
+ */
+function bacs_get_localized_statement_url($task) {
+    $url = $task->statement_url;
+
+    if (isset($task->statement_urls) && $task->statement_urls !== '' && $task->statement_urls !== 'null') {
+        $urls = is_string($task->statement_urls) ? json_decode($task->statement_urls, true) : $task->statement_urls;
+
+        if (!empty($urls)) {
+            $prefs = array_filter(explode(',', (string) get_config('mod_bacs', 'preferedlanguages')));
+            $order = array_merge([current_language()], $prefs, ['C', 'ru']);
+
+            $found = null;
+            foreach ($order as $lang) {
+                if (isset($urls[$lang])) {
+                    $found = $urls[$lang];
+                    break;
+                }
+            }
+
+            if ($found === null) {
+                $found = reset($urls);
+            }
+
+            if ($found !== false && $found !== null && $found !== '') {
+                $url = $found;
+            }
+        }
+    }
+
+    return $url;
+}

@@ -73,8 +73,6 @@ foreach ($contest->tasks as $task) {
     // getting preferred languages from module settings
     $preferedlanguages = explode(',', get_config('mod_bacs', 'preferedlanguages'));
     $preferedlanguages = array_filter($preferedlanguages); // remove empty values
-    // getting current language from moodle
-    $currentlang = current_language();
 
     $tasklisttask->statement_url = $task->statement_url;
 
@@ -91,39 +89,14 @@ foreach ($contest->tasks as $task) {
             $tasklisttask->statement_urls = bacs_filter_multilingual_data($tasklisttask->statement_urls, $preferedlanguages, 'url');
 
             if (count($preferedlanguages) == 1) {
-                // search url by priority: preferred language -> C -> RU -> first available
-                $preferred_url = bacs_find_value_by_lang($tasklisttask->statement_urls, $preferedlanguages[0], 'url');
-
-                if ($preferred_url === null) {
-                    $preferred_url = bacs_find_value_by_lang($tasklisttask->statement_urls, 'C', 'url');
-                }
-
-                if ($preferred_url === null) {
-                    $preferred_url = bacs_find_value_by_lang($tasklisttask->statement_urls, 'RU', 'url');
-                }
-
-                // if nothing is found, take the first available
-                if ($preferred_url === null && !empty($tasklisttask->statement_urls)) {
-                    $preferred_url = $tasklisttask->statement_urls[0]['url'];
-                }
                 $tasklisttask->is_multi_statements = false;
-                $tasklisttask->statement_url = $preferred_url;
+                $tasklisttask->statement_url = bacs_get_localized_statement_url($task);
             }
         }
     }
 
-    if(isset($task->names)) {
-        $tasklisttask->names = is_string($task->names) ? json_decode($task->names, true) : $task->names;
-        
-        $tasklisttask->is_multi_names = empty($tasklisttask->names) ? 0 : count($tasklisttask->names) > 0;
-        if ($tasklisttask->is_multi_names) {
-            $tasklisttask->names = bacs_filter_multilingual_data($tasklisttask->names, [$currentlang], 'name');
-        }
-    }
-
-
     $tasklisttask->statement_format = $task->statement_format;
-    $tasklisttask->name = $task->name;
+    $tasklisttask->name = bacs_get_localized_name($task);
     $tasklisttask->letter = $task->letter;
     $tasklisttask->task_id = $task->task_id;
     $tasklisttask->task_order = $task->task_order;

@@ -100,8 +100,8 @@ class mod_bacs_mod_form extends moodleform_mod
         $expert_select = $has_expert_rating ? "t.expert_rating" : "NULL as expert_rating";
 
         if ($this->has_rating_table) {
-            $sql_tasks = "SELECT t.task_id, t.name, t.author, t.statement_format, 
-                                 t.statement_url, t.test_points as default_points,
+            $sql_tasks = "SELECT t.task_id, t.name, t.names, t.author, t.statement_format, 
+                                 t.statement_url, t.statement_urls, t.test_points as default_points,
                                  t.count_tests, t.count_pretests, t.time_limit_millis, t.memory_limit_bytes,
                                  tc.collection_id, 
                                  rt.id as rt_id, rt.elo_rating, rt.init_rating, rt.min_rating, rt.max_rating, rt.confidence, rt.submit_count, rt.contest_count, rt.seen_by_count, rt.solved,
@@ -115,8 +115,8 @@ class mod_bacs_mod_form extends moodleform_mod
                 $task_ratings[$r->task_id] = round($r->elo_rating);
             }
         } else {
-            $sql_tasks = "SELECT t.task_id, t.name, t.author, t.statement_format, 
-                                 t.statement_url, t.test_points as default_points,
+            $sql_tasks = "SELECT t.task_id, t.name, t.names, t.author, t.statement_format, 
+                                 t.statement_url, t.statement_urls, t.test_points as default_points,
                                  t.count_tests, t.count_pretests, t.time_limit_millis, t.memory_limit_bytes,
                                  tc.collection_id, NULL as elo_rating,
                                  $expert_select
@@ -125,9 +125,14 @@ class mod_bacs_mod_form extends moodleform_mod
         }
         
         $all_tasks_raw = $DB->get_records_sql($sql_tasks);
+        // Show task names localized to the current language (one name, same as
+        // the monitor/statements); drop the raw names JSON afterwards.
+        foreach ($all_tasks_raw as $t) {
+            $t->name = bacs_get_localized_name($t);
+            $t->statement_url = bacs_get_localized_statement_url($t);
+            unset($t->names, $t->statement_urls);
+        }
         $collections = $DB->get_records('bacs_tasks_collections',[], 'id ASC');
-
-        $lang = current_language();
 
         $js_data =[
             'tasks' => array_values($all_tasks_raw),
