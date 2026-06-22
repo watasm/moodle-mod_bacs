@@ -7,7 +7,7 @@ This is Moodle activity plugin for automatic solution judgment for programming t
 1. Copy the module code directly to the *moodleroot/mod/bacs* directory.
 2. Go to http://your-moodle/admin (Site administration -> Notifications) to trigger the installation process.
 3. Replace NoDefaultKey with your Sybon API key to access the tasks collections. If necessary, configure other default settings.
-4. Use in any course as wished.
+4. Add cronjob `* * * * * /usr/bin/flock -n /var/lock/moodle-adhoc.lock /usr/bin/php <MOODLE_SITE_DIR>/admin/cli/adhoc_task.php --execute --keep-alive=49 >> <MOODLE_DATA_DIR>/moodle-adhoc.log 2>&1`
 
 ### Setting up the WebSocket Server (Node.js):
 
