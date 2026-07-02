@@ -58,8 +58,18 @@ window.initializeLeaderDynamicsChart = () => {
   BacsUtils.initDragZoomTooltip(
     canvasId,
     prefix,
-    (val) => BacsUtils.formatShortDate(contestData.starttime * 1000 + val, currentLocale),
-    () => window.resultsChartInstance,
+    (val) => {
+      if (currentMode === 'normalized') {
+        const percent = Math.max(0, Math.min(100, Math.round(val)));
+        return `${percent}%`;
+      }
+      if (currentMode === 'events') {
+        const eventNum = Math.max(0, Math.round(val));
+        return `#${eventNum}`;
+      }
+      return BacsUtils.formatShortDate(contestData.starttime * 1000 + val, currentLocale);
+    },
+    () => window.leaderDynamicsChartInstance,
     signal,
   );
 
@@ -545,11 +555,11 @@ window.initializeLeaderDynamicsChart = () => {
   }
 
   BacsUtils.bindTimeZoomControls(
-    () => window.resultsChartInstance,
-    'results-zoom-start',
-    'results-zoom-end',
-    'results-zoom-apply',
-    'results-graph-reset-zoom',
+    () => window.leaderDynamicsChartInstance,
+    'leader-zoom-start',
+    'leader-zoom-end',
+    'leader-zoom-apply',
+    'leader-dynamics-reset-zoom',
     contestData.starttime,
     signal,
   );
